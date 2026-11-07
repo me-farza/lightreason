@@ -2,7 +2,9 @@
 
 # Lightreason
 
-Lightreason runs the original BF16 **Qwen2.5-3B-Instruct** on NVIDIA CUDA. Live Studio can generate a single-file web page, preview it in an isolated iframe, and compare the standard and Lightreason Exact runners with the same model and prompt.
+Lightreason runs the original BF16 **Qwen2.5-3B-Instruct** on NVIDIA CUDA.
+
+Live Studio is a simple, interactive demo. Build and preview a web page, then try the same prompt with the standard and Lightreason Exact runners to see how fast each one responds.
 
 The source is [0BSD](LICENSE). [Transparent logo](demo_chat/static/lightreason.svg). The pinned Qwen checkpoint has separate [research-only terms](THIRD_PARTY.md). This release contains code and input fixtures, with model downloads handled separately.
 
