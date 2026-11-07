@@ -1,0 +1,92 @@
+{
+  "schema": "lightreason-cost-aware-native-eos-suite-v1",
+  "created_utc": "2026-11-06",
+  "selection_policy": "Six development and six held-out input-only tasks fixed before measuring any new configuration. Tune only on development. Run held-out only after selecting the candidate; preserve failures and report all tasks. None of the previous six timing prompts or 160 quality cases is relabeled as a new held-out case.",
+  "decoding_policy": "Original Qwen chat template, greedy argmax, first native EOS or max_new_tokens=1024 for every engine and both streaming modes. No reference tokens or expected lengths enter generation.",
+  "cases": [
+    {
+      "id": "dev-code-prefix",
+      "split": "development",
+      "domain": "code",
+      "prompt": "Write a Python function prefix_sums(values) that returns a new list of running sums of the input integers. For example, [3, -1, 4] becomes [3, 2, 6]. An empty input returns an empty list. Do not modify the input. Give the complete function in one python code block and a brief explanation. Use only Python built-ins.",
+      "max_new_tokens": 1024
+    },
+    {
+      "id": "dev-code-unique",
+      "split": "development",
+      "domain": "code",
+      "prompt": "Write a Python function first_unique(values) that returns the first integer in input order that occurs exactly once. Return None if none exists, including an empty input. Do not modify values. Give the complete function in one python code block and a brief explanation. Use only Python built-ins, with no imports.",
+      "max_new_tokens": 1024
+    },
+    {
+      "id": "dev-math-inventory",
+      "split": "development",
+      "domain": "reasoning",
+      "prompt": "A shop starts with 150 books. It sells two fifths of them for $8 each, then receives 30 more books. It then sells one quarter of its current stock for $10 each. How many books remain and what is the total revenue from the two sales? Explain the calculation briefly. End with one JSON object containing only the integer keys remaining and revenue.",
+      "max_new_tokens": 1024
+    },
+    {
+      "id": "dev-math-machines",
+      "split": "development",
+      "domain": "reasoning",
+      "prompt": "Six identical machines produce 432 parts in four hours. At the same constant rate, nine machines operate for five hours. Exactly 10 percent of the new batch is defective. How many usable parts are in the new batch? Explain your calculation briefly, then end with FINAL: followed by the integer answer.",
+      "max_new_tokens": 1024
+    },
+    {
+      "id": "dev-json-net",
+      "split": "development",
+      "domain": "structured",
+      "prompt": "Return only a JSON object with keys items and total. For each input record, compute net = gross - refund. items must contain objects with only id and net, sorted by id ascending. total is the sum of all net values. Input records: [{\"id\":\"c\",\"gross\":17,\"refund\":2},{\"id\":\"a\",\"gross\":12,\"refund\":5},{\"id\":\"b\",\"gross\":9,\"refund\":1}]. Do not include markdown fences or an explanation.",
+      "max_new_tokens": 1024
+    },
+    {
+      "id": "dev-logic-order",
+      "split": "development",
+      "domain": "logic",
+      "prompt": "Four tasks named Maple, Nova, Cedar, and Birch run once each in a single sequence. Nova runs before Cedar. Cedar runs immediately before Birch. Maple runs after Nova and before Cedar. Determine the unique sequence. Explain briefly, then end with a JSON object containing only order, an array of all four task names.",
+      "max_new_tokens": 1024
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "domain": "code",
+      "prompt": "Write a Python function stable_dedupe(words) that returns each distinct input string once, in its first-appearance order. Matching is case-sensitive. Return an empty list for empty input and do not modify the input. Give the complete function in one python code block and a brief explanation. Use only Python built-ins, with no imports.",
+      "max_new_tokens": 1024
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "domain": "code",
+      "prompt": "Write a Python function merge_intervals(intervals). Each pair [start, end] is a closed interval with start <= end. Return a new list of sorted, merged intervals. Merge overlap and touching endpoints, for example [1, 3] and [3, 5] become [1, 5]. Handle empty input and do not mutate the input or its pairs. Give one complete python code block and a brief explanation. Use only Python built-ins, with no imports.",
+      "max_new_tokens": 1024
+    },
+    {
+      "id": "heldout-math-water",
+      "split": "heldout",
+      "domain": "reasoning",
+      "prompt": "A tank initially contains 630 liters of water. Two sevenths of this water are drained. Next 90 liters are added. Finally one third of the water then in the tank is used. How many liters remain? Explain the calculation briefly, then end with FINAL: followed by the integer answer.",
+      "max_new_tokens": 1024
+    },
+    {
+      "id": "heldout-math-tickets",
+      "split": "heldout",
+      "domain": "reasoning",
+      "prompt": "A venue sells 62 tickets. Adult tickets cost $12 and child tickets cost $7. Total ticket revenue is $589. How many adult tickets and how many child tickets were sold? Explain the equations briefly. End with one JSON object containing only the integer keys adults and children.",
+      "max_new_tokens": 1024
+    },
+    {
+      "id": "heldout-json-stock",
+      "split": "heldout",
+      "domain": "structured",
+      "prompt": "Return only a JSON object with keys stock and total_available. Compute available = quantity - reserved for every input record. stock must contain objects with only item and available, sorted by available descending. total_available is their sum. Input records: [{\"item\":\"pear\",\"quantity\":25,\"reserved\":5},{\"item\":\"orange\",\"quantity\":42,\"reserved\":15},{\"item\":\"apple\",\"quantity\":30,\"reserved\":8}]. Do not include markdown fences or explanation.",
+      "max_new_tokens": 1024
+    },
+    {
+      "id": "heldout-logic-arrivals",
+      "split": "heldout",
+      "domain": "logic",
+      "prompt": "Four birds named Iris, Juniper, Kestrel, and Larch arrive once each in a single order. Juniper arrives after Iris. Kestrel arrives immediately before Iris. Larch arrives after Juniper. Determine the unique arrival order. Explain briefly, then end with a JSON object containing only order, an array of all four bird names.",
+      "max_new_tokens": 1024
+    }
+  ]
+}

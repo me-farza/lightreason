@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Lightreason · Live studio</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/preview.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Lightreason home"><img src="/lightreason.svg" alt="" width="152" height="30"> <span class="brand-divider">/</span> <span class="brand-sub">live studio</span></a>
+      <div id="connection" class="connection" role="status"><span class="connection-dot"></span><span id="connection-text">Connecting to GPU</span></div>
+    </header>
+
+    <section class="intro" aria-labelledby="page-title">
+      <div><p class="eyebrow">LIVE · SAME MODEL · SAME GPU</p><h1 id="page-title">From prompt <span>to preview.</span></h1><p id="intro-copy" class="intro-copy">Watch the code arrive and the page take shape. Choose how Qwen runs, build a page, then ask for the next change.</p></div>
+      <div class="hardware"><span class="hardware-icon" aria-hidden="true">▦</span><div><span id="gpu-name">RTX 4090</span><small id="model-name">Same model: Qwen2.5-3B-Instruct · BF16</small></div></div>
+    </section>
+
+    <div class="view-switch" role="tablist" aria-label="Studio view"><button id="view-build" class="view-tab active" type="button" role="tab" aria-selected="true" aria-controls="build-view">Build preview <span>Code + live page</span></button><button id="view-compare" class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="compare-view">Compare runners <span>Same Qwen · two runners</span></button></div>
+
+    <form id="compare-form" class="composer">
+      <label id="prompt-label" for="prompt">WHAT SHOULD WE BUILD?</label>
+      <textarea id="prompt" name="prompt" rows="3" maxlength="8000" required placeholder="Describe a page or ask for a change…">Build a compact weather dashboard as one complete HTML file with inline CSS and JavaScript. Use a dark theme, a city search field and sample weather data. Keep it concise. Return only the HTML.</textarea>
+      <div class="composer-bottom">
+        <div class="controls">
+          <div class="control"><label for="app-action">Action</label><select id="app-action"><option value="new" selected>New app</option><option value="edit" disabled>Edit current app</option><option value="patch" disabled>Patch edit (experimental)</option></select></div>
+          <div class="control"><label id="mode-label" for="mode">Qwen runner</label><select id="mode" name="mode"><option value="optimized">Qwen · Lightreason Turbo</option><option value="strict">Qwen · Lightreason Exact</option><option value="original">Qwen · Standard runner</option></select></div>
+          <div class="control"><label for="max-tokens">Output limit</label><select id="max-tokens" name="max-tokens"><option value="auto" selected>Until finished</option><option value="64">64 tokens</option><option value="128">128 tokens</option><option value="256">256 tokens</option><option value="512">512 tokens</option><option value="1024">1,024 tokens</option></select></div>
+        </div>
+        <div class="demo-actions"><button id="design-button" class="design-button" type="button"><span>Design instructions</span><small id="design-state">On</small></button><button id="run-button" class="run-button" type="submit" disabled><span id="run-button-text">Connecting…</span><span aria-hidden="true">↗</span></button></div>
+      </div>
+      <p id="app-action-hint" class="app-action-hint">New app starts fresh. The current page is not sent with your prompt.</p>
+      <div id="context-control" class="context-control" hidden><strong id="context-label-text">Editing the current app</strong><span id="context-size"></span><details id="context-details"><summary>Current HTML included with your prompt</summary><pre id="context-code"></pre></details></div>
+      <div id="build-examples" class="examples"><span>TRY</span><button type="button" data-prompt="Build a compact weather dashboard as one complete HTML file with inline CSS and JavaScript. Use a dark theme, a city search field and sample weather data. Keep it concise. Return only the HTML.">Weather dashboard</button><button type="button" data-prompt="Create a small coffee shop landing page as one complete HTML file with inline CSS and JavaScript. Use warm colors, a menu and a working order button. Return only the HTML.">Coffee shop</button><button type="button" data-prompt="Create a compact task list app as one complete HTML file with inline CSS and JavaScript. Support adding, completing and deleting tasks. Return only the HTML.">Task app</button></div>
+      <div id="compare-examples" class="examples" hidden><span>TRY</span><button type="button" data-prompt="Write a Python function that returns the first n Fibonacci numbers and explain it.">Fibonacci code</button><button type="button" data-prompt="A train travels 180 kilometers in 2.5 hours. What is its average speed? Explain your calculation.">A math question</button><button type="button" data-prompt="Explain why the sky is blue in language a curious ten-year-old would understand.">A simple explanation</button></div>
+    </form>
+
+    <div class="method-note"><span aria-hidden="true">ⓘ</span><p id="execution-note">The code streams from the selected runner. The browser renders the HTML, CSS and JavaScript in an isolated live preview.</p></div>
+
+    <section id="build-view" class="studio-view" role="tabpanel" aria-labelledby="view-build">
+      <div class="results build-results">
+        <article class="runner-panel candidate" id="single-panel">
+          <header class="panel-header"><div><p id="single-runner-label" class="runner-kicker">Lightreason Turbo</p><h2 id="single-title">Qwen2.5-3B-Instruct</h2></div><span class="runner-state" id="single-state">Ready to build</span></header>
+          <div class="metrics"><div><span>Generation time</span><strong id="single-seconds">—<small> s</small></strong></div><div><span>Output rate</span><strong id="single-rate">—<small> tok/s</small></strong></div><div><span>Output</span><strong id="single-tokens">—<small> tokens</small></strong></div></div>
+          <div id="single-latency" class="request-latency" hidden></div>
+          <textarea id="single-code" class="code-editor" spellcheck="false" aria-label="Generated web code" placeholder="Live HTML, CSS and JavaScript will appear here. You can edit the code after generation."></textarea>
+          <footer class="panel-footer code-tools"><span id="single-first" class="first-token"></span><span id="single-end" class="end-reason">—</span><button id="render-code" type="button" disabled>Render edited code ↗</button><button id="clear-page" type="button" disabled aria-label="Start a new app and clear the current page">Clear app</button></footer>
+        </article>
+        <article class="runner-panel preview-panel" id="preview-panel">
+          <header class="panel-header"><div><p class="runner-kicker">LIVE PREVIEW</p><h2>Your page</h2></div><span id="preview-status" class="runner-state">Waiting for code</span></header>
+          <div class="preview-chrome"><span class="preview-window-dots" aria-hidden="true">● ● ●</span><span>local preview</span><span class="preview-isolation">isolated</span></div>
+          <div class="preview-toolbar"><label for="preview-viewport-size">Viewport</label><select id="preview-viewport-size"><option value="responsive" selected>Responsive</option><option value="1024">Desktop · 1024</option><option value="768">Tablet · 768</option><option value="375">Mobile · 375</option></select><label class="preview-fit-label"><input id="preview-fit" type="checkbox" checked> Fit to pane</label></div>
+          <div id="preview-viewport" class="preview-viewport"><iframe id="web-preview" class="web-preview" title="Live website preview" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe></div>
+          <footer class="preview-footer"><span id="preview-detail">Single-file HTML, CSS and JavaScript. External packages and services are not loaded.</span></footer>
+        </article>
+      </div>
+      <div class="build-summary"><div><span>First page preview</span><strong id="preview-first">—<small> s from click</small></strong></div><div><span>Latest browser render</span><strong id="preview-render-time">—<small> ms</small></strong></div><p>Preview rendering is measured separately from model generation.</p><button id="single-export-button" class="export-button" type="button" disabled>Save run ↓</button></div>
+      <section class="update-history" aria-label="Page update timings"><div class="history-heading"><h3>Page updates</h3><span>Real generation time for each prompt</span></div><ol id="update-history"><li class="history-empty">Build a page, then ask for a change to compare update times.</li></ol></section>
+    </section>
+
+    <section id="compare-view" class="studio-view" role="tabpanel" aria-labelledby="view-compare" hidden>
+      <div class="results" aria-label="Runner comparison">
+        <article class="runner-panel baseline" id="baseline-panel"><header class="panel-header"><div><p class="runner-kicker">Standard runner</p><h2>Qwen2.5-3B-Instruct</h2></div><span class="runner-state" id="baseline-state">Ready to compare</span></header><div class="metrics"><div><span>Generation time</span><strong id="baseline-seconds">—<small> s</small></strong></div><div><span>Output rate</span><strong id="baseline-rate">—<small> tok/s</small></strong></div><div><span>Output</span><strong id="baseline-tokens">—<small> tokens</small></strong></div></div><div id="baseline-latency" class="request-latency" hidden></div><div class="output-wrap"><pre id="baseline-output" class="output" aria-label="Qwen standard runner response"><span class="placeholder">The original model’s response will appear here.</span></pre></div><footer class="panel-footer"><span class="model-dot"></span><span>Qwen2.5-3B-Instruct · BF16</span><span id="baseline-first" class="first-token"></span><span id="baseline-end" class="end-reason">—</span></footer></article>
+        <article class="runner-panel candidate" id="candidate-panel"><header class="panel-header"><div><p class="runner-kicker" id="candidate-kicker">Lightreason Turbo</p><h2 id="candidate-title">Qwen2.5-3B-Instruct</h2></div><span class="runner-state" id="candidate-state">Ready to compare</span></header><div class="metrics"><div><span>Generation time</span><strong id="candidate-seconds">—<small> s</small></strong></div><div><span>Output rate</span><strong id="candidate-rate">—<small> tok/s</small></strong></div><div><span>Output</span><strong id="candidate-tokens">—<small> tokens</small></strong></div></div><div id="candidate-latency" class="request-latency" hidden></div><div class="output-wrap"><pre id="candidate-output" class="output" aria-label="Lightreason response"><span class="placeholder">Lightreason’s response will appear here.</span></pre></div><footer class="panel-footer"><span class="model-dot"></span><span>Same Qwen2.5-3B-Instruct · BF16</span><span id="candidate-first" class="first-token"></span><span id="candidate-end" class="end-reason">—</span></footer></article>
+      </div>
+      <section class="comparison-summary" aria-label="Measured comparison" aria-live="polite"><div class="summary-main"><span class="summary-label" id="speedup-label">GENERATION SPEEDUP</span><strong id="speedup">—<small>×</small></strong><span id="speedup-detail">Run a prompt to compare generation time.</span></div><div class="summary-item"><span>Token-rate ratio</span><strong id="rate-ratio">—</strong><small>Accounts for different output lengths</small></div><div class="summary-item"><span>Exact output match</span><strong id="exact-match">Not measured yet</strong><small id="match-detail">Compared using token IDs</small></div><button class="export-button" id="export-button" type="button" disabled>Save results <span aria-hidden="true">↓</span></button></section>
+    </section>
+
+    <div id="activity" class="activity" role="status">Waiting for the GPU service.</div><div id="timing-detail" class="activity" hidden></div><div id="error" class="error" role="alert" hidden></div>
+    <footer class="footnote"><p id="mode-note">Qwen2.5-3B-Instruct uses Lightreason Turbo. Compare runners reports exact token matching.</p><p>All options run the same Qwen2.5-3B-Instruct weights. Lightreason is an execution runner, not a different model. New app starts without the old page; Edit current app includes its HTML. Design instructions apply equally to both runners. Generated websites run in an isolated browser preview. Until finished stops naturally or at this session’s 4,096-token context limit. The supervised GPU session lasts up to one hour.</p></footer>
+  </main>
+  <dialog id="design-dialog" class="design-dialog" aria-labelledby="design-dialog-title">
+    <div class="design-dialog-heading"><div><p class="eyebrow">WEB DESIGN SETTINGS</p><h2 id="design-dialog-title">Design instructions</h2></div><button id="design-cancel" class="dialog-close" type="button" aria-label="Close design instructions">×</button></div>
+    <p>These instructions are sent as the system prompt to Qwen. They apply to the standard and Lightreason runners equally.</p>
+    <label class="design-enabled-label"><input id="design-enabled" type="checkbox" checked> Use design instructions</label>
+    <label class="system-prompt-label" for="design-system-prompt">System prompt (design)</label>
+    <textarea id="design-system-prompt" rows="9" maxlength="4000" spellcheck="false"></textarea>
+    <div class="design-dialog-actions"><button id="design-reset" type="button">Reset to default</button><button id="design-save" class="run-button" type="button">Apply instructions</button></div>
+  </dialog>
+</body>
+</html>
