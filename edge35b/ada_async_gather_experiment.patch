@@ -1,0 +1,144 @@
+--- a/edge35b/bf16_gather_ada.cu
++++ b/edge35b/bf16_gather_ada.cu
+@@ -173,3 +173,115 @@
+                   unpack_cpu_tile_pair(low.y >> 16, codes >> 24, pair)};
+     }
+ }
++
++// Coalesce the packed tile into 16-byte PCIe reads. Each warp owns its
++// pipeline, including the raw fallback for tiles that cannot be compressed.
++__device__ __forceinline__ unsigned int issue_cpu_tile(const unsigned char* packed,
++                                                       const unsigned char* bases,
++                                                       const WordQuad* raw, int tile, int end,
++                                                       unsigned char* staging) {
++    const int lane = threadIdx.x & 31;
++    unsigned int base = 255;
++    if (tile < end) {
++        if (lane == 0) {
++            base = bases[tile];
++        }
++        base = __shfl_sync(0xffffffffu, base, 0);
++        if (base == 255 || lane < 24) {
++            const void* source = base == 255 ? static_cast<const void*>(raw + tile * 32 + lane)
++                                             : static_cast<const void*>(packed + tile * 384 + lane * 16);
++            const unsigned int shared = static_cast<unsigned int>(__cvta_generic_to_shared(staging + lane * 16));
++            asm volatile("cp.async.cg.shared.global [%0], [%1], 16;" :: "r"(shared), "l"(source) : "memory");
++        }
++    }
++    // Empty groups keep the same wait distance at the end of each row.
++    asm volatile("cp.async.commit_group;" ::: "memory");
++    return base;
++}
++
++template <int Stages>
++__device__ __forceinline__ void gather_cpu_tiles_async(const long long* descriptors,
++                                                       const long long* destinations,
++                                                       const long long* sizes,
++                                                       const int* source_ids,
++                                                       const int* destination_ids,
++                                                       const long long* count, int experts) {
++    constexpr int max_warps = 8;
++    __shared__ __align__(16) unsigned char staging[max_warps][Stages][512];
++    const int bank = blockIdx.y;
++    const int row = blockIdx.z;
++    if (row >= *count) {
++        return;
++    }
++    const auto* desc = descriptors + (bank * experts + source_ids[row]) * 3;
++    const auto* packed = reinterpret_cast<const unsigned char*>(desc[0]);
++    const auto* bases = reinterpret_cast<const unsigned char*>(desc[1]);
++    const auto* raw = reinterpret_cast<const WordQuad*>(desc[2]);
++    const int row_bytes = static_cast<int>(sizes[bank]);
++    auto* dst = reinterpret_cast<WordQuad*>(destinations[bank] +
++                                           static_cast<long long>(destination_ids[row]) * row_bytes);
++    const int tiles_per_stripe = (row_bytes / 512) / gridDim.x;
++    const int start = blockIdx.x * tiles_per_stripe;
++    const int end = start + tiles_per_stripe;
++    if (bases == nullptr) {
++        for (int i = start * 32 + threadIdx.x; i < end * 32; i += blockDim.x) {
++            dst[i] = raw[i];
++        }
++        return;
++    }
++
++    const int warp = threadIdx.x >> 5;
++    const int lane = threadIdx.x & 31;
++    const int stride = blockDim.x >> 5;
++    const int first = start + warp;
++    unsigned int base[Stages];
++    #pragma unroll
++    for (int stage = 0; stage < Stages; ++stage) {
++        base[stage] = issue_cpu_tile(packed, bases, raw, first + stage * stride, end, staging[warp][stage]);
++    }
++    for (int tile = first; tile < end; tile += Stages * stride) {
++        #pragma unroll
++        for (int stage = 0; stage < Stages; ++stage) {
++            const int current = tile + stage * stride;
++            if (current >= end) {
++                break;
++            }
++            asm volatile("cp.async.wait_group %0;" :: "n"(Stages - 1) : "memory");
++            __syncwarp();
++            auto* data = staging[warp][stage];
++            const int i = current * 32 + lane;
++            if (base[stage] == 255) {
++                dst[i] = reinterpret_cast<const WordQuad*>(data)[lane];
++            } else {
++                const WordPair low = reinterpret_cast<const WordPair*>(data)[lane];
++                const unsigned int codes = reinterpret_cast<const unsigned int*>(data + 256)[lane];
++                const unsigned int pair = base[stage] * 0x10001u;
++                dst[i] = {unpack_cpu_tile_pair(low.x, codes, pair),
++                          unpack_cpu_tile_pair(low.x >> 16, codes >> 8, pair),
++                          unpack_cpu_tile_pair(low.y, codes >> 16, pair),
++                          unpack_cpu_tile_pair(low.y >> 16, codes >> 24, pair)};
++            }
++            __syncwarp();
++            base[stage] = issue_cpu_tile(packed, bases, raw, current + Stages * stride, end, data);
++        }
++    }
++    asm volatile("cp.async.wait_all;" ::: "memory");
++}
++
++extern "C" __global__ void gather_bf16_cpu_tiles_async2(const long long* descriptors,
++                                                        const long long* destinations,
++                                                        const long long* sizes,
++                                                        const int* source_ids,
++                                                        const int* destination_ids,
++                                                        const long long* count, int experts) {
++    gather_cpu_tiles_async<2>(descriptors, destinations, sizes, source_ids, destination_ids, count, experts);
++}
++
++extern "C" __global__ void gather_bf16_cpu_tiles_async4(const long long* descriptors,
++                                                        const long long* destinations,
++                                                        const long long* sizes,
++                                                        const int* source_ids,
++                                                        const int* destination_ids,
++                                                        const long long* count, int experts) {
++    gather_cpu_tiles_async<4>(descriptors, destinations, sizes, source_ids, destination_ids, count, experts);
++}
+--- a/edge35b/native_bf16_gather.py
++++ b/edge35b/native_bf16_gather.py
+@@ -8,7 +8,11 @@
+     (4, 256, "default"), (8, 128, "default"), (8, 256, "default"), (16, 128, "default"),
+     (8, 256, "l2"), (16, 128, "l2"),
+ )
+-CPU_TILE_GEOMETRIES = ((4, 256, "cpu-tiles"), (8, 128, "cpu-tiles"), (16, 128, "cpu-tiles"))
++CPU_TILE_GEOMETRIES = (
++    (4, 256, "cpu-tiles"), (8, 128, "cpu-tiles"), (16, 128, "cpu-tiles"),
++    (4, 256, "cpu-tiles-async2"), (8, 128, "cpu-tiles-async2"),
++    (4, 256, "cpu-tiles-async4"), (8, 128, "cpu-tiles-async4"),
++)
+ 
+ 
+ def name(geometry):
+@@ -58,7 +62,9 @@
+         self.module = _checked(driver.cuModuleLoadData(cubin))
+         self.functions = {policy: _checked(driver.cuModuleGetFunction(self.module, symbol))
+                           for policy, symbol in (("default", b"gather_bf16"), ("l2", b"gather_bf16_l2"),
+-                                                 ("cpu-tiles", b"gather_bf16_cpu_tiles"))}
++                                                 ("cpu-tiles", b"gather_bf16_cpu_tiles"),
++                                                 ("cpu-tiles-async2", b"gather_bf16_cpu_tiles_async2"),
++                                                 ("cpu-tiles-async4", b"gather_bf16_cpu_tiles_async4"))}
+         attributes = driver.CUfunction_attribute
+         self.binary_version = _checked(driver.cuFuncGetAttribute(attributes.CU_FUNC_ATTRIBUTE_BINARY_VERSION,
+                                                                   self.functions["default"]))

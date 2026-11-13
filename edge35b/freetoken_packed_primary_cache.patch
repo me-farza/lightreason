@@ -1,0 +1,145 @@
+--- a/freetoken/engine/engine.py
++++ b/freetoken/engine/engine.py
+@@ -1374,7 +1374,7 @@
+     def _capture_lightreason_widths(self, max_seq_len: int) -> None:
+         from edge35b.width_autotune import (
+             GATHER_GEOMETRIES, NATIVE_PACKED_TRANSPORT, NATIVE_TRANSPORTS,
+-            SHARED_CPU_CONTROL_TRANSPORT, SHARED_CPU_TRANSPORT, SHARED_CPU_TRANSPORTS, WIDTHS,
++            PACKED_PRIMARY_TRANSPORT, SHARED_CPU_CONTROL_TRANSPORT, SHARED_CPU_TRANSPORT, SHARED_CPU_TRANSPORTS, WIDTHS,
+         )
+         from freetoken.kvcache.linear_state_pool import LinearVerifyScratch
+ 
+@@ -1466,6 +1466,23 @@
+                             int(os.environ["LIGHTREASON_GPU_RESIDENT_MIB"]), os.environ["LIGHTREASON_GPU_RESIDENT_REPORT"],
+                         )
+                         self.lightreason_packed_transport.gpu_resident = resident
++                        primary_path = os.getenv("LIGHTREASON_PACKED_PRIMARY_REPORT")
++                        if primary_path:
++                            from edge35b.packed_primary_cache import PackedPrimaryCache
++
++                            primary = PackedPrimaryCache(
++                                self.moe_offload_cache, self.lightreason_packed_transport,
++                                self.lightreason_cpu_read_banks, shared_layers, primary_path,
++                                layout=os.environ["LIGHTREASON_PACKED_PRIMARY_LAYOUT"],
++                                reserve_rows=int(os.environ["LIGHTREASON_PACKED_PRIMARY_RESERVE_ROWS"]),
++                                replica_plan=resident_plan,
++                            )
++                            primary.audit()
++                            self.lightreason_packed_transport.packed_primary = primary
++                            logger.info_rank0(
++                                f"Lightreason packed primary cache: {primary.capacity} planned slots "
++                                f"({primary.packed_experts} packed), {len(primary.layers)} packed layers"
++                            )
+                         logger.info_rank0(
+                             f"Lightreason GPU replicas: {len(resident.keys['raw'])} raw or "
+                             f"{len(resident.keys['packed'])} packed in {resident.capacity / 2**20:.0f} MiB"
+@@ -1499,6 +1516,8 @@
+                 captures = [(w, profile, SHARED_CPU_TRANSPORT) for w in WIDTHS for profile in (False, True)]
+             else:
+                 captures += [(width, profile, mode) for mode in modes for profile in (False, True)]
++            if self.lightreason_packed_transport.packed_primary is not None:
++                captures += [(8, profile, PACKED_PRIMARY_TRANSPORT) for profile in (False, True)]
+             if os.getenv("LIGHTREASON_GATHER_EVOLUTION") == "1":
+                 if hot_base != "raw":
+                     raise ValueError("Gather evolution requires an uncompressed BF16 hot source")
+@@ -1526,6 +1545,7 @@
+                 self.lightreason_packed_transport.capture_native = transport in NATIVE_TRANSPORTS
+                 self.lightreason_packed_transport.capture_shared = transport in SHARED_CPU_TRANSPORTS
+                 self.lightreason_packed_transport.capture_shared_control = transport == SHARED_CPU_CONTROL_TRANSPORT
++                self.lightreason_packed_transport.capture_packed_primary = transport == PACKED_PRIMARY_TRANSPORT
+             self.moe_offload_cache._lightreason_hot_sources = transport in ("hot", *NATIVE_TRANSPORTS) or geometry is not None
+             self.moe_offload_cache._lightreason_fetch_trace = self.lightreason_expert_fetch_trace if profiling else None
+             try:
+@@ -1549,6 +1569,7 @@
+                     self.lightreason_packed_transport.capture_native = False
+                     self.lightreason_packed_transport.capture_shared = False
+                     self.lightreason_packed_transport.capture_shared_control = False
++                    self.lightreason_packed_transport.capture_packed_primary = False
+             if transport != "raw":
+                 self.lightreason_packed_runners[width, profiling, transport] = runner
+                 logger.info_rank0(f"Lightreason captured {transport} BF16 {width}-position verification (timed={profiling})")
+--- a/freetoken/scheduler/scheduler.py
++++ b/freetoken/scheduler/scheduler.py
+@@ -933,6 +933,10 @@
+                 self.engine.lightreason_packed_transport.set_hot_limit(trial.hot_expert_limit)
+             if trial.gpu_resident_layout is not None:
+                 self.engine.lightreason_packed_transport.gpu_resident.select(trial.gpu_resident_layout)
++            from edge35b.width_autotune import PACKED_PRIMARY_TRANSPORT
++
++            if trial.transport == PACKED_PRIMARY_TRANSPORT:
++                self.engine.lightreason_packed_transport.packed_primary.reset()
+         draft_prepared = False
+         if self.spec is not None and batch.is_decode:
+             if trial is None:
+@@ -946,6 +950,8 @@
+                 draft_prepared = True
+             else:
+                 width = trial.choose()
++            if trial is not None and not trial.passes and trial.transport == "packed-primary":
++                self.engine.lightreason_packed_transport.packed_primary.begin_decode()
+             batch.phase, batch.rows_per_req = "verify", width
+             if trial is not None:
+                 if trial.diagnostics == "profile":
+--- a/freetoken/spec/runner.py
++++ b/freetoken/spec/runner.py
+@@ -154,6 +154,8 @@
+                 codec = self.engine.lightreason_packed_transport
+                 payload = codec.profile_payload(transport, hot_limit)
+                 info.update(trace.report(info["gpu_layer_stamps"], payload, codec.raw_expert_bytes))
++                if transport == "packed-primary":
++                    codec.packed_primary.adjust_profile(info, codec.raw_expert_bytes)
+         self._lightreason_passes.append(info)
+         if finished:
+             with self._lightreason_details_path.open("a") as stream:
+@@ -185,6 +187,8 @@
+             engine.lightreason_expert_timing.copy_to_host()
+             if engine.lightreason_expert_fetch_trace is not None:
+                 engine.lightreason_expert_fetch_trace.copy_to_host()
++            if getattr(batch, "lightreason_packed_transfer", None) == "packed-primary":
++                engine.lightreason_packed_transport.packed_primary.copy_profile()
+         elif mode == "audit":
+             assert bs == 1 and width == self.k + 1 and proposal.draft_support_probs is None
+             self._lightreason_draft_host.copy_(drafts[0], non_blocking=True)
+--- a/freetoken/layers/moe.py
++++ b/freetoken/layers/moe.py
+@@ -322,7 +322,12 @@
+         if timing is not None:
+             assert _HYBRID_OVERLAP
+             timing.stamp(self.layer_id, 0)
+-        gpu_slots, gpu_w, cpu_ids = cache.ensure_experts_hybrid(self.layer_id, topk_ids, topk_weights, clamp=clamp)
++        packed = getattr(cache, "_lightreason_packed_transfer", None)
++        primary = packed.packed_primary if packed is not None and packed.capture_packed_primary else None
++        if primary is None:
++            gpu_slots, gpu_w, cpu_ids = cache.ensure_experts_hybrid(self.layer_id, topk_ids, topk_weights, clamp=clamp)
++        else:
++            gpu_slots, gpu_w, cpu_ids = primary.ensure(self.layer_id, topk_ids, topk_weights, clamp)
+         if timing is not None:
+             timing.stamp(self.layer_id, 1, cache=cache, cpu_ids=cpu_ids)
+         pending = executor.decode_submit(self.layer_id, hidden_states, topk_weights, cpu_ids)
+@@ -335,10 +340,13 @@
+             executor.decode_sync(pending) if not _HYBRID_OVERLAP else None
+         )
+ 
+-        packed = getattr(cache, "_lightreason_packed_transfer", None)
+-        if packed is None or not packed.copy_missing(
+-                cache, self.layer_id, topk_ids.numel(), hot=cache._lightreason_hot_sources):
+-            cache.copy_missing()
++        if primary is None:
++            if packed is None or not packed.copy_missing(
++                    cache, self.layer_id, topk_ids.numel(), hot=cache._lightreason_hot_sources):
++                cache.copy_missing()
++            views = cache.pool_bank_views(self.layer_id)
++        else:
++            views, gpu_slots = primary.stage(self.layer_id, gpu_slots, cpu_ids, profile=timing is not None)
+         if timing is not None:
+             timing.stamp(self.layer_id, 3)
+         gpu_routed = self._expert_gemm(
+@@ -346,7 +354,7 @@
+             hidden_states,
+             gpu_w,
+             gpu_slots,
+-            views=cache.pool_bank_views(self.layer_id),
++            views=views,
+             n=None,
+             alphas=cache.alphas_for_slots(self.layer_id),
+             is_prefill=False,

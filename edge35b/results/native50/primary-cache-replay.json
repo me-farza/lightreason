@@ -1,0 +1,454 @@
+{
+  "revision": "345d467b117d1fd5eda9b879a5988de9ae5f47a7",
+  "scope": "Fixed PCIe fetch sequence after excluding existing GPU replicas. No prefill seed or timing.",
+  "rows": [
+    {
+      "case": "studio",
+      "fetches": 11872,
+      "capacities": [
+        {
+          "slots": 128,
+          "lru_hits": 0,
+          "future_aware_hits": 819,
+          "best_static_hits": 512,
+          "repeat_admission": {
+            "1024": [
+              46,
+              76
+            ],
+            "4096": [
+              0,
+              3778
+            ],
+            "8192": [
+              0,
+              5163
+            ]
+          }
+        },
+        {
+          "slots": 512,
+          "lru_hits": 0,
+          "future_aware_hits": 2394,
+          "best_static_hits": 1841,
+          "repeat_admission": {
+            "1024": [
+              46,
+              76
+            ],
+            "4096": [
+              116,
+              3662
+            ],
+            "8192": [
+              30,
+              5133
+            ]
+          }
+        },
+        {
+          "slots": 624,
+          "lru_hits": 0,
+          "future_aware_hits": 2779,
+          "best_static_hits": 2177,
+          "repeat_admission": {
+            "1024": [
+              46,
+              76
+            ],
+            "4096": [
+              222,
+              3556
+            ],
+            "8192": [
+              72,
+              5091
+            ]
+          }
+        },
+        {
+          "slots": 1024,
+          "lru_hits": 79,
+          "future_aware_hits": 3645,
+          "best_static_hits": 3377,
+          "repeat_admission": {
+            "1024": [
+              46,
+              76
+            ],
+            "4096": [
+              636,
+              3142
+            ],
+            "8192": [
+              469,
+              4694
+            ]
+          }
+        }
+      ],
+      "preloaded_rows_estimates": [
+        {
+          "slots": 128,
+          "ranked_hits": 276,
+          "ranked_saved_byte_share": 0.023011046476485424,
+          "hindsight_static_byte_share": 0.04465647097678221
+        },
+        {
+          "slots": 192,
+          "ranked_hits": 395,
+          "ranked_saved_byte_share": 0.0349640662526858,
+          "hindsight_static_byte_share": 0.06533130015535647
+        },
+        {
+          "slots": 240,
+          "ranked_hits": 500,
+          "ranked_saved_byte_share": 0.04349705134879027,
+          "hindsight_static_byte_share": 0.08082898296186632
+        },
+        {
+          "slots": 256,
+          "ranked_hits": 538,
+          "ranked_saved_byte_share": 0.04657202632878099,
+          "hindsight_static_byte_share": 0.08599362084788315
+        }
+      ]
+    },
+    {
+      "case": "known-math",
+      "fetches": 15442,
+      "capacities": [
+        {
+          "slots": 128,
+          "lru_hits": 0,
+          "future_aware_hits": 1110,
+          "best_static_hits": 763,
+          "repeat_admission": {
+            "1024": [
+              51,
+              26
+            ],
+            "4096": [
+              0,
+              5748
+            ],
+            "8192": [
+              0,
+              8663
+            ]
+          }
+        },
+        {
+          "slots": 512,
+          "lru_hits": 0,
+          "future_aware_hits": 3311,
+          "best_static_hits": 2648,
+          "repeat_admission": {
+            "1024": [
+              51,
+              26
+            ],
+            "4096": [
+              71,
+              5677
+            ],
+            "8192": [
+              19,
+              8644
+            ]
+          }
+        },
+        {
+          "slots": 624,
+          "lru_hits": 0,
+          "future_aware_hits": 3857,
+          "best_static_hits": 3096,
+          "repeat_admission": {
+            "1024": [
+              51,
+              26
+            ],
+            "4096": [
+              181,
+              5567
+            ],
+            "8192": [
+              35,
+              8628
+            ]
+          }
+        },
+        {
+          "slots": 1024,
+          "lru_hits": 26,
+          "future_aware_hits": 5206,
+          "best_static_hits": 4696,
+          "repeat_admission": {
+            "1024": [
+              51,
+              26
+            ],
+            "4096": [
+              1033,
+              4715
+            ],
+            "8192": [
+              415,
+              8248
+            ]
+          }
+        }
+      ],
+      "preloaded_rows_estimates": [
+        {
+          "slots": 128,
+          "ranked_hits": 362,
+          "ranked_saved_byte_share": 0.023163082491697323,
+          "hindsight_static_byte_share": 0.05067687352955037
+        },
+        {
+          "slots": 192,
+          "ranked_hits": 537,
+          "ranked_saved_byte_share": 0.0365575744349273,
+          "hindsight_static_byte_share": 0.07238477715750168
+        },
+        {
+          "slots": 240,
+          "ranked_hits": 684,
+          "ranked_saved_byte_share": 0.04575420805134742,
+          "hindsight_static_byte_share": 0.08813098856476051
+        },
+        {
+          "slots": 256,
+          "ranked_hits": 730,
+          "ranked_saved_byte_share": 0.0486118646353882,
+          "hindsight_static_byte_share": 0.09337972570051346
+        }
+      ]
+    },
+    {
+      "case": "coding",
+      "fetches": 32859,
+      "capacities": [
+        {
+          "slots": 128,
+          "lru_hits": 0,
+          "future_aware_hits": 2690,
+          "best_static_hits": 1454,
+          "repeat_admission": {
+            "1024": [
+              526,
+              424
+            ],
+            "4096": [
+              0,
+              14019
+            ],
+            "8192": [
+              0,
+              21663
+            ]
+          }
+        },
+        {
+          "slots": 512,
+          "lru_hits": 0,
+          "future_aware_hits": 7872,
+          "best_static_hits": 5084,
+          "repeat_admission": {
+            "1024": [
+              1167,
+              415
+            ],
+            "4096": [
+              268,
+              13751
+            ],
+            "8192": [
+              33,
+              21630
+            ]
+          }
+        },
+        {
+          "slots": 624,
+          "lru_hits": 0,
+          "future_aware_hits": 9104,
+          "best_static_hits": 6090,
+          "repeat_admission": {
+            "1024": [
+              1167,
+              415
+            ],
+            "4096": [
+              699,
+              13320
+            ],
+            "8192": [
+              114,
+              21549
+            ]
+          }
+        },
+        {
+          "slots": 1024,
+          "lru_hits": 452,
+          "future_aware_hits": 12732,
+          "best_static_hits": 9290,
+          "repeat_admission": {
+            "1024": [
+              1167,
+              415
+            ],
+            "4096": [
+              3151,
+              10868
+            ],
+            "8192": [
+              1408,
+              20255
+            ]
+          }
+        }
+      ],
+      "preloaded_rows_estimates": [
+        {
+          "slots": 128,
+          "ranked_hits": 874,
+          "ranked_saved_byte_share": 0.026287470398509497,
+          "hindsight_static_byte_share": 0.046899195533901934
+        },
+        {
+          "slots": 192,
+          "ranked_hits": 1315,
+          "ranked_saved_byte_share": 0.04215807442507452,
+          "hindsight_static_byte_share": 0.06729443228933266
+        },
+        {
+          "slots": 240,
+          "ranked_hits": 1657,
+          "ranked_saved_byte_share": 0.05217997356712162,
+          "hindsight_static_byte_share": 0.08206983026152452
+        },
+        {
+          "slots": 256,
+          "ranked_hits": 1780,
+          "ranked_saved_byte_share": 0.05576926116106248,
+          "hindsight_static_byte_share": 0.08692060779338995
+        }
+      ]
+    },
+    {
+      "case": "chat",
+      "fetches": 40658,
+      "capacities": [
+        {
+          "slots": 128,
+          "lru_hits": 0,
+          "future_aware_hits": 3546,
+          "best_static_hits": 1857,
+          "repeat_admission": {
+            "1024": [
+              784,
+              505
+            ],
+            "4096": [
+              0,
+              19316
+            ],
+            "8192": [
+              0,
+              29347
+            ]
+          }
+        },
+        {
+          "slots": 512,
+          "lru_hits": 0,
+          "future_aware_hits": 10499,
+          "best_static_hits": 6556,
+          "repeat_admission": {
+            "1024": [
+              1873,
+              496
+            ],
+            "4096": [
+              199,
+              19117
+            ],
+            "8192": [
+              29,
+              29318
+            ]
+          }
+        },
+        {
+          "slots": 624,
+          "lru_hits": 0,
+          "future_aware_hits": 12067,
+          "best_static_hits": 7788,
+          "repeat_admission": {
+            "1024": [
+              1873,
+              496
+            ],
+            "4096": [
+              757,
+              18559
+            ],
+            "8192": [
+              80,
+              29267
+            ]
+          }
+        },
+        {
+          "slots": 1024,
+          "lru_hits": 546,
+          "future_aware_hits": 16991,
+          "best_static_hits": 11992,
+          "repeat_admission": {
+            "1024": [
+              1873,
+              496
+            ],
+            "4096": [
+              4250,
+              15066
+            ],
+            "8192": [
+              1763,
+              27584
+            ]
+          }
+        }
+      ],
+      "preloaded_rows_estimates": [
+        {
+          "slots": 128,
+          "ranked_hits": 1089,
+          "ranked_saved_byte_share": 0.026501602127451302,
+          "hindsight_static_byte_share": 0.04793343636834232
+        },
+        {
+          "slots": 192,
+          "ranked_hits": 1686,
+          "ranked_saved_byte_share": 0.04394850947185421,
+          "hindsight_static_byte_share": 0.06933970836963134
+        },
+        {
+          "slots": 240,
+          "ranked_hits": 2125,
+          "ranked_saved_byte_share": 0.0543684573278487,
+          "hindsight_static_byte_share": 0.08445992621907839
+        },
+        {
+          "slots": 256,
+          "ranked_hits": 2275,
+          "ranked_saved_byte_share": 0.05791263287374161,
+          "hindsight_static_byte_share": 0.08944487734070883
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,193 @@
+{
+  "revision": "345d467b117d1fd5eda9b879a5988de9ae5f47a7",
+  "scope": "Same archived prefixes. Hindsight recall holds pass boundaries and cost fixed.",
+  "cases": [
+    {
+      "case": "studio",
+      "ms_per_pass": 99.46724052371627,
+      "actual_ids_per_pass": 4.636363636363637,
+      "shortlist_oracle_ids_per_pass": 6.818181818181818,
+      "actual_pcie_bytes_per_id": 231150686.8705882,
+      "actual_cpu_read_groups_per_id": 46.035294117647055,
+      "cpu_read_groups_per_pass": 213.43636363636364,
+      "distinct_cpu_experts_per_pass": 206.4181818181818,
+      "fraction_cpu_read_groups_redundant": 0.03288184683533524,
+      "actual_gather_ms_per_pass": 68.39772625454546,
+      "oracle_pcie_bytes_per_id_at_fixed_traffic": 157182467.072,
+      "shortlist_oracle_tok_s_at_fixed_cost": 68.54700886726759,
+      "all_eight_tok_s_at_fixed_cost": 80.42849040426064,
+      "pass_ms_budget_for_100_at_actual_acceptance": 46.36363636363637,
+      "pass_ms_budget_for_100_with_oracle_acceptance": 68.18181818181819
+    },
+    {
+      "case": "known-math",
+      "ms_per_pass": 119.912884857816,
+      "actual_ids_per_pass": 6.017543859649122,
+      "shortlist_oracle_ids_per_pass": 7.578947368421052,
+      "actual_pcie_bytes_per_id": 223656845.06122452,
+      "actual_cpu_read_groups_per_id": 43.169096209912546,
+      "cpu_read_groups_per_pass": 259.7719298245614,
+      "distinct_cpu_experts_per_pass": 255.49122807017545,
+      "fraction_cpu_read_groups_redundant": 0.01647869251029921,
+      "actual_gather_ms_per_pass": 86.5274430877193,
+      "oracle_pcie_bytes_per_id_at_fixed_traffic": 177579393.1851852,
+      "shortlist_oracle_tok_s_at_fixed_cost": 63.20377812115536,
+      "all_eight_tok_s_at_fixed_cost": 66.71509912788622,
+      "pass_ms_budget_for_100_at_actual_acceptance": 60.175438596491226,
+      "pass_ms_budget_for_100_with_oracle_acceptance": 75.78947368421052
+    },
+    {
+      "case": "coding",
+      "ms_per_pass": 102.24585647954707,
+      "actual_ids_per_pass": 5.2534246575342465,
+      "shortlist_oracle_ids_per_pass": 7.287671232876712,
+      "actual_pcie_bytes_per_id": 213180676.83963495,
+      "actual_cpu_read_groups_per_id": 41.41329856584094,
+      "cpu_read_groups_per_pass": 217.56164383561645,
+      "distinct_cpu_experts_per_pass": 211.97260273972603,
+      "fraction_cpu_read_groups_redundant": 0.025689459765772638,
+      "actual_gather_ms_per_pass": 71.53313315068493,
+      "oracle_pcie_bytes_per_id_at_fixed_traffic": 153674416.48120302,
+      "shortlist_oracle_tok_s_at_fixed_cost": 71.27595663824788,
+      "all_eight_tok_s_at_fixed_cost": 78.24277946755029,
+      "pass_ms_budget_for_100_at_actual_acceptance": 52.534246575342465,
+      "pass_ms_budget_for_100_with_oracle_acceptance": 72.87671232876713
+    },
+    {
+      "case": "chat",
+      "ms_per_pass": 104.45667451809145,
+      "actual_ids_per_pass": 4.693181818181818,
+      "shortlist_oracle_ids_per_pass": 6.448863636363637,
+      "actual_pcie_bytes_per_id": 244472601.87893462,
+      "actual_cpu_read_groups_per_id": 47.44188861985472,
+      "cpu_read_groups_per_pass": 222.6534090909091,
+      "distinct_cpu_experts_per_pass": 217.3125,
+      "fraction_cpu_read_groups_redundant": 0.023987546890550493,
+      "actual_gather_ms_per_pass": 73.47927272727273,
+      "oracle_pcie_bytes_per_id_at_fixed_traffic": 177915743.74625552,
+      "shortlist_oracle_tok_s_at_fixed_cost": 61.73720986347044,
+      "all_eight_tok_s_at_fixed_cost": 76.58677664120385,
+      "pass_ms_budget_for_100_at_actual_acceptance": 46.93181818181819,
+      "pass_ms_budget_for_100_with_oracle_acceptance": 64.48863636363637
+    }
+  ],
+  "acceptance_calibration": {
+    "stock-adaptive-profile": {
+      "passes": 394,
+      "mean_forecast_commits": 5.314357783870145,
+      "mean_actual_commits": 5.1421319796954315,
+      "mean_absolute_error": 1.1909581009196206
+    },
+    "prefix-adaptive-profile": {
+      "passes": 445,
+      "mean_forecast_commits": 5.137568711094322,
+      "mean_actual_commits": 4.869662921348315,
+      "mean_absolute_error": 1.2419585494446506
+    }
+  },
+  "live_teacher": {
+    "scope": "Complete profiled verification passes before the first mismatch. Teacher proposals use saved IDs.",
+    "cases": [
+      {
+        "case": "studio",
+        "first_different_id": 31,
+        "matching_prefix_ids": 30,
+        "control": {
+          "passes": 4,
+          "output_ids": 29,
+          "committed_ids_per_pass": 7.0,
+          "ms_per_pass": 192.24769500578986,
+          "tok_s": 36.41135983341274,
+          "gather_ms_per_pass": 145.032704,
+          "pcie_bytes_per_id": 320813654.85714287,
+          "cpu_read_groups_per_id": 67.67857142857143
+        },
+        "teacher": {
+          "passes": 3,
+          "output_ids": 25,
+          "committed_ids_per_pass": 8.0,
+          "ms_per_pass": 219.08627965603955,
+          "tok_s": 36.51529439707414,
+          "gather_ms_per_pass": 171.98899199999997,
+          "pcie_bytes_per_id": 329868512.0,
+          "cpu_read_groups_per_id": 67.95833333333333
+        }
+      },
+      {
+        "case": "known-math",
+        "first_different_id": 247,
+        "matching_prefix_ids": 246,
+        "control": {
+          "passes": 42,
+          "output_ids": 246,
+          "committed_ids_per_pass": 5.833333333333333,
+          "ms_per_pass": 112.02355581086262,
+          "tok_s": 52.0723814836066,
+          "gather_ms_per_pass": 80.36256914285714,
+          "pcie_bytes_per_id": 214898344.22857141,
+          "cpu_read_groups_per_id": 41.412244897959184
+        },
+        "teacher": {
+          "passes": 30,
+          "output_ids": 241,
+          "committed_ids_per_pass": 8.0,
+          "ms_per_pass": 118.79521356701541,
+          "tok_s": 67.34278056991747,
+          "gather_ms_per_pass": 85.97927253333333,
+          "pcie_bytes_per_id": 167160494.4,
+          "cpu_read_groups_per_id": 32.44166666666667
+        }
+      },
+      {
+        "case": "coding",
+        "first_different_id": 86,
+        "matching_prefix_ids": 85,
+        "control": {
+          "passes": 14,
+          "output_ids": 85,
+          "committed_ids_per_pass": 6.0,
+          "ms_per_pass": 113.28588949982077,
+          "tok_s": 52.963348096494336,
+          "gather_ms_per_pass": 79.65688685714285,
+          "pcie_bytes_per_id": 206053706.66666666,
+          "cpu_read_groups_per_id": 41.69047619047619
+        },
+        "teacher": {
+          "passes": 10,
+          "output_ids": 81,
+          "committed_ids_per_pass": 8.0,
+          "ms_per_pass": 126.13761799875647,
+          "tok_s": 63.42279271580083,
+          "gather_ms_per_pass": 90.4930304,
+          "pcie_bytes_per_id": 175421953.6,
+          "cpu_read_groups_per_id": 35.55
+        }
+      },
+      {
+        "case": "chat",
+        "first_different_id": 306,
+        "matching_prefix_ids": 305,
+        "control": {
+          "passes": 58,
+          "output_ids": 304,
+          "committed_ids_per_pass": 5.224137931034483,
+          "ms_per_pass": 107.79272621007765,
+          "tok_s": 48.46466097214334,
+          "gather_ms_per_pass": 75.7687084137931,
+          "pcie_bytes_per_id": 227035328.21122113,
+          "cpu_read_groups_per_id": 44.161716171617165
+        },
+        "teacher": {
+          "passes": 38,
+          "output_ids": 305,
+          "committed_ids_per_pass": 8.0,
+          "ms_per_pass": 120.26678284210472,
+          "tok_s": 66.51878275070351,
+          "gather_ms_per_pass": 86.28091957894736,
+          "pcie_bytes_per_id": 167662512.84210527,
+          "cpu_read_groups_per_id": 33.11513157894737
+        }
+      }
+    ]
+  }
+}

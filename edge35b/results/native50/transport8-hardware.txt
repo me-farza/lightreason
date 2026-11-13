@@ -1,0 +1,57 @@
+7.0.0-31-generic
+name, driver_version, pstate, pci.bus_id, pcie.link.gen.current, pcie.link.gen.max, pcie.link.width.current, pcie.link.width.max, memory.total [MiB], power.limit [W]
+NVIDIA GeForce RTX 4090, 580.173.02, P8, 00000000:0B:00.0, 1, 4, 16, 16, 24564 MiB, 450.00 W
+Architecture:                            x86_64
+CPU op-mode(s):                          32-bit, 64-bit
+Address sizes:                           48 bits physical, 48 bits virtual
+Byte Order:                              Little Endian
+CPU(s):                                  32
+On-line CPU(s) list:                     0,2-16,18-31
+Off-line CPU(s) list:                    1,17
+Vendor ID:                               AuthenticAMD
+Model name:                              AMD Ryzen 9 5950X 16-Core Processor
+CPU family:                              25
+Model:                                   33
+Thread(s) per core:                      2
+Core(s) per socket:                      15
+Socket(s):                               1
+Stepping:                                0
+Frequency boost:                         enabled
+CPU(s) scaling MHz:                      47%
+CPU max MHz:                             5086.1812
+CPU min MHz:                             582.1540
+BogoMIPS:                                6800.11
+Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk clzero irperf xsaveerptr rdpru wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip pku ospke vaes vpclmulqdq rdpid overflow_recov succor smca fsrm debug_swap
+Virtualization:                          AMD-V
+L1d cache:                               480 KiB (15 instances)
+L1i cache:                               480 KiB (15 instances)
+L2 cache:                                7.5 MiB (15 instances)
+L3 cache:                                64 MiB (2 instances)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0,2-16,18-31
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Ghostwrite:                Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             Not affected
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Old microcode:             Not affected
+Vulnerability Reg file data sampling:    Not affected
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Mitigation; Safe RET
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Mitigation; Clear CPU buffers
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Mitigation; IBPB before exit to userspace
+               total        used        free      shared  buff/cache   available
+Mem:           121Gi       2.5Gi       117Gi       1.9Mi       2.1Gi       118Gi
+Swap:          8.0Gi          0B       8.0Gi
+c164af842e271e64b53db97e18df8256d9e68f0ec5f2c1142806b178dbf7e466  /path/to/lightreason-benchmark/model/lightreason-download.json
+86d2e8e57e7c70bb867240708d00c0535ae9ed3c828dbdcb21584471c7bbce59  /path/to/lightreason-benchmark/dflash2-51ef7b6923ad6c14cb1bb41c37a9041446496ab6/config.json
+cb69c4f272cc88a3398c9c77f02770b346fb859dadf8dadf9424c54df4139bda  /path/to/lightreason-benchmark/expert-transport8.9QJfDN/benchmark/benchmark-suite.json
+3a9bfe5d098193628e0e38513ca56c7c812ff5bd63b2df9a91e2fc503e64faf3  /path/to/lightreason-benchmark/expert-transport8.9QJfDN/benchmark/edge35b/results/native50/width-pair-retest.json

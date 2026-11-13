@@ -1,0 +1,350 @@
+{
+  "scope": "Synthetic BF16 expert and PCIe throughput at Qwen shapes; no generation",
+  "weather_cpu_gb": 1.2985565184,
+  "weather_pcie_gb": 1.40265,
+  "control": "current-8",
+  "pairs": [
+    {
+      "candidate": "spread-8",
+      "repeat": 0,
+      "order": [
+        "current-8",
+        "spread-8"
+      ],
+      "measurements": {
+        "current-8": {
+          "cpu_gbs": 13.71083201880182,
+          "pcie_gbs": 15.925443772537879,
+          "predicted_overlap_ms": 94.71026387160711,
+          "cores": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        "spread-8": {
+          "cpu_gbs": 14.902407867608947,
+          "pcie_gbs": 14.266675831142049,
+          "predicted_overlap_ms": 98.31652562948278,
+          "cores": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ]
+        }
+      },
+      "ratio": 0.9633198820362481
+    },
+    {
+      "candidate": "compact-6",
+      "repeat": 0,
+      "order": [
+        "compact-6",
+        "current-8"
+      ],
+      "measurements": {
+        "compact-6": {
+          "cpu_gbs": 13.83165015359655,
+          "pcie_gbs": 15.978865348735086,
+          "predicted_overlap_ms": 93.88297881886098,
+          "cores": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        "current-8": {
+          "cpu_gbs": 13.4023813737433,
+          "pcie_gbs": 15.681118905125453,
+          "predicted_overlap_ms": 96.88998411461499,
+          "cores": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      },
+      "ratio": 1.0320292915029439
+    },
+    {
+      "candidate": "spread-10",
+      "repeat": 0,
+      "order": [
+        "current-8",
+        "spread-10"
+      ],
+      "measurements": {
+        "current-8": {
+          "cpu_gbs": 13.962804580390571,
+          "pcie_gbs": 15.622636732939135,
+          "predicted_overlap_ms": 93.00112387332979,
+          "cores": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        "spread-10": {
+          "cpu_gbs": 14.378466969267514,
+          "pcie_gbs": 14.521965144792206,
+          "predicted_overlap_ms": 96.58816737368436,
+          "cores": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        }
+      },
+      "ratio": 0.9628624955013706
+    },
+    {
+      "candidate": "spread-12",
+      "repeat": 0,
+      "order": [
+        "spread-12",
+        "current-8"
+      ],
+      "measurements": {
+        "spread-12": {
+          "cpu_gbs": 14.737084907193848,
+          "pcie_gbs": 14.2029013375936,
+          "predicted_overlap_ms": 98.7579908259541,
+          "cores": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        "current-8": {
+          "cpu_gbs": 14.120898224372253,
+          "pcie_gbs": 15.581726323872356,
+          "predicted_overlap_ms": 91.95990919038917,
+          "cores": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      },
+      "ratio": 0.9311642371547887
+    },
+    {
+      "candidate": "spread-12",
+      "repeat": 1,
+      "order": [
+        "spread-12",
+        "current-8"
+      ],
+      "measurements": {
+        "spread-12": {
+          "cpu_gbs": 14.518059730905932,
+          "pcie_gbs": 14.327074801657172,
+          "predicted_overlap_ms": 97.90205044771312,
+          "cores": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        "current-8": {
+          "cpu_gbs": 14.191211559694498,
+          "pcie_gbs": 15.512318402107883,
+          "predicted_overlap_ms": 91.504274524955,
+          "cores": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      },
+      "ratio": 0.9346512571136085
+    },
+    {
+      "candidate": "spread-10",
+      "repeat": 1,
+      "order": [
+        "current-8",
+        "spread-10"
+      ],
+      "measurements": {
+        "current-8": {
+          "cpu_gbs": 13.743888384568324,
+          "pcie_gbs": 15.8493839033761,
+          "predicted_overlap_ms": 94.48246973964245,
+          "cores": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        "spread-10": {
+          "cpu_gbs": 14.382160793341106,
+          "pcie_gbs": 14.486012060839096,
+          "predicted_overlap_ms": 96.82789121733977,
+          "cores": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        }
+      },
+      "ratio": 0.9757774185907573
+    },
+    {
+      "candidate": "compact-6",
+      "repeat": 1,
+      "order": [
+        "compact-6",
+        "current-8"
+      ],
+      "measurements": {
+        "compact-6": {
+          "cpu_gbs": 13.831111285960999,
+          "pcie_gbs": 16.000704176420975,
+          "predicted_overlap_ms": 93.88663655089483,
+          "cores": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        "current-8": {
+          "cpu_gbs": 13.842659360331504,
+          "pcie_gbs": 15.792451900320488,
+          "predicted_overlap_ms": 93.8083127380303,
+          "cores": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      },
+      "ratio": 0.9991657618619442
+    },
+    {
+      "candidate": "spread-8",
+      "repeat": 1,
+      "order": [
+        "current-8",
+        "spread-8"
+      ],
+      "measurements": {
+        "current-8": {
+          "cpu_gbs": 13.932729081852624,
+          "pcie_gbs": 15.69874362843847,
+          "predicted_overlap_ms": 93.20187816551817,
+          "cores": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        "spread-8": {
+          "cpu_gbs": 14.661225629389117,
+          "pcie_gbs": 14.272843085581659,
+          "predicted_overlap_ms": 98.27404334157842,
+          "cores": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ]
+        }
+      },
+      "ratio": 0.9483875395415394
+    }
+  ],
+  "summary": {
+    "spread-8": 0.9558537107888938,
+    "compact-6": 1.015597526682444,
+    "spread-10": 0.969319957046064,
+    "spread-12": 0.9329077471341987
+  }
+}

@@ -1,0 +1,309 @@
+--- a/freetoken/kernel/csrc/cpu_moe/kernels/bf16.cpp
++++ b/freetoken/kernel/csrc/cpu_moe/kernels/bf16.cpp
+@@ -108,6 +108,30 @@
+   for (; i < n; ++i) s += bf16_to_f32(w[i]) * bf16_to_f32(x[i]);
+   return s;
+ }
++
++CPU_MOE_TARGET("avx2,fma") __attribute__((always_inline))
++inline __m256 load_pair_f32(const bf16_t* row) {
++  const auto bits = _mm_loadu_si128(reinterpret_cast<const __m128i*>(row));
++  return _mm256_castsi256_ps(_mm256_slli_epi32(_mm256_cvtepu16_epi32(bits), 16));
++}
++
++CPU_MOE_TARGET("avx2,fma")
++void dot_pair_avx2(const bf16_t* w, const bf16_t* x0, const bf16_t* x1,
++                   int n, float& s0, float& s1) {
++  __m256 a0[4], a1[4];
++  for (int j = 0; j < 4; ++j) a0[j] = a1[j] = _mm256_setzero_ps();
++  for (int i = 0; i < n; i += 32) {
++    _mm_prefetch(reinterpret_cast<const char*>(w + i) + PF_AHEAD, _MM_HINT_T0);
++    for (int j = 0; j < 4; ++j) {
++      const int offset = i + 8 * j;
++      const __m256 wf = load_pair_f32(w + offset);
++      a0[j] = _mm256_fmadd_ps(wf, load_pair_f32(x0 + offset), a0[j]);
++      a1[j] = _mm256_fmadd_ps(wf, load_pair_f32(x1 + offset), a1[j]);
++    }
++  }
++  s0 = hsum256(_mm256_add_ps(_mm256_add_ps(a0[0], a0[1]), _mm256_add_ps(a0[2], a0[3])));
++  s1 = hsum256(_mm256_add_ps(_mm256_add_ps(a1[0], a1[1]), _mm256_add_ps(a1[2], a1[3])));
++}
+ #endif  // CPU_MOE_X86
+ 
+ dot_fn select_dot() {
+@@ -142,6 +166,32 @@
+       for (int j = 0; j < n; ++j)
+         out[j * kRowBlock + h - h0] = dot_(w + ((size_t)routes[j].e * p.H + h) * p.I, routes[j].g, p.I);
+   }
++
++
++#if CPU_MOE_X86
++  bool pairs_supported() const {
++    return dot_ == dot_avx2 && p.H == 2048 && p.I == 512 && p.act == ACT_SILU;
++  }
++
++  void pair_gate(int layer, int e, int i0, int i1, const bf16_t* x0, const bf16_t* x1,
++                 bf16_t* g0, bf16_t* g1) const {
++    const auto* w = static_cast<const bf16_t*>(tbl_at(gate_up_, layer)) + size_t(e) * 2 * p.I * p.H;
++    for (int i = i0; i < i1; ++i) {
++      float a0, a1, b0, b1;
++      dot_pair_avx2(w + size_t(i) * p.H, x0, x1, p.H, a0, a1);
++      dot_pair_avx2(w + size_t(p.I + i) * p.H, x0, x1, p.H, b0, b1);
++      g0[i] = f32_to_bf16(act_apply(p.act, a0) * b0);
++      g1[i] = f32_to_bf16(act_apply(p.act, a1) * b1);
++    }
++  }
++
++  void pair_down(int layer, int e, int h0, int h1, const bf16_t* g0, const bf16_t* g1,
++                 float* out0, float* out1) const {
++    const auto* w = static_cast<const bf16_t*>(tbl_at(down_, layer)) + size_t(e) * p.H * p.I;
++    for (int h = h0; h < h1; ++h)
++      dot_pair_avx2(w + size_t(h) * p.I, g0, g1, p.I, out0[h], out1[h]);
++  }
++#endif
+ 
+  private:
+   dot_fn dot_;
+@@ -152,7 +202,28 @@
+ 
+ }  // namespace
+ 
+-std::unique_ptr<MoeFormat> make_bf16_format(const MoeParams& p, const FormatArgs& a) {
++bool bf16_pairs_supported(const MoeFormat& fmt) {
++#if CPU_MOE_X86
++  const auto* f = dynamic_cast<const Bf16Format*>(&fmt);
++  return f && f->pairs_supported();
++#else
++  return false;
++#endif
++}
++
++#if CPU_MOE_X86
++void bf16_pair_gate(const MoeFormat& fmt, int layer, int e, int i0, int i1,
++                    const bf16_t* x0, const bf16_t* x1, bf16_t* g0, bf16_t* g1) {
++  static_cast<const Bf16Format&>(fmt).pair_gate(layer, e, i0, i1, x0, x1, g0, g1);
++}
++
++void bf16_pair_down(const MoeFormat& fmt, int layer, int e, int h0, int h1,
++                    const bf16_t* g0, const bf16_t* g1, float* out0, float* out1) {
++  static_cast<const Bf16Format&>(fmt).pair_down(layer, e, h0, h1, g0, g1, out0, out1);
++}
++#endif
++
++std::unique_ptr<MoeFormat> make_lightreason_bf16_format(const MoeParams& p, const FormatArgs& a) {
+   return std::make_unique<Bf16Format>(p, a);
+ }
+ 
+--- a/freetoken/kernel/csrc/cpu_moe/cpu_moe_ext.cpp
++++ b/freetoken/kernel/csrc/cpu_moe/cpu_moe_ext.cpp
+@@ -11,6 +11,7 @@
+ // Compute is FP32-accumulate; the intermediate is stored bf16 to match the GPU decode path.
+ 
+ #include <algorithm>
++#include <array>
+ #include <atomic>
+ #include <condition_variable>
+ #include <cstdint>
+@@ -35,7 +36,12 @@
+ 
+ namespace freetoken::cpu_moe {
+ 
+-std::unique_ptr<MoeFormat> make_bf16_format(const MoeParams& p, const FormatArgs& a);
++std::unique_ptr<MoeFormat> make_lightreason_bf16_format(const MoeParams& p, const FormatArgs& a);
++bool bf16_pairs_supported(const MoeFormat& fmt);
++#if CPU_MOE_X86
++void bf16_pair_gate(const MoeFormat&, int, int, int, int, const bf16_t*, const bf16_t*, bf16_t*, bf16_t*);
++void bf16_pair_down(const MoeFormat&, int, int, int, int, const bf16_t*, const bf16_t*, float*, float*);
++#endif
+ std::unique_ptr<MoeFormat> make_nvfp4_format(const MoeParams& p, const FormatArgs& a);
+ std::unique_ptr<MoeFormat> make_mxfp4_format(const MoeParams& p, const FormatArgs& a);
+ std::unique_ptr<MoeFormat> make_ds_fp4_format(const MoeParams& p, const FormatArgs& a);
+@@ -43,7 +49,6 @@
+ std::unique_ptr<MoeFormat> make_gguf_format(const MoeParams& p, const FormatArgs& a);
+ std::unique_ptr<MoeFormat> make_gguf_scaled_format(const MoeParams& p, const FormatArgs& a);
+ void set_ggml_cpu(uintptr_t addr);
+-void bind_locked_fetch(pybind11::module_& m);
+ 
+ namespace {
+ 
+@@ -71,7 +76,7 @@
+ 
+ // Every weight format this module serves, keyed by the name cpu_executor.py passes; weight_formats() exports the names.
+ const std::pair<const char*, std::unique_ptr<MoeFormat> (*)(const MoeParams&, const FormatArgs&)> kFormats[] = {
+-    {"bf16", make_bf16_format},     {"nvfp4", make_nvfp4_format},         {"mxfp4_triton", make_mxfp4_format},
++    {"bf16", make_lightreason_bf16_format},     {"nvfp4", make_nvfp4_format},         {"mxfp4_triton", make_mxfp4_format},
+     {"ds_fp4", make_ds_fp4_format}, {"fp8_block", make_fp8_block_format}, {"gguf", make_gguf_format},
+     {"gguf_scaled", make_gguf_scaled_format},
+ };
+@@ -135,6 +140,13 @@
+   // Hybrid hands the CPU a few routes of a step: only these get work items, since a claim that finds nothing still costs a contended atomic.
+   std::vector<int64_t> active_routes;  // intermediate rows tok * top_k + k whose route names an expert
+   std::vector<int> active_tokens;      // tokens with at least one such route
++  std::atomic<int> pair_threshold{0};
++  bool use_pairs = false;
++  struct RoutePair { int first, second; };
++  std::vector<RoutePair> pair_tasks;
++  AlignedVector<float> pair_down_scratch;
++  int64_t pair_reduce_total = 0;
++  std::atomic<int64_t> pair_reduce_next{0};
+   std::atomic<int> done_count{0};
+   std::atomic<int> bar_count{0};
+   std::atomic<int> bar_sense{0};
+@@ -179,6 +191,10 @@
+     g_scratch.assign(static_cast<size_t>(params.max_tokens) * params.top_k * params.I, 0);
+     active_routes.reserve(static_cast<size_t>(params.max_tokens) * params.top_k);
+     active_tokens.reserve(params.max_tokens);
++    if (pair_shape()) {
++      pair_tasks.reserve(64);
++      pair_down_scratch.resize(size_t(64) * params.H);
++    }
+     for (int t = 0; t < num_threads; ++t)
+       workers.emplace_back([this, t] { worker_loop(t); });
+   }
+@@ -234,6 +250,84 @@
+       while (bar_sense.load() != local_sense) cpu_relax();
+     }
+   }
++
++  bool pair_shape() const {
++    return !apply_on_input && num_experts == 256 && params.top_k == 8 && params.H == 2048 &&
++           params.I == 512 && params.max_tokens <= 8;
++  }
++
++  void prepare_pairs(const MoeFormat& fmt, int tokens) {
++    use_pairs = false;
++#if CPU_MOE_X86
++    const int minimum = pair_threshold.load(std::memory_order_relaxed);
++    if (!minimum || tokens < 2 || !pair_shape() || !bf16_pairs_supported(fmt)) return;
++    std::array<int, 256> pending;
++    pending.fill(-1);
++    pair_tasks.clear();
++    int count = 0;
++    for (const int route : active_routes) {
++      int& prior = pending[io_ids[route]];
++      if (prior < 0) {
++        prior = route;
++      } else {
++        pair_tasks.push_back({prior, route});
++        prior = -1;
++        ++count;
++      }
++    }
++    if (count < minimum) return;
++    for (const int route : pending)
++      if (route >= 0) pair_tasks.push_back({route, -1});
++    use_pairs = true;
++#endif
++  }
++
++#if CPU_MOE_X86
++  void run_pair_task(const MoeTask& task, int64_t item, bool gate) {
++    const int blocks = gate ? n_iblk : n_hblk;
++    const int offset = (item % blocks) * kRowBlock;
++    const auto [r0, r1] = pair_tasks[item / blocks];
++    const int expert = io_ids[r0];
++    const MoeFormat& fmt = format_of(task);
++    const bf16_t* x0 = io_x + size_t(r0 / 8) * params.H;
++    bf16_t* g0 = g_scratch.data() + size_t(r0) * params.I;
++    if (gate) {
++      if (r1 < 0) {
++        fmt.gate_up(task.layer, expert, r0 / 8, offset, offset + kRowBlock, x0, 1.0f, g0);
++      } else {
++        const bf16_t* x1 = io_x + size_t(r1 / 8) * params.H;
++        bf16_t* g1 = g_scratch.data() + size_t(r1) * params.I;
++        bf16_pair_gate(fmt, task.layer, expert, offset, offset + kRowBlock, x0, x1, g0, g1);
++      }
++      return;
++    }
++    float* out0 = pair_down_scratch.data() + size_t(r0) * params.H;
++    if (r1 < 0) {
++      const DownRoute route{expert, r0, g0};
++      fmt.down(task.layer, offset, offset + kRowBlock, &route, 1, out0 + offset);
++    } else {
++      const bf16_t* g1 = g_scratch.data() + size_t(r1) * params.I;
++      float* out1 = pair_down_scratch.data() + size_t(r1) * params.H;
++      bf16_pair_down(fmt, task.layer, expert, offset, offset + kRowBlock, g0, g1, out0, out1);
++    }
++  }
++
++  void reduce_pairs(int64_t item) {
++    const int tok = active_tokens[item / n_hblk];
++    const int h0 = (item % n_hblk) * kRowBlock;
++    for (int h = h0; h < h0 + kRowBlock; ++h) {
++      float acc = 0.0f;
++      for (int k = 0; k < 8; ++k) {
++        const size_t r = size_t(tok) * 8 + k;
++        if (io_ids[r] >= 0 && io_ids[r] < num_experts) {
++          const float v = pair_down_scratch[r * params.H + h] * io_w[r];
++          acc += v;
++        }
++      }
++      io_y[size_t(tok) * params.H + h] = f32_to_bf16(acc);
++    }
++  }
++#endif
+ 
+   // Pass 1 item p = one kRowBlock block of one active route's intermediate row.
+   void do_pass1(const MoeTask& t, int64_t p) {
+@@ -285,6 +379,28 @@
+ 
+   void run_task_body(const MoeTask& t) {
+     int local_sense = 0;
++#if CPU_MOE_X86
++    if (use_pairs) {
++      for (;;) {
++        const int64_t p = p1_next.fetch_add(1, std::memory_order_relaxed);
++        if (p >= p1_total) break;
++        run_pair_task(t, p, true);
++      }
++      barrier(local_sense);
++      for (;;) {
++        const int64_t p = p2_next.fetch_add(1, std::memory_order_relaxed);
++        if (p >= p2_total) break;
++        run_pair_task(t, p, false);
++      }
++      barrier(local_sense);
++      for (;;) {
++        const int64_t p = pair_reduce_next.fetch_add(1, std::memory_order_relaxed);
++        if (p >= pair_reduce_total) break;
++        reduce_pairs(p);
++      }
++      return;
++    }
++#endif
+     for (;;) {
+       int64_t p = p1_next.fetch_add(1, std::memory_order_relaxed);
+       if (p >= p1_total) break;
+@@ -363,8 +479,11 @@
+       else
+         std::memset(io_y + static_cast<size_t>(tok) * params.H, 0, sizeof(bf16_t) * params.H);
+     }
+-    p1_total = static_cast<int64_t>(active_routes.size()) * n_iblk;
+-    p2_total = static_cast<int64_t>(active_tokens.size()) * n_hblk;
++    prepare_pairs(fmt, num_tokens);
++    p1_total = static_cast<int64_t>(use_pairs ? pair_tasks.size() : active_routes.size()) * n_iblk;
++    pair_reduce_total = static_cast<int64_t>(active_tokens.size()) * n_hblk;
++    p2_total = use_pairs ? static_cast<int64_t>(pair_tasks.size()) * n_hblk : pair_reduce_total;
++    pair_reduce_next.store(0, std::memory_order_relaxed);
+     prt_total = fmt.preps_inter() ? static_cast<int64_t>(active_routes.size()) : 0;
+     p1_next.store(0, std::memory_order_relaxed);
+     p2_next.store(0, std::memory_order_relaxed);
+@@ -542,6 +661,10 @@
+            py::arg("stream"), py::call_guard<py::gil_scoped_release>())
+       .def("run", &CpuMoeExecutor::run, py::arg("layer_id"), py::arg("num_tokens"),
+            py::call_guard<py::gil_scoped_release>())
++      .def("set_pair_threshold", [](CpuMoeExecutor& e, int minimum) {
++        if (minimum < 0 || minimum > 32) throw std::invalid_argument("invalid BF16 pair threshold");
++        e.pair_threshold.store(minimum, std::memory_order_relaxed);
++      })
+       .def("flag_served", [](const CpuMoeExecutor& e) { return e.flag_served.load(); })
+       .def("start_flag_coordinator", &CpuMoeExecutor::start_flag_coordinator, py::arg("pin_core"))
+       .def("flag_signal", &CpuMoeExecutor::flag_signal, py::arg("stream"), py::arg("layer_id"),
+@@ -559,7 +682,6 @@
+            [](CpuMoeExecutor& e, bool v) { e.spin_wait.store(v, std::memory_order_relaxed); },
+            py::arg("enabled"))
+       .def("get_spin_wait", [](const CpuMoeExecutor& e) { return e.spin_wait.load(); });
+-  freetoken::cpu_moe::bind_locked_fetch(m);
+   m.def("memops_probe", &GpuSync::probe, py::arg("stream"));
+   m.def("kernel_io_probe", &freetoken::cpu_moe::KernelIo::probe, py::arg("stream"));
+   m.def("host_func_capture_safe", &GpuSync::host_func_capture_safe);

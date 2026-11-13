@@ -1,0 +1,1369 @@
+{
+  "safety": {
+    "arguments": {
+      "run_load": false,
+      "gpu_index": 0,
+      "model_path": "model",
+      "runner_factory": "exact_graph:make_quality_runner",
+      "max_len": 512,
+      "tokens": 16,
+      "idle_seconds": 2,
+      "stage_seconds": 2,
+      "gemm_seconds": 1.5,
+      "gemm_size": 2048,
+      "gpu_stop_c": 70.0,
+      "cpu_stop_c": 75.0,
+      "setup_timeout_s": 45,
+      "total_timeout_s": 60,
+      "command_timeout_s": 1200.0,
+      "out": "/tmp/lightreason-edge35b/native50/decode-policy-watch.json",
+      "monitor_command": [
+        "taskset",
+        "-c",
+        "8-15",
+        "/usr/bin/python3",
+        "-u",
+        "-m",
+        "edge35b.freetoken_bench",
+        "--ft",
+        "/path/to/lightreason-benchmark/freetoken/bin/ft",
+        "--model",
+        "/path/to/lightreason-benchmark/model",
+        "--packed",
+        "/tmp/lightreason-edge35b/native50/studio-256-decode-suite.json",
+        "--cases",
+        "studio,known-math,coding,chat",
+        "--repeats",
+        "2",
+        "--decode-trials",
+        "/tmp/lightreason-edge35b/native50/decode-policy.cfg",
+        "--out",
+        "/tmp/lightreason-edge35b/native50/decode-policy.json",
+        "--server-log",
+        "/path/to/lightreason-benchmark/decode-policy-server.log",
+        "--draft-dir",
+        "/path/to/lightreason-benchmark/dflash2-51ef7b6923ad6c14cb1bb41c37a9041446496ab6",
+        "--draft-steps",
+        "7",
+        "--expert-load",
+        "parallel",
+        "--cache-gib",
+        "15",
+        "--host-embedding",
+        "--cache-type",
+        "naive",
+        "--prefill-hit-d2d",
+        "--port",
+        "1921"
+      ]
+    },
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "power_limit_required_w": 450,
+    "sample_interval_s": 0.25,
+    "sensor_stale_abort_s": 0.75,
+    "effective_total_timeout_s": 1209.0,
+    "external_command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "/usr/bin/python3",
+      "-u",
+      "-m",
+      "edge35b.freetoken_bench",
+      "--ft",
+      "/path/to/lightreason-benchmark/freetoken/bin/ft",
+      "--model",
+      "/path/to/lightreason-benchmark/model",
+      "--packed",
+      "/tmp/lightreason-edge35b/native50/studio-256-decode-suite.json",
+      "--cases",
+      "studio,known-math,coding,chat",
+      "--repeats",
+      "2",
+      "--decode-trials",
+      "/tmp/lightreason-edge35b/native50/decode-policy.cfg",
+      "--out",
+      "/tmp/lightreason-edge35b/native50/decode-policy.json",
+      "--server-log",
+      "/path/to/lightreason-benchmark/decode-policy-server.log",
+      "--draft-dir",
+      "/path/to/lightreason-benchmark/dflash2-51ef7b6923ad6c14cb1bb41c37a9041446496ab6",
+      "--draft-steps",
+      "7",
+      "--expert-load",
+      "parallel",
+      "--cache-gib",
+      "15",
+      "--host-embedding",
+      "--cache-type",
+      "naive",
+      "--prefill-hit-d2d",
+      "--port",
+      "1921"
+    ],
+    "external_returncode": 0,
+    "wrapper_exit_code": 0,
+    "external_logs": "stdout/stderr inherited unchanged; wrapper completion goes to stderr",
+    "external_cuda_visible_devices": "GPU-00000000-0000-0000-0000-000000000000",
+    "inventory": {
+      "type": "inventory",
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 4090",
+        "uuid": "GPU-00000000-0000-0000-0000-000000000000",
+        "physical_gpu_count": 1,
+        "power_default_w": 450.0,
+        "power_constraints_w": [
+          150.0,
+          450.0
+        ],
+        "maximum_graphics_clock_mhz": 3135,
+        "maximum_memory_clock_mhz": 10501,
+        "maximum_pcie_generation": 4,
+        "maximum_pcie_width": 16,
+        "supported_memory_clocks_mhz": [
+          10501,
+          10251,
+          5001,
+          810,
+          405
+        ],
+        "supported_graphics_clocks_mhz_at_reported_memory": [
+          3135,
+          3120,
+          3105,
+          3090,
+          3075,
+          3060,
+          3045,
+          3030,
+          3015,
+          3000,
+          2985,
+          2970,
+          2955,
+          2940,
+          2925,
+          2910,
+          2895,
+          2880,
+          2865,
+          2850,
+          2835,
+          2820,
+          2805,
+          2790,
+          2775,
+          2760,
+          2745,
+          2730,
+          2715,
+          2700,
+          2685,
+          2670,
+          2655,
+          2640,
+          2625,
+          2610,
+          2595,
+          2580,
+          2565,
+          2550,
+          2535,
+          2520,
+          2505,
+          2490,
+          2475,
+          2460,
+          2445,
+          2430,
+          2415,
+          2400,
+          2385,
+          2370,
+          2355,
+          2340,
+          2325,
+          2310,
+          2295,
+          2280,
+          2265,
+          2250,
+          2235,
+          2220,
+          2205,
+          2190,
+          2175,
+          2160,
+          2145,
+          2130,
+          2115,
+          2100,
+          2085,
+          2070,
+          2055,
+          2040,
+          2025,
+          2010,
+          1995,
+          1980,
+          1965,
+          1950,
+          1935,
+          1920,
+          1905,
+          1890,
+          1875,
+          1860,
+          1845,
+          1830,
+          1815,
+          1800,
+          1785,
+          1770,
+          1755,
+          1740,
+          1725,
+          1710,
+          1695,
+          1680,
+          1665,
+          1650,
+          1635,
+          1620,
+          1605,
+          1590,
+          1575,
+          1560,
+          1545,
+          1530,
+          1515,
+          1500,
+          1485,
+          1470,
+          1455,
+          1440,
+          1425,
+          1410,
+          1395,
+          1380,
+          1365,
+          1350,
+          1335,
+          1320,
+          1305,
+          1290,
+          1275,
+          1260,
+          1245,
+          1230,
+          1215,
+          1200,
+          1185,
+          1170,
+          1155,
+          1140,
+          1125,
+          1110,
+          1095,
+          1080,
+          1065,
+          1050,
+          1035,
+          1020,
+          1005,
+          990,
+          975,
+          960,
+          945,
+          930,
+          915,
+          900,
+          885,
+          870,
+          855,
+          840,
+          825,
+          810,
+          795,
+          780,
+          765,
+          750,
+          735,
+          720,
+          705,
+          690,
+          675,
+          660,
+          645,
+          630,
+          615,
+          600,
+          585,
+          570,
+          555,
+          540,
+          525,
+          510,
+          495,
+          480,
+          465,
+          450,
+          435,
+          420,
+          405,
+          390,
+          375,
+          360,
+          345,
+          330,
+          315,
+          300,
+          285,
+          270,
+          255,
+          240
+        ],
+        "supported_graphics_memory_clock_mhz": 10501,
+        "effective_uid": 1000,
+        "hardware_changes_applied": false,
+        "permission_note": "Read queries do not prove permission/support for clock writes; no write is attempted",
+        "optional_query_errors": {}
+      },
+      "cpu": {
+        "policies": [
+          {
+            "policy": "policy0",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy1",
+            "scaling_driver": null,
+            "optional_read_errors": {
+              "scaling_driver": "OSError: [Errno 16] Device or resource busy",
+              "scaling_governor": "OSError: [Errno 16] Device or resource busy",
+              "energy_performance_preference": "OSError: [Errno 16] Device or resource busy",
+              "scaling_min_freq": "OSError: [Errno 16] Device or resource busy",
+              "scaling_max_freq": "OSError: [Errno 16] Device or resource busy",
+              "cpuinfo_min_freq": "OSError: [Errno 16] Device or resource busy",
+              "cpuinfo_max_freq": "OSError: [Errno 16] Device or resource busy"
+            },
+            "scaling_governor": null,
+            "energy_performance_preference": null,
+            "scaling_min_freq": null,
+            "scaling_max_freq": null,
+            "cpuinfo_min_freq": null,
+            "cpuinfo_max_freq": null
+          },
+          {
+            "policy": "policy10",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy11",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy12",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy13",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy14",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy15",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy16",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy17",
+            "scaling_driver": null,
+            "optional_read_errors": {
+              "scaling_driver": "OSError: [Errno 16] Device or resource busy",
+              "scaling_governor": "OSError: [Errno 16] Device or resource busy",
+              "energy_performance_preference": "OSError: [Errno 16] Device or resource busy",
+              "scaling_min_freq": "OSError: [Errno 16] Device or resource busy",
+              "scaling_max_freq": "OSError: [Errno 16] Device or resource busy",
+              "cpuinfo_min_freq": "OSError: [Errno 16] Device or resource busy",
+              "cpuinfo_max_freq": "OSError: [Errno 16] Device or resource busy"
+            },
+            "scaling_governor": null,
+            "energy_performance_preference": null,
+            "scaling_min_freq": null,
+            "scaling_max_freq": null,
+            "cpuinfo_min_freq": null,
+            "cpuinfo_max_freq": null
+          },
+          {
+            "policy": "policy18",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy19",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy2",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy20",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy21",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy22",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy23",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy24",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy25",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy26",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy27",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy28",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy29",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy3",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy30",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy31",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy4",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy5",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy6",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy7",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy8",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          },
+          {
+            "policy": "policy9",
+            "scaling_driver": "amd-pstate-epp",
+            "scaling_governor": "powersave",
+            "energy_performance_preference": "balance_performance",
+            "scaling_min_freq": "1746460",
+            "scaling_max_freq": "5086181",
+            "cpuinfo_min_freq": "582154",
+            "cpuinfo_max_freq": "5086181"
+          }
+        ],
+        "boost": "1",
+        "amd_pstate_status": "active",
+        "temperature_sensors": [
+          {
+            "path": "/sys/class/hwmon/hwmon3/temp1_input",
+            "label": "Tctl",
+            "driver": "k10temp"
+          },
+          {
+            "path": "/sys/class/hwmon/hwmon3/temp3_input",
+            "label": "Tccd1",
+            "driver": "k10temp"
+          },
+          {
+            "path": "/sys/class/hwmon/hwmon3/temp4_input",
+            "label": "Tccd2",
+            "driver": "k10temp"
+          }
+        ],
+        "cpu_temperature_available": true,
+        "configuration_changes_applied": false
+      }
+    },
+    "telemetry_by_phase": {
+      "idle": {
+        "samples": 9,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 39,
+            "median": 39,
+            "max": 39
+          },
+          "cpu_temperature_max_c": {
+            "min": 47.25,
+            "median": 49.375,
+            "max": 51.5
+          },
+          "power_draw_w": {
+            "min": 22.638,
+            "median": 28.827,
+            "max": 34.982
+          },
+          "graphics_clock_mhz": {
+            "min": 210,
+            "median": 225,
+            "max": 285
+          },
+          "memory_clock_mhz": {
+            "min": 405,
+            "median": 405,
+            "max": 810
+          },
+          "gpu_utilization_percent": {
+            "min": 0,
+            "median": 0,
+            "max": 0
+          },
+          "pcie_generation": {
+            "min": 1,
+            "median": 1,
+            "max": 1
+          },
+          "pcie_width": {
+            "min": 16,
+            "median": 16,
+            "max": 16
+          },
+          "cpu_frequency_mhz_median": {
+            "min": 1746.46,
+            "median": 1746.46,
+            "max": 1746.46
+          }
+        },
+        "pstates": [
+          "P8"
+        ],
+        "clock_event_masks": [
+          "0x1"
+        ]
+      },
+      "external_command": {
+        "samples": 1576,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 39,
+            "median": 40.0,
+            "max": 47
+          },
+          "cpu_temperature_max_c": {
+            "min": 36.125,
+            "median": 60.75,
+            "max": 68.5
+          },
+          "power_draw_w": {
+            "min": 21.759,
+            "median": 113.31899999999999,
+            "max": 151.305
+          },
+          "graphics_clock_mhz": {
+            "min": 210,
+            "median": 2775.0,
+            "max": 2790
+          },
+          "memory_clock_mhz": {
+            "min": 405,
+            "median": 10251.0,
+            "max": 10251
+          },
+          "gpu_utilization_percent": {
+            "min": 0,
+            "median": 85.0,
+            "max": 100
+          },
+          "pcie_generation": {
+            "min": 1,
+            "median": 4.0,
+            "max": 4
+          },
+          "pcie_width": {
+            "min": 16,
+            "median": 16.0,
+            "max": 16
+          },
+          "cpu_frequency_mhz_median": {
+            "min": 1746.46,
+            "median": 1746.46,
+            "max": 3660.279
+          }
+        },
+        "pstates": [
+          "P2",
+          "P5",
+          "P8"
+        ],
+        "clock_event_masks": [
+          "0x0",
+          "0x1"
+        ]
+      },
+      "post_command_idle": {
+        "samples": 9,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 37,
+            "median": 38,
+            "max": 39
+          },
+          "cpu_temperature_max_c": {
+            "min": 66.625,
+            "median": 66.875,
+            "max": 66.875
+          },
+          "power_draw_w": {
+            "min": 75.05,
+            "median": 78.246,
+            "max": 120.3
+          },
+          "graphics_clock_mhz": {
+            "min": 2790,
+            "median": 2790,
+            "max": 2790
+          },
+          "memory_clock_mhz": {
+            "min": 10251,
+            "median": 10251,
+            "max": 10251
+          },
+          "gpu_utilization_percent": {
+            "min": 0,
+            "median": 0,
+            "max": 97
+          },
+          "pcie_generation": {
+            "min": 4,
+            "median": 4,
+            "max": 4
+          },
+          "pcie_width": {
+            "min": 16,
+            "median": 16,
+            "max": 16
+          },
+          "cpu_frequency_mhz_median": {
+            "min": 1746.46,
+            "median": 1746.46,
+            "max": 1746.46
+          }
+        },
+        "pstates": [
+          "P2"
+        ],
+        "clock_event_masks": [
+          "0x0"
+        ]
+      }
+    },
+    "stages": [],
+    "events": [
+      {
+        "type": "external_start",
+        "pid": 2471325,
+        "command": [
+          "taskset",
+          "-c",
+          "8-15",
+          "/usr/bin/python3",
+          "-u",
+          "-m",
+          "edge35b.freetoken_bench",
+          "--ft",
+          "/path/to/lightreason-benchmark/freetoken/bin/ft",
+          "--model",
+          "/path/to/lightreason-benchmark/model",
+          "--packed",
+          "/tmp/lightreason-edge35b/native50/studio-256-decode-suite.json",
+          "--cases",
+          "studio,known-math,coding,chat",
+          "--repeats",
+          "2",
+          "--decode-trials",
+          "/tmp/lightreason-edge35b/native50/decode-policy.cfg",
+          "--out",
+          "/tmp/lightreason-edge35b/native50/decode-policy.json",
+          "--server-log",
+          "/path/to/lightreason-benchmark/decode-policy-server.log",
+          "--draft-dir",
+          "/path/to/lightreason-benchmark/dflash2-51ef7b6923ad6c14cb1bb41c37a9041446496ab6",
+          "--draft-steps",
+          "7",
+          "--expert-load",
+          "parallel",
+          "--cache-gib",
+          "15",
+          "--host-embedding",
+          "--cache-type",
+          "naive",
+          "--prefill-hit-d2d",
+          "--port",
+          "1921"
+        ]
+      },
+      {
+        "type": "external_exit",
+        "returncode": 0
+      }
+    ],
+    "sources": {
+      "nvidia_smi": "https://docs.nvidia.com/deploy/nvidia-smi/index.html",
+      "nvml_queries": "https://docs.nvidia.com/deploy/nvml-api/latest/api/group__nvmlDeviceQueries.html",
+      "unofficial_report_read_only": "https://github.com/JustAResearcher/gpu-unlock-ada/blob/main/rtx4090-register-report.md"
+    },
+    "limits": [
+      "Sampled thermal stops cannot prevent every between-sample overshoot.",
+      "Idle P8/low clocks or PCIe Gen1 alone are not evidence of an inference bottleneck.",
+      "Resident-weight decode need not be limited by PCIe; compare under-load telemetry and kernel profiles.",
+      "SIMT GEMV decode is not accelerated by a Tensor Core instruction-rate change.",
+      "This probe changes no manufacturer controls; unofficial firmware/register unlocks are outside this experiment.",
+      "Monitoring overhead and short stages mean these are hardware diagnostics, not a10x performance proof."
+    ]
+  },
+  "stats": [
+    {
+      "policy": [
+        0,
+        0,
+        0
+      ],
+      "stats": {
+        "layer_calls": 40,
+        "active_per_layer": 27.175,
+        "missing_per_layer": 27.175,
+        "miss_rate": 1.0,
+        "fetched_per_layer": 27.175,
+        "cpu_per_layer": 0.0,
+        "fetch_rate": 1.0,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        0,
+        0,
+        0
+      ],
+      "stats": {
+        "layer_calls": 0,
+        "active_per_layer": 0.0,
+        "missing_per_layer": 0.0,
+        "miss_rate": 0.0,
+        "fetched_per_layer": 0.0,
+        "cpu_per_layer": 0.0,
+        "fetch_rate": 0.0,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        0,
+        0,
+        0
+      ],
+      "stats": {
+        "layer_calls": 40,
+        "active_per_layer": 36.95,
+        "missing_per_layer": 36.95,
+        "miss_rate": 1.0,
+        "fetched_per_layer": 19.475,
+        "cpu_per_layer": 17.475,
+        "fetch_rate": 0.527063599458728,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        0,
+        0,
+        0
+      ],
+      "stats": {
+        "layer_calls": 2200,
+        "active_per_layer": 35.583636363636366,
+        "missing_per_layer": 11.000454545454545,
+        "miss_rate": 0.3091436308824281,
+        "fetched_per_layer": 5.84,
+        "cpu_per_layer": 5.160454545454545,
+        "fetch_rate": 0.5308871534234123,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        0,
+        0
+      ],
+      "stats": {
+        "layer_calls": 2200,
+        "active_per_layer": 35.583636363636366,
+        "missing_per_layer": 11.000454545454545,
+        "miss_rate": 0.3091436308824281,
+        "fetched_per_layer": 5.84,
+        "cpu_per_layer": 5.160454545454545,
+        "fetch_rate": 0.5308871534234123,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        2,
+        0
+      ],
+      "stats": {
+        "layer_calls": 2280,
+        "active_per_layer": 35.76140350877193,
+        "missing_per_layer": 10.780263157894737,
+        "miss_rate": 0.3014496664050236,
+        "fetched_per_layer": 5.739473684210527,
+        "cpu_per_layer": 5.04078947368421,
+        "fetch_rate": 0.5324057121933358,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        4,
+        0
+      ],
+      "stats": {
+        "layer_calls": 2200,
+        "active_per_layer": 35.79590909090909,
+        "missing_per_layer": 11.16,
+        "miss_rate": 0.3117674696194334,
+        "fetched_per_layer": 5.9395454545454545,
+        "cpu_per_layer": 5.220454545454546,
+        "fetch_rate": 0.5322173346366895,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        8,
+        0
+      ],
+      "stats": {
+        "layer_calls": 2320,
+        "active_per_layer": 35.688793103448276,
+        "missing_per_layer": 11.277586206896551,
+        "miss_rate": 0.31599797096548227,
+        "fetched_per_layer": 5.996551724137931,
+        "cpu_per_layer": 5.281034482758621,
+        "fetch_rate": 0.5317229781378994,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        0,
+        40
+      ],
+      "stats": {
+        "layer_calls": 2400,
+        "active_per_layer": 35.057916666666664,
+        "missing_per_layer": 10.990833333333333,
+        "miss_rate": 0.3135050333376912,
+        "fetched_per_layer": 4.194583333333333,
+        "cpu_per_layer": 6.79625,
+        "fetch_rate": 0.3816437940708166,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        0,
+        65
+      ],
+      "stats": {
+        "layer_calls": 2200,
+        "active_per_layer": 36.06136363636364,
+        "missing_per_layer": 11.33090909090909,
+        "miss_rate": 0.31421188630490954,
+        "fetched_per_layer": 7.499090909090909,
+        "cpu_per_layer": 3.831818181818182,
+        "fetch_rate": 0.6618260590500642,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        4,
+        65
+      ],
+      "stats": {
+        "layer_calls": 2040,
+        "active_per_layer": 35.833333333333336,
+        "missing_per_layer": 11.756372549019607,
+        "miss_rate": 0.32808481532147743,
+        "fetched_per_layer": 7.766666666666667,
+        "cpu_per_layer": 3.989705882352941,
+        "fetch_rate": 0.6606346161864655,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        4,
+        65
+      ],
+      "stats": {
+        "layer_calls": 2040,
+        "active_per_layer": 35.833333333333336,
+        "missing_per_layer": 11.756372549019607,
+        "miss_rate": 0.32808481532147743,
+        "fetched_per_layer": 7.766666666666667,
+        "cpu_per_layer": 3.989705882352941,
+        "fetch_rate": 0.6606346161864655,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        0,
+        65
+      ],
+      "stats": {
+        "layer_calls": 2200,
+        "active_per_layer": 36.06136363636364,
+        "missing_per_layer": 11.33090909090909,
+        "miss_rate": 0.31421188630490954,
+        "fetched_per_layer": 7.499090909090909,
+        "cpu_per_layer": 3.831818181818182,
+        "fetch_rate": 0.6618260590500642,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        0,
+        40
+      ],
+      "stats": {
+        "layer_calls": 2400,
+        "active_per_layer": 35.057916666666664,
+        "missing_per_layer": 10.990833333333333,
+        "miss_rate": 0.3135050333376912,
+        "fetched_per_layer": 4.194583333333333,
+        "cpu_per_layer": 6.79625,
+        "fetch_rate": 0.3816437940708166,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        8,
+        0
+      ],
+      "stats": {
+        "layer_calls": 2320,
+        "active_per_layer": 35.688793103448276,
+        "missing_per_layer": 11.277586206896551,
+        "miss_rate": 0.31599797096548227,
+        "fetched_per_layer": 5.996551724137931,
+        "cpu_per_layer": 5.281034482758621,
+        "fetch_rate": 0.5317229781378994,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        4,
+        0
+      ],
+      "stats": {
+        "layer_calls": 2200,
+        "active_per_layer": 35.79590909090909,
+        "missing_per_layer": 11.16,
+        "miss_rate": 0.3117674696194334,
+        "fetched_per_layer": 5.9395454545454545,
+        "cpu_per_layer": 5.220454545454546,
+        "fetch_rate": 0.5322173346366895,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        2,
+        0
+      ],
+      "stats": {
+        "layer_calls": 2280,
+        "active_per_layer": 35.76140350877193,
+        "missing_per_layer": 10.780263157894737,
+        "miss_rate": 0.3014496664050236,
+        "fetched_per_layer": 5.739473684210527,
+        "cpu_per_layer": 5.04078947368421,
+        "fetch_rate": 0.5324057121933358,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        0,
+        0
+      ],
+      "stats": {
+        "layer_calls": 2200,
+        "active_per_layer": 35.583636363636366,
+        "missing_per_layer": 11.000454545454545,
+        "miss_rate": 0.3091436308824281,
+        "fetched_per_layer": 5.84,
+        "cpu_per_layer": 5.160454545454545,
+        "fetch_rate": 0.5308871534234123,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        0,
+        0,
+        0
+      ],
+      "stats": {
+        "layer_calls": 2200,
+        "active_per_layer": 35.583636363636366,
+        "missing_per_layer": 11.000454545454545,
+        "miss_rate": 0.3091436308824281,
+        "fetched_per_layer": 5.84,
+        "cpu_per_layer": 5.160454545454545,
+        "fetch_rate": 0.5308871534234123,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        0,
+        0,
+        0
+      ],
+      "stats": {
+        "layer_calls": 2320,
+        "active_per_layer": 36.47456896551724,
+        "missing_per_layer": 14.327586206896552,
+        "miss_rate": 0.39281029531676537,
+        "fetched_per_layer": 8.05043103448276,
+        "cpu_per_layer": 6.277155172413793,
+        "fetch_rate": 0.5618832731648616,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        4,
+        65
+      ],
+      "stats": {
+        "layer_calls": 2160,
+        "active_per_layer": 36.21666666666667,
+        "missing_per_layer": 14.699537037037038,
+        "miss_rate": 0.40587769085238024,
+        "fetched_per_layer": 10.068518518518518,
+        "cpu_per_layer": 4.631018518518519,
+        "fetch_rate": 0.6849548045730843,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        0,
+        0,
+        0
+      ],
+      "stats": {
+        "layer_calls": 5880,
+        "active_per_layer": 36.33673469387755,
+        "missing_per_layer": 11.866836734693878,
+        "miss_rate": 0.3265796124684078,
+        "fetched_per_layer": 6.603571428571429,
+        "cpu_per_layer": 5.263265306122449,
+        "fetch_rate": 0.5564727632314372,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        1,
+        4,
+        65
+      ],
+      "stats": {
+        "layer_calls": 5920,
+        "active_per_layer": 36.25810810810811,
+        "missing_per_layer": 12.741554054054054,
+        "miss_rate": 0.351412545190265,
+        "fetched_per_layer": 8.643074324324324,
+        "cpu_per_layer": 4.098479729729729,
+        "fetch_rate": 0.6783375314861461,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    },
+    {
+      "policy": [
+        0,
+        0,
+        0
+      ],
+      "stats": {
+        "layer_calls": 7080,
+        "active_per_layer": 36.44011299435028,
+        "missing_per_layer": 12.005649717514125,
+        "miss_rate": 0.329462472286392,
+        "fetched_per_layer": 6.6035310734463275,
+        "cpu_per_layer": 5.402118644067796,
+        "fetch_rate": 0.5500352941176471,
+        "prefill_hit_rows": 0,
+        "prefill_rows": 0
+      }
+    }
+  ]
+}

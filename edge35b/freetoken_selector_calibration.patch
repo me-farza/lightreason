@@ -1,0 +1,143 @@
+--- a/freetoken/spec/dflash/proposer.py
++++ b/freetoken/spec/dflash/proposer.py
+@@ -5,13 +5,14 @@
+ 
+ from __future__ import annotations
+ 
++import os
+ from typing import TYPE_CHECKING, Dict, List
+ 
+ import torch
+ 
+ from freetoken.attention.linear import gdn_slot
+ from freetoken.engine.sample import make_device_tensor
+-from freetoken.kernel.triton.dflash import ring_attention_workspace
++from freetoken.kernel.triton.dflash import ring_attention_workspace, selector_walk
+ from freetoken.spec.dflash.window import DFlashWindow
+ from freetoken.spec.proposer import DraftContext, Proposer, SpecProposal, check_draft_path
+ from freetoken.utils import cached_load_hf_config, init_logger
+@@ -149,6 +150,7 @@
+         module, name = _draft_entry(config)
+         path = config.speculative_draft_model_path
+         self.draft_config = c = self._draft_config(config)
++        self._lightreason_selector_lab = os.getenv("LIGHTREASON_SELECTOR_LAB") == "1"
+         self.draft = _load_attr(module, name).load(c, target_model, path, self.device, self.dtype)
+         self.taps, self.hidden, self.block = c.target_layer_ids, c.hidden_size, self.k + 1
+         self.ring_len = DFlashWindow.length(c.window, self.block)
+@@ -190,8 +192,36 @@
+         pred = hidden.view(pending.shape[0], self.block, -1)[:, 1:]
+         candidate_ids, unary_logits = self.draft.compute_candidates(pred)
+         uniforms = torch.rand(pred.shape[:2], device=pred.device)
+-        tokens, q = self.draft.candidate_selector.sample_path(candidate_ids, unary_logits, pred, pending, temperature, greedy, uniforms)
++        selector = self.draft.candidate_selector
++        if self._lightreason_selector_lab:
++            state = selector.hidden_projection.forward(pred)
++            self._lightreason_selector_unary.copy_(unary_logits)
++            self._lightreason_selector_state.copy_(state)
++            adjusted = torch.addcmul(self._lightreason_selector_bias, unary_logits, self._lightreason_selector_scale)
++            tokens, q = selector_walk(
++                candidate_ids, adjusted, state, pending, selector.predecessor_codebook,
++                selector.successor_codebook, temperature, greedy, uniforms,
++            )
++        else:
++            tokens, q = selector.sample_path(candidate_ids, unary_logits, pred, pending, temperature, greedy, uniforms)
+         return tokens, candidate_ids, q
++
++    def configure_lightreason_selector(self, parameters) -> None:
++        if parameters is None:
++            self._lightreason_selector_scale.fill_(1)
++            self._lightreason_selector_bias.zero_()
++        else:
++            self._lightreason_selector_scale.copy_(torch.tensor(parameters["scale"], dtype=torch.float32).view_as(self._lightreason_selector_scale))
++            self._lightreason_selector_bias.copy_(torch.tensor(parameters["bias"], dtype=torch.float32).view_as(self._lightreason_selector_bias))
++
++    def lightreason_teacher_scores(self, predecessor: torch.Tensor):
++        selector = self.draft.candidate_selector
++        state = self._lightreason_selector_state[0]
++        candidates = self._lightreason_candidates[0]
++        pre = selector.predecessor_codebook.index_select(0, predecessor).float() * state
++        suc = selector.successor_codebook[candidates].float()
++        transition = (pre.unsqueeze(1) * suc).sum(dim=-1)
++        return torch.stack((self._lightreason_selector_unary[0], transition))
+ 
+     def _inject(self, features: torch.Tensor, positions: torch.Tensor, rows: torch.Tensor, slots: torch.Tensor | None) -> None:
+         """The context rows of ``features`` into the ring rows ``rows`` and the window slots ``slots`` at ``positions``."""
+@@ -206,6 +236,13 @@
+             return
+         ctx, dev, k, top_k = self.ctx, self.ctx.device, self.k, self.draft_config.selector_top_k
+         max_bs, dummy = max(bs_list), ctx.dummy_req.table_idx
++        if self._lightreason_selector_lab:
++            assert max_bs == 1
++            fp32 = dict(device=dev, dtype=torch.float32)
++            self._lightreason_selector_scale = torch.ones((1, k, 1), **fp32)
++            self._lightreason_selector_bias = torch.zeros((1, k, top_k), **fp32)
++            self._lightreason_selector_unary = torch.empty_like(self._lightreason_selector_bias)
++            self._lightreason_selector_state = torch.empty((1, k, self.draft_config.selector_rank), **fp32)
+         self._in = (
+             torch.zeros(max_bs, dtype=torch.int64, device=dev),                 # bonus
+             torch.zeros(max_bs, dtype=torch.int64, device=dev),                 # starts
+--- a/freetoken/spec/runner.py
++++ b/freetoken/spec/runner.py
+@@ -99,13 +99,17 @@
+         self.lightreason_diagnostics = mode
+         self._lightreason_details_path = path
+         self._lightreason_passes = []
+-        self.proposer._lightreason_capture_candidates = mode == "audit"
++        self.proposer._lightreason_capture_candidates = mode in {"audit", "train"}
+         self.engine.cpu_moe_executor._ext.set_expert_profile(mode == "profile")
+-        if mode == "audit":
++        if mode in {"audit", "train"}:
+             self._lightreason_draft_host = torch.empty(self.k, dtype=torch.int64, pin_memory=True)
+             self._lightreason_candidates_host = torch.empty(
+                 (self.k, self.proposer.draft_config.selector_top_k), dtype=torch.int64, pin_memory=True,
+             )
++            if mode == "train":
++                self._lightreason_score_host = torch.empty(
++                    (2, self.k, self.proposer.draft_config.selector_top_k), dtype=torch.float32, pin_memory=True,
++                )
+         elif mode == "profile":
+             self._lightreason_graph_start = torch.cuda.Event(enable_timing=True)
+             self._lightreason_graph_stop = torch.cuda.Event(enable_timing=True)
+@@ -115,10 +119,12 @@
+         if mode == "off":
+             return
+         info = {"width": width, "committed": committed, "accepted_drafts": int(self._host[0, width])}
+-        if mode == "audit":
++        if mode in {"audit", "train"}:
+             info["target_ids"] = self._host[0, :width].tolist()
+             info["draft_ids"] = self._lightreason_draft_host.tolist()
+             info["candidate_ids"] = self._lightreason_candidates_host.tolist()
++            if mode == "train":
++                info["scores"] = self._lightreason_score_host.tolist()
+         else:
+             expert = self.engine.lightreason_expert_timing
+             info["target_graph_ms"] = self._lightreason_graph_start.elapsed_time(self._lightreason_graph_stop)
+@@ -153,10 +159,13 @@
+         host.copy_(torch.cat([out, emitted.unsqueeze(1)], dim=1), non_blocking=True)
+         if mode == "profile":
+             engine.lightreason_expert_timing.copy_to_host()
+-        elif mode == "audit":
++        elif mode in {"audit", "train"}:
+             assert bs == 1 and width == self.k + 1 and proposal.draft_support_probs is None
+             self._lightreason_draft_host.copy_(drafts[0], non_blocking=True)
+             self._lightreason_candidates_host.copy_(self.proposer._lightreason_candidates[0], non_blocking=True)
++            if mode == "train":
++                predecessor = torch.cat((batch.input_ids[:1].long(), out[0, :self.k - 1]))
++                self._lightreason_score_host.copy_(self.proposer.lightreason_teacher_scores(predecessor), non_blocking=True)
+         copy_done = torch.cuda.Event()
+         copy_done.record(engine.stream)
+         # after the D2H is queued: the drain waits for the copy only, while the draft's work overlaps it
+--- a/freetoken/scheduler/scheduler.py
++++ b/freetoken/scheduler/scheduler.py
+@@ -908,7 +908,10 @@
+         if trial is not None and batch.is_prefill and trial.begin(batch.reqs[0].uid):
+             self.engine.moe_offload_cache.reset()
+             self.engine.cpu_moe_executor._ext.set_pair_threshold(trial.min_pairs)
+-            if os.getenv("LIGHTREASON_PASS_DIAGNOSTICS") == "1":
++            selector_lab = os.getenv("LIGHTREASON_SELECTOR_LAB") == "1"
++            if selector_lab:
++                self.spec.proposer.configure_lightreason_selector(trial.selector_calibration)
++            if selector_lab or os.getenv("LIGHTREASON_PASS_DIAGNOSTICS") == "1":
+                 self.spec.begin_lightreason_diagnostics(trial.diagnostics, trial.diagnostic_log)
+         if self.spec is not None and batch.is_decode:
+             width = trial.choose() if trial is not None else self.config.decode_rows_per_req

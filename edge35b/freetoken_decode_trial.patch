@@ -1,0 +1,211 @@
+--- a/freetoken/moe/offload_cache.py
++++ b/freetoken/moe/offload_cache.py
+@@ -2,6 +2,7 @@
+ 
+ import math
+ import os
++from pathlib import Path
+ from dataclasses import dataclass
+ from typing import TYPE_CHECKING, Iterator
+ 
+@@ -299,6 +300,14 @@
+         # kernel rewrites them to slots. Only accurate with CUDA graphs disabled (the
+         # captured graph would not re-run this host-side scatter on replay).
+         self.collect_decode_freq = False
++        self.decode_trial_path = os.getenv("LIGHTREASON_DECODE_TRIAL_PATH")
++        self.decode_trial = None
++        self._previous_decode_trial = None
++        if self.decode_trial_path:
++            if (self.device.type != "cuda" or self.decode_target != "hybrid"
++                    or self.num_layers != 40 or self.num_experts != 256 or len(self.pool_sizes) != 1):
++                raise ValueError("Decode trials require the single-pool Qwen3.6 hybrid cache")
++            self.decode_trial = torch.zeros(3, dtype=torch.int32, device=self.device)
+         self.decode_freq = torch.zeros(
+             (self.num_layers, self.num_experts), dtype=torch.int64, device=self.device
+         )
+@@ -1150,7 +1159,10 @@
+                 raise ValueError("All-GPU routing requires pinned weights and room for the whole layer")
+             max_fetch, fraction, cap = self.num_experts, 0.0, self.num_experts
+         self._pending_fetch_cap = cap
+-        return ensure_experts_hybrid(self, layer_id, expert_ids, weights, max_fetch, fraction, clamp, cap)
++        return ensure_experts_hybrid(
++            self, layer_id, expert_ids, weights, max_fetch, fraction, clamp, cap,
++            tuning=None if all_gpu else self.decode_trial,
++        )
+ 
+     def materialize_layer(self, layer_id: int) -> None:
+         from freetoken.moe.offload_kernels import materialize_layer
+@@ -1166,6 +1178,20 @@
+         # Per-expert recency is not cache_size-shaped, so reset_cache leaves it alone; wipe
+         # it here so a new sequence starts with cold hybrid fetch priorities.
+         self.expert_recency.fill_(-1)
++
++    def begin_decode_trial(self) -> None:
++        """Install a test policy at prefill, before replaying the fixed verifier graph."""
++        vector, probation, fetch_percent = map(int, Path(self.decode_trial_path).read_text().split())
++        if vector not in (0, 1) or not 0 <= probation <= 32 or not 0 <= fetch_percent <= 100:
++            raise ValueError("Invalid decode trial policy")
++        if self._previous_decode_trial is not None:
++            print("Lightreason decode trial", self._previous_decode_trial, self.decode_miss_stats(), flush=True)
++        self._previous_decode_trial = (vector, probation, fetch_percent)
++        self.reset()
++        self.reset_stats()
++        self.decode_trial.copy_(torch.tensor(
++            [vector, probation * self.num_layers, round(fetch_percent / 100 * (1 << 16))], dtype=torch.int32,
++        ))
+ 
+     def reset_stats(self) -> None:
+         self.prefill_hit_rows = 0
+--- a/freetoken/layers/moe.py
++++ b/freetoken/layers/moe.py
+@@ -354,6 +354,8 @@
+         pass through unmapped. Short BF16 extensions can load just their routed rows."""
+         cache = self.offload_cache
+         assert cache is not None
++        if self.layer_id == 0 and cache.decode_trial is not None:
++            cache.begin_decode_trial()
+         routed_limit = int(os.environ.get("LIGHTREASON_ROUTED_PREFILL_MAX_TOKENS", "0"))
+         count = hidden_states.shape[0]
+         if (0 < count <= routed_limit and hidden_states.dtype == torch.bfloat16
+--- a/freetoken/moe/offload_kernels.py
++++ b/freetoken/moe/offload_kernels.py
+@@ -70,6 +70,8 @@
+     fetch_fraction: float = 0.0,
+     clamp: bool = False,
+     fetch_cap: int | None = None,
++    *,
++    tuning: torch.Tensor | None = None,
+ ) -> HybridRoutes:
+     """Capped-fetch variant of ``ensure_experts`` (hybrid backend).
+ 
+@@ -91,7 +93,7 @@
+     weights = weights.contiguous()
+     routes = HybridRoutes(expert_ids, torch.empty_like(weights), torch.empty_like(expert_ids))
+     cap = cache.num_experts if fetch_cap is None else fetch_cap
+-    _ensure_experts_hybrid_gpu(cache, layer_id, expert_ids, weights, routes, clamp, max_fetch, frac_q16, cap)
++    _ensure_experts_hybrid_gpu(cache, layer_id, expert_ids, weights, routes, clamp, max_fetch, frac_q16, cap, tuning)
+     return routes
+ 
+ 
+@@ -192,6 +194,7 @@
+     max_fetch: int,
+     frac_q16: int,
+     fetch_cap: int,
++    tuning: torch.Tensor | None,
+ ) -> None:
+     id_of_slot, usage = cache.pool_state(layer_id)
+     num_slots = id_of_slot.numel()
+@@ -215,6 +218,7 @@
+         routes.cpu_ids,
+         routes.gpu_w,
+         *(cache.hybrid_stats if cache.collect_stats else (expert_ids,) * 2),
++        tuning if tuning is not None else expert_ids,
+         layer_id,
+         expert_ids.numel(),
+         int(max_fetch),
+@@ -230,6 +234,7 @@
+         ROUND=_HYBRID_FETCH_ROUND,
+         CLAMP=clamp,
+         STATS=cache.collect_stats,
++        TUNE=tuning is not None and expert_ids.numel() <= 64,
+         num_warps=num_warps,
+     )
+ 
+@@ -351,6 +356,7 @@
+     gpu_w_ptr,
+     stats_ptr,
+     stats_layer_ptr,
++    tuning_ptr,
+     layer_id,
+     num_active,
+     max_fetch,
+@@ -366,6 +372,7 @@
+     ROUND: tl.constexpr,
+     CLAMP: tl.constexpr,
+     STATS: tl.constexpr,
++    TUNE: tl.constexpr,
+ ):
+     """Capped-fetch timestamp-LRU (hybrid backend).
+ 
+@@ -395,10 +402,20 @@
+     # ---- Phase 1: active + missing over experts ----
+     off_e = tl.arange(0, BLOCK_E)
+     e_mask = off_e < num_experts
+-    is_active = tl.zeros((BLOCK_E,), dtype=tl.int1)
+-    for i in tl.range(num_active):
+-        e = tl.load(expert_ids_ptr + i)
+-        is_active = is_active | (off_e == e)
++    vector_routes = False
++    if TUNE:
++        vector_routes = tl.load(tuning_ptr) != 0
++        trial_frac = tl.load(tuning_ptr + 2)
++        fetch_frac_q16 = tl.where(trial_frac > 0, trial_frac, fetch_frac_q16)
++    if vector_routes:
++        route_offsets = tl.arange(0, 64)
++        route_ids = tl.load(expert_ids_ptr + route_offsets, mask=route_offsets < num_active, other=-1)
++        is_active = tl.histogram(route_ids, BLOCK_E) > 0
++    else:
++        is_active = tl.zeros((BLOCK_E,), dtype=tl.int1)
++        for i in tl.range(num_active):
++            e = tl.load(expert_ids_ptr + i)
++            is_active = is_active | (off_e == e)
+     tl.store(active_mask_ptr + off_e, is_active.to(tl.int32), mask=e_mask)
+     slot = tl.load(slot_for_id_ptr + base + off_e, mask=e_mask, other=-1)
+     is_missing = is_active & (slot == -1) & e_mask
+@@ -472,24 +489,46 @@
+                 e = tl.sum(tl.where((missing_rank == i) & is_missing, off_e, 0))
+             tl.store(id_of_slot_ptr + victim, base + e)
+             tl.store(slot_for_id_ptr + base + e, victim)
+-            tl.store(usage_ptr + victim, step)
++            stamp = step
++            if TUNE and BY_RECENCY and SMALL:
++                # Keep a fresh fetch on probation unless the expert was recently active.
++                # The register victim list still protects every new slot in this pass.
++                probation = tl.load(tuning_ptr + 1)
++                prior = tl.load(expert_recency_ptr + base + e)
++                single_use = (prior < 0) | (step - prior > probation)
++                stamp = tl.where(single_use, tl.maximum(1, step - probation), step)
++            tl.store(usage_ptr + victim, stamp)
+             tl.store(evict_slots_ptr + i, victim)
+             tl.store(src_indices_ptr + i, e)  # layer-local row
+             tl.debug_barrier()  # the next scan must see this victim's stamp
+     tl.debug_barrier()  # Phase 3 reads slot_for_id entries written above
+ 
+     # ---- Phase 3: rewrite expert_ids -> slot id (hit/fetched) or -1 (overflow -> CPU) ----
+-    for i in tl.range(num_active):
+-        e = tl.load(expert_ids_ptr + i)
+-        s = tl.load(slot_for_id_ptr + base + e)
+-        # every warp loads e, one thread stores below; a warp that loads after that store indexes with a slot id
++    if vector_routes:
++        route_offsets = tl.arange(0, 64)
++        valid = route_offsets < num_active
++        route_ids = tl.load(expert_ids_ptr + route_offsets, mask=valid, other=0)
++        route_slots = tl.load(slot_for_id_ptr + base + route_ids, mask=valid, other=-1)
++        route_weights = tl.load(weights_ptr + route_offsets, mask=valid, other=0)
+         tl.debug_barrier()
+-        on_gpu = s >= 0
+-        tl.store(cpu_ids_ptr + i, tl.where(on_gpu, -1, e))
+-        tl.store(gpu_w_ptr + i, tl.where(on_gpu, tl.load(weights_ptr + i), 0.0))
++        on_gpu = route_slots >= 0
++        tl.store(cpu_ids_ptr + route_offsets, tl.where(on_gpu, -1, route_ids), mask=valid)
++        tl.store(gpu_w_ptr + route_offsets, tl.where(on_gpu, route_weights, 0.0), mask=valid)
+         if CLAMP:
+-            s = tl.maximum(s, 0)
+-        tl.store(expert_ids_ptr + i, s)
++            route_slots = tl.maximum(route_slots, 0)
++        tl.store(expert_ids_ptr + route_offsets, route_slots, mask=valid)
++    else:
++        for i in tl.range(num_active):
++            e = tl.load(expert_ids_ptr + i)
++            s = tl.load(slot_for_id_ptr + base + e)
++            # Finish reading expert IDs before overwriting them with slots.
++            tl.debug_barrier()
++            on_gpu = s >= 0
++            tl.store(cpu_ids_ptr + i, tl.where(on_gpu, -1, e))
++            tl.store(gpu_w_ptr + i, tl.where(on_gpu, tl.load(weights_ptr + i), 0.0))
++            if CLAMP:
++                s = tl.maximum(s, 0)
++            tl.store(expert_ids_ptr + i, s)
+ 
+     # stats_ptr: (missing, fetched, active, calls); stats_layer_ptr: the same per layer, [num_layers, 4]
+     if STATS:

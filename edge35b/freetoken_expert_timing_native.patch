@@ -1,0 +1,57 @@
+--- a/freetoken/kernel/csrc/cpu_moe/cpu_moe_ext.cpp
++++ b/freetoken/kernel/csrc/cpu_moe/cpu_moe_ext.cpp
+@@ -141,6 +141,8 @@
+   std::vector<int64_t> active_routes;  // intermediate rows tok * top_k + k whose route names an expert
+   std::vector<int> active_tokens;      // tokens with at least one such route
+   std::atomic<int> pair_threshold{0};
++  std::atomic<bool> record_expert_profile{false};
++  std::unique_ptr<std::atomic<int64_t>[]> profile_service_ns;
+   bool use_pairs = false;
+   struct RoutePair { int first, second; };
+   std::vector<RoutePair> pair_tasks;
+@@ -174,7 +176,8 @@
+         io_w(reinterpret_cast<const float*>(w_ptr)),
+         io_y(reinterpret_cast<bf16_t*>(y_ptr)),
+         num_threads(num_threads_ > 0 ? num_threads_ : 1),
+-        core_ids(std::move(core_ids_)) {
++        core_ids(std::move(core_ids_)),
++        profile_service_ns(std::make_unique<std::atomic<int64_t>[]>(num_layers)) {
+     if (params.top_k > kMaxTopK) throw std::invalid_argument("CPU MoE supports top_k <= " + std::to_string(kMaxTopK));
+     for (auto& [name, banks, options] : formats)
+       fmts.push_back(make_format(name, params, FormatArgs{name, std::move(banks), std::move(options)}));
+@@ -575,12 +578,19 @@
+       const uint64_t word = gpu_sync->cpu_poll();
+       if (word != 0) {
+         const MoeTask t = from_word(word);
++        const bool record = record_expert_profile.load(std::memory_order_relaxed);
++        const auto entered = record ? coord_clock::now() : coord_clock::time_point{};
+         if (has_routes(t)) {
+           submit(t);
+           sync(coord_pinned && spin_wait.load(std::memory_order_relaxed));
+         } else {
+           // What the pool would write for a task without routes, minus its fork and join.
+           std::memset(io_y, 0, sizeof(bf16_t) * t.num_tokens * params.H);
++        }
++        if (record) {
++          const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
++              coord_clock::now() - entered).count();
++          profile_service_ns[t.layer].store(ns, std::memory_order_release);
+         }
+         // Release: the workers' y stores are visible before the GPU sees done.
+         gpu_sync->cpu_done();
+@@ -650,6 +660,15 @@
+            py::arg("stream"), py::call_guard<py::gil_scoped_release>())
+       .def("run", &CpuMoeExecutor::run, py::arg("layer_id"), py::arg("num_tokens"),
+            py::call_guard<py::gil_scoped_release>())
++      .def("set_expert_profile", [](CpuMoeExecutor& e, bool enabled) {
++        e.record_expert_profile.store(enabled, std::memory_order_relaxed);
++      })
++      .def("expert_profile_ns", [](const CpuMoeExecutor& e) {
++        std::vector<int64_t> result(e.num_layers);
++        for (int layer = 0; layer < e.num_layers; ++layer)
++          result[layer] = e.profile_service_ns[layer].load(std::memory_order_acquire);
++        return result;
++      })
+       .def("set_pair_threshold", [](CpuMoeExecutor& e, int minimum) {
+         if (minimum < 0 || minimum > 32) throw std::invalid_argument("invalid BF16 pair threshold");
+         e.pair_threshold.store(minimum, std::memory_order_relaxed);

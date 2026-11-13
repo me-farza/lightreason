@@ -1,0 +1,181 @@
+{
+  "outcome": "completed_external_command",
+  "reason": null,
+  "external_returncode": 0,
+  "telemetry_by_phase": {
+    "idle": {
+      "samples": 9,
+      "ranges": {
+        "gpu_temperature_c": {
+          "min": 35,
+          "median": 36,
+          "max": 36
+        },
+        "cpu_temperature_max_c": {
+          "min": 56.25,
+          "median": 58.375,
+          "max": 60.75
+        },
+        "power_draw_w": {
+          "min": 59.823,
+          "median": 60.059,
+          "max": 60.341
+        },
+        "graphics_clock_mhz": {
+          "min": 2550,
+          "median": 2550,
+          "max": 2550
+        },
+        "memory_clock_mhz": {
+          "min": 10251,
+          "median": 10501,
+          "max": 10501
+        },
+        "gpu_utilization_percent": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "pcie_generation": {
+          "min": 2,
+          "median": 4,
+          "max": 4
+        },
+        "pcie_width": {
+          "min": 16,
+          "median": 16,
+          "max": 16
+        },
+        "cpu_frequency_mhz_median": {
+          "min": 1746.46,
+          "median": 1746.46,
+          "max": 1746.46
+        }
+      },
+      "pstates": [
+        "P0",
+        "P5"
+      ],
+      "clock_event_masks": [
+        "0x0",
+        "0x1"
+      ]
+    },
+    "external_command": {
+      "samples": 92,
+      "ranges": {
+        "gpu_temperature_c": {
+          "min": 34,
+          "median": 36.0,
+          "max": 37
+        },
+        "cpu_temperature_max_c": {
+          "min": 56.375,
+          "median": 64.25,
+          "max": 66.75
+        },
+        "power_draw_w": {
+          "min": 25.042,
+          "median": 84.187,
+          "max": 102.927
+        },
+        "graphics_clock_mhz": {
+          "min": 345,
+          "median": 2790.0,
+          "max": 2790
+        },
+        "memory_clock_mhz": {
+          "min": 810,
+          "median": 10251.0,
+          "max": 10501
+        },
+        "gpu_utilization_percent": {
+          "min": 0,
+          "median": 14.5,
+          "max": 100
+        },
+        "pcie_generation": {
+          "min": 1,
+          "median": 4.0,
+          "max": 4
+        },
+        "pcie_width": {
+          "min": 16,
+          "median": 16.0,
+          "max": 16
+        },
+        "cpu_frequency_mhz_median": {
+          "min": 1746.46,
+          "median": 1746.46,
+          "max": 1746.46
+        }
+      },
+      "pstates": [
+        "P2",
+        "P5",
+        "P8"
+      ],
+      "clock_event_masks": [
+        "0x0",
+        "0x1"
+      ]
+    },
+    "post_command_idle": {
+      "samples": 8,
+      "ranges": {
+        "gpu_temperature_c": {
+          "min": 35,
+          "median": 35.5,
+          "max": 36
+        },
+        "cpu_temperature_max_c": {
+          "min": 58.875,
+          "median": 61.0625,
+          "max": 63.375
+        },
+        "power_draw_w": {
+          "min": 75.258,
+          "median": 77.652,
+          "max": 93.476
+        },
+        "graphics_clock_mhz": {
+          "min": 2790,
+          "median": 2790.0,
+          "max": 2790
+        },
+        "memory_clock_mhz": {
+          "min": 10501,
+          "median": 10501.0,
+          "max": 10501
+        },
+        "gpu_utilization_percent": {
+          "min": 0,
+          "median": 0.0,
+          "max": 100
+        },
+        "pcie_generation": {
+          "min": 2,
+          "median": 4.0,
+          "max": 4
+        },
+        "pcie_width": {
+          "min": 16,
+          "median": 16.0,
+          "max": 16
+        },
+        "cpu_frequency_mhz_median": {
+          "min": 1746.46,
+          "median": 1746.46,
+          "max": 3533.291
+        }
+      },
+      "pstates": [
+        "P0",
+        "P5"
+      ],
+      "clock_event_masks": [
+        "0x0"
+      ]
+    }
+  }
+}

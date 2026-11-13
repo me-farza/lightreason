@@ -1,0 +1,119 @@
+--- a/freetoken/layers/moe.py
++++ b/freetoken/layers/moe.py
+@@ -372,6 +372,16 @@
+                 views=cache.pool_bank_views(self.layer_id), n=None,
+                 alphas=cache.alphas_for_slots(self.layer_id), is_prefill=True,
+             )
++        selected_limit = int(os.environ.get("LIGHTREASON_SELECTED_PREFILL_MAX_TOKENS", "0"))
++        if (routed_limit < count <= selected_limit and hidden_states.dtype == torch.bfloat16
++                and cache.can_stage_selected_bf16()):
++            views = cache.stage_selected_bf16(self.layer_id, topk_ids)
++            out = self._expert_gemm(
++                cache, hidden_states, topk_weights, topk_ids,
++                views=views, n=self.num_experts, alphas=None, is_prefill=True,
++            )
++            cache.release_prefill_layer(self.layer_id)
++            return out
+         if cache.prefill_overlap:
+             views = self._wait_prefill_overlap(cache)
+             out = self._expert_gemm(
+--- a/freetoken/moe/offload_cache.py
++++ b/freetoken/moe/offload_cache.py
+@@ -1038,6 +1038,43 @@
+                 )
+             self.prefill_ready_events[buffer_id].record(self.prefill_copy_stream)
+ 
++    def can_stage_selected_bf16(self) -> bool:
++        return (
++            self.prefill_overlap and self.prefill_hit_d2d and self.decode_target == "hybrid"
++            and len(self.pool_sizes) == 1 and len(self.layouts) == 1 and len(self.banks) == 2
++            and self._copy_fused_ok and not self._unpinned_layers
++            and all(dtype == torch.bfloat16 for dtype, _ in self.layouts[0])
++            and len(self._gather_bank_ids[0]) == len(self.banks)
++            and self._hit_d2d_usable()
++        )
++
++    def stage_selected_bf16(self, layer_id: int, expert_ids: torch.Tensor) -> tuple[torch.Tensor, ...]:
++        """Fill the usual staging views at expert-ID offsets using the live route set."""
++        from freetoken.kernel.fast_index_copy import fast_index_copy_multi_jit
++        from freetoken.moe.offload_kernels import plan_selected_prefill
++
++        buffer_id = layer_id % 2
++        if layer_id == 0:
++            self._selected_prefill_stats = torch.empty((self.num_layers, 2), dtype=torch.int32, device=self.device)
++        self._invalidate_prefill_buffer(buffer_id, layer_id)
++        plan_selected_prefill(self, layer_id, expert_ids)
++        stage_ptrs = self._gather_stage_ptrs[0][buffer_id]
++        feat_bytes = self._copy_feat_bytes[0]
++        fast_index_copy_multi_jit(
++            stage_ptrs, self._copy_src_ptrs[layer_id], feat_bytes,
++            self.evict_slots, self.src_indices, self.num_indices,
++            blocks_per_bank=self._copy_blocks_per_bank,
++        )
++        fast_index_copy_multi_jit(
++            stage_ptrs, self._gather_pool_ptrs[0], feat_bytes,
++            self._prefill_hit_dst, self._prefill_hit_src, self._prefill_hit_num,
++            blocks_per_bank=64,
++        )
++        if layer_id == self.num_layers - 1 and os.getenv("LIGHTREASON_PREFILL_COUNTERS") == "1":
++            cold, hit = self._selected_prefill_stats.sum(dim=0).tolist()
++            print(f"Lightreason selected prefill: {cold} cold rows, {hit} resident rows", flush=True)
++        return self.stage_views(layer_id, buffer_id)
++
+     def wait_prefill_layer(self, layer_id: int) -> tuple[torch.Tensor, ...]:
+         """Full-layer ``[num_experts, ...]`` bank views for ``layer_id``, one per
+         registered bank in registration order: bf16 ``(gate_up, down)``; nvfp4
+--- a/freetoken/moe/offload_kernels.py
++++ b/freetoken/moe/offload_kernels.py
+@@ -93,6 +93,51 @@
+     cap = cache.num_experts if fetch_cap is None else fetch_cap
+     _ensure_experts_hybrid_gpu(cache, layer_id, expert_ids, weights, routes, clamp, max_fetch, frac_q16, cap)
+     return routes
++
++
++def plan_selected_prefill(cache, layer_id: int, expert_ids: torch.Tensor) -> None:
++    selected = torch.zeros(cache.num_experts, dtype=torch.int32, device=cache.device)
++    ids = expert_ids.contiguous()
++    _mark_prefill_routes[(triton.cdiv(ids.numel(), 256),)](
++        ids, selected, ids.numel(), cache.num_experts, BLOCK=256,
++    )
++    _selected_prefill_indices[(1,)](
++        selected, cache.slot_for_id[layer_id], cache.evict_slots, cache.src_indices,
++        cache.num_indices, cache._prefill_hit_dst, cache._prefill_hit_src, cache._prefill_hit_num,
++        cache._selected_prefill_stats[layer_id], cache._pool_stable_from[0], cache.num_experts,
++        BLOCK=triton.next_power_of_2(cache.num_experts),
++    )
++
++
++@triton.jit
++def _mark_prefill_routes(ids, selected, count, num_experts, BLOCK: tl.constexpr):
++    i = tl.program_id(0) * BLOCK + tl.arange(0, BLOCK)
++    expert = tl.load(ids + i, mask=i < count, other=-1)
++    tl.atomic_or(selected + expert, 1, mask=(expert >= 0) & (expert < num_experts), sem="relaxed")
++
++
++@triton.jit
++def _selected_prefill_indices(
++    selected, slots, cold_dst, cold_src, cold_count, hit_dst, hit_src, hit_count,
++    stats, stable_slot, num_experts, BLOCK: tl.constexpr,
++):
++    expert = tl.arange(0, BLOCK)
++    active = tl.load(selected + expert, mask=expert < num_experts, other=0) != 0
++    slot = tl.load(slots + expert, mask=expert < num_experts, other=-1)
++    hit = active & (slot >= stable_slot)
++    cold = active & ~hit
++    ci = tl.cumsum(cold.to(tl.int32)) - 1
++    hi = tl.cumsum(hit.to(tl.int32)) - 1
++    tl.store(cold_dst + ci, expert, mask=cold)
++    tl.store(cold_src + ci, expert, mask=cold)
++    tl.store(hit_dst + hi, expert, mask=hit)
++    tl.store(hit_src + hi, slot, mask=hit)
++    n_cold = tl.sum(cold.to(tl.int32))
++    n_hit = tl.sum(hit.to(tl.int32))
++    tl.store(cold_count, n_cold)
++    tl.store(hit_count, n_hit)
++    tl.store(stats, n_cold)
++    tl.store(stats + 1, n_hit)
+ 
+ 
+ def prefill_hit_compact(cache, layer_id: int) -> None:

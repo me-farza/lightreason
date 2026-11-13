@@ -1,0 +1,82 @@
+{
+  "ablations-200701": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "gpu_peak_c": 53,
+    "cpu_peak_c": 73.75,
+    "gpu_peak_w": 116.961,
+    "hardware_changes_applied": false
+  },
+  "profile-200128": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "gpu_peak_c": 49,
+    "cpu_peak_c": 59.75,
+    "gpu_peak_w": 109.928,
+    "hardware_changes_applied": false
+  },
+  "diag-v2-201800": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "gpu_peak_c": 46,
+    "cpu_peak_c": 61.5,
+    "gpu_peak_w": 106.062,
+    "hardware_changes_applied": false
+  },
+  "heldout-201800": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "gpu_peak_c": 53,
+    "cpu_peak_c": 71.0,
+    "gpu_peak_w": 115.423,
+    "hardware_changes_applied": false
+  },
+  "eos-205420": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "gpu_peak_c": 53,
+    "cpu_peak_c": 71.0,
+    "gpu_peak_w": 120.368,
+    "hardware_changes_applied": false
+  },
+  "ft-204432": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "gpu_peak_c": 45,
+    "cpu_peak_c": 70.75,
+    "gpu_peak_w": 164.519,
+    "hardware_changes_applied": false
+  },
+  "ft-bw-205420": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "gpu_peak_c": 41,
+    "cpu_peak_c": 60.25,
+    "gpu_peak_w": 102.392,
+    "hardware_changes_applied": false
+  },
+  "ft-mtp-205042": {
+    "outcome": "aborted",
+    "reason": "SensorError: Temperature telemetry stale for>750ms",
+    "gpu_peak_c": 37,
+    "cpu_peak_c": 66.5,
+    "gpu_peak_w": 60.585,
+    "hardware_changes_applied": false
+  },
+  "verify-width-205420": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "gpu_peak_c": 35,
+    "cpu_peak_c": 66.375,
+    "gpu_peak_w": 102.854,
+    "hardware_changes_applied": false
+  },
+  "verify-profile-205420": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "gpu_peak_c": 34,
+    "cpu_peak_c": 63.75,
+    "gpu_peak_w": 96.115,
+    "hardware_changes_applied": false
+  }
+}

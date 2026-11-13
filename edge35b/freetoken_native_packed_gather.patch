@@ -1,0 +1,71 @@
+--- a/freetoken/engine/engine.py
++++ b/freetoken/engine/engine.py
+@@ -1372,7 +1372,7 @@
+         return runner
+ 
+     def _capture_lightreason_widths(self, max_seq_len: int) -> None:
+-        from edge35b.width_autotune import GATHER_GEOMETRIES
++        from edge35b.width_autotune import GATHER_GEOMETRIES, NATIVE_PACKED_TRANSPORT
+         from freetoken.kvcache.linear_state_pool import LinearVerifyScratch
+ 
+         config, pool = self.config, self.linear_state_pool
+@@ -1405,7 +1405,15 @@
+             hot_plan = os.getenv("LIGHTREASON_PACKED_BF16_HOT_PLAN")
+             if hot_plan and width != 8:
+                 raise ValueError("The hot expert source requires the eight-position verifier")
+-            self.lightreason_packed_transport = PackedBf16Transport(self.moe_offload_cache, hot_plan)
++            native_tag = os.getenv("LIGHTREASON_NATIVE_PACKED_GATHER")
++            native_geometry = None
++            if native_tag:
++                from edge35b.native_bf16_gather import select_geometry
++
++                native_geometry = select_geometry(native_tag)
++            self.lightreason_packed_transport = PackedBf16Transport(
++                self.moe_offload_cache, hot_plan, native_geometry=native_geometry,
++            )
+             self.lightreason_expert_fetch_trace = ExpertFetchTrace(self.moe_offload_cache.num_layers, width, self.device)
+             size = sum(bank.nbytes for bank in self.lightreason_packed_transport.storage)
+             logger.info_rank0(f"Lightreason verified and pinned {size / 2**30:.2f} GiB of packed BF16 experts")
+@@ -1414,6 +1422,9 @@
+             hot_base = self.lightreason_packed_transport.hot_base
+             captures = [(w, p, "raw") for w, p, _ in captures if w == width and hot_base != "packed"]
+             modes = ("packed",) if not hot_plan else ("hot",) if hot_base == "raw" else ("packed", "hot")
++            if native_geometry is not None:
++                modes = (*modes, NATIVE_PACKED_TRANSPORT)
++                logger.info_rank0(f"Lightreason native packed gather: {native_tag}, sm_89")
+             captures += [(width, profile, mode) for mode in modes for profile in (False, True)]
+             if os.getenv("LIGHTREASON_GATHER_EVOLUTION") == "1":
+                 if hot_base != "raw":
+@@ -1435,7 +1446,10 @@
+             geometry = GATHER_GEOMETRIES.get(transport)
+             if self.lightreason_packed_transport is not None:
+                 self.lightreason_packed_transport.gather_geometry = geometry
+-            self.moe_offload_cache._lightreason_hot_sources = transport == "hot" or geometry is not None
++                self.lightreason_packed_transport.capture_native = transport == NATIVE_PACKED_TRANSPORT
++            self.moe_offload_cache._lightreason_hot_sources = (
++                transport in ("hot", NATIVE_PACKED_TRANSPORT) or geometry is not None
++            )
+             self.moe_offload_cache._lightreason_fetch_trace = self.lightreason_expert_fetch_trace if profiling else None
+             try:
+                 runner = GraphRunner(
+@@ -1455,6 +1469,7 @@
+                 self.moe_offload_cache._lightreason_hot_sources = False
+                 if self.lightreason_packed_transport is not None:
+                     self.lightreason_packed_transport.gather_geometry = None
++                    self.lightreason_packed_transport.capture_native = False
+             if transport != "raw":
+                 self.lightreason_packed_runners[width, profiling, transport] = runner
+                 logger.info_rank0(f"Lightreason captured {transport} BF16 {width}-position verification (timed={profiling})")
+--- a/freetoken/spec/runner.py
++++ b/freetoken/spec/runner.py
+@@ -127,9 +127,7 @@
+             trace = self.engine.lightreason_expert_fetch_trace
+             if trace is not None:
+                 codec = self.engine.lightreason_packed_transport
+-                payload = codec.hot_payload(hot_limit) if transport == "hot" else (
+-                    codec.payload_by_expert if transport == "packed" else None
+-                )
++                payload = codec.profile_payload(transport, hot_limit)
+                 info.update(trace.report(info["gpu_layer_stamps"], payload, codec.raw_expert_bytes))
+         self._lightreason_passes.append(info)
+         if finished:

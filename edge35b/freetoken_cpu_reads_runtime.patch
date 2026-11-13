@@ -1,0 +1,47 @@
+--- a/freetoken/engine/engine.py
++++ b/freetoken/engine/engine.py
+@@ -1414,6 +1414,28 @@
+             self.lightreason_packed_transport = PackedBf16Transport(
+                 self.moe_offload_cache, hot_plan, native_geometry=native_geometry,
+             )
++            cpu_read_policy = os.getenv("LIGHTREASON_CPU_READ_POLICY")
++            if cpu_read_policy:
++                from time import perf_counter
++
++                from edge35b.cpu_read_packing import prepare_cpu_reads
++
++                if native_geometry is None or width != 8:
++                    raise ValueError("CPU read trials require the eight-position native CUDA verifier")
++                layers = [int(layer) for layer in os.getenv("LIGHTREASON_CPU_READ_LAYERS", "").split(",") if layer]
++                started = perf_counter()
++                self.lightreason_cpu_read_banks = prepare_cpu_reads(
++                    self.moe_offload_cache, self.cpu_moe_executor._ext, cpu_read_policy, layers,
++                )
++                if self.lightreason_cpu_read_banks is not None:
++                    audit = self.lightreason_cpu_read_banks.audit
++                    size = sum(row["allocation_bytes"] for row in audit)
++                    encoded = sum(row["encoded"] for row in audit)
++                    tiles = sum(row["tiles"] for row in audit)
++                    logger.info_rank0(
++                        f"Lightreason CPU read banks: {encoded:,}/{tiles:,} BF16 tiles verified, "
++                        f"{size / 2**30:.2f} GiB in {perf_counter() - started:.2f} s"
++                    )
+             self.lightreason_expert_fetch_trace = ExpertFetchTrace(self.moe_offload_cache.num_layers, width, self.device)
+             size = sum(bank.nbytes for bank in self.lightreason_packed_transport.storage)
+             logger.info_rank0(f"Lightreason verified and pinned {size / 2**30:.2f} GiB of packed BF16 experts")
+--- a/freetoken/scheduler/scheduler.py
++++ b/freetoken/scheduler/scheduler.py
+@@ -911,6 +911,13 @@
+         if trial is not None and batch.is_prefill and trial.begin(batch.reqs[0].uid):
+             self.engine.moe_offload_cache.reset()
+             self.engine.cpu_moe_executor._ext.set_pair_threshold(trial.min_pairs)
++            cpu_read_policy = os.getenv("LIGHTREASON_CPU_READ_POLICY")
++            if trial.cpu_read_policy != "stock" and trial.cpu_read_policy != cpu_read_policy:
++                raise ValueError("The requested CPU read policy was not prepared")
++            if cpu_read_policy:
++                from edge35b.cpu_read_packing import CPU_READ_POLICIES
++
++                self.engine.cpu_moe_executor._ext.set_cpu_read_policy(CPU_READ_POLICIES[trial.cpu_read_policy])
+             if os.getenv("LIGHTREASON_PASS_DIAGNOSTICS") == "1":
+                 self.spec.begin_lightreason_diagnostics(trial.diagnostics, trial.diagnostic_log)
+             if trial.uses_hot_source:

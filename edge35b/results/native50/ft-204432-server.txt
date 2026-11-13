@@ -1,0 +1,286 @@
+[1m[2026-11-07|20:44:45][0m [32mINFO    [0m Parsed arguments:
+ServerArgs(model_path='/path/to/lightreason-benchmark/model', tp_info=DistributedInfo(rank=0, size=1), dtype=torch.bfloat16, hf_overrides={}, max_running_req=1, attention_backend='triton', moe_strategy='hybrid', quant_backend=None, ple_backend='disk', embed_weights='gpu', swa_decoder_replay='bounded', expert_load='auto', moe_cache_size=0, moe_cache_rate=None, moe_cache_auto=False, moe_cache_mem=15032385536, moe_cache_scope='unified', moe_cache_split='equal', kv_reserve_tokens=8192, moe_cache_policy='lru', moe_prefill_overlap=True, moe_prefill_hit_d2d=False, moe_collect_stats=True, moe_cpu_threads=8, moe_cpu_layers=None, moe_hybrid_max_fetch=-1, moe_locked_fetch=-1.0, moe_locked_max_fetch=8, cuda_graph_bs=None, cuda_graph_max_bs=1, page_size=1, memory_ratio=0.9, linear_state_cache_ratio=2.0, swa_full_tokens_ratio=0.2, swa_num_pages_override=None, distributed_timeout=60.0, use_dummy_weight=False, use_pynccl=True, speculative_algorithm=None, speculative_num_steps=0, speculative_draft_model_path=None, max_seq_len_override=4096, num_page_override=None, num_token_override=None, mm=MultimodalConfig(disabled_encoders=frozenset({'audio', 'vision'}), embed_cache_device='cpu', encoder_weights='host', image_min_tokens=None, image_max_tokens=None, processor_kwargs={}), max_extend_tokens=8192, cache_type='naive', offline_mode=False, decode_log_interval=64, special_token_ckpt=False, _unique_suffix='.pid=2409239', server_host='127.0.0.1', server_port=1919, num_tokenizer=0, silent_output=False, shell_mode=False, served_model_name='qwen36-bf16', tool_call_parser='qwen3_coder', reasoning_parser='qwen3', sampling_defaults='model', max_output_tokens=None, enable_cache_report=False, enable_timings_report=True, anthropic_inline_system='auto', allowed_media_domains='', allowed_local_media_path='', cors_origins='tauri://localhost,http://tauri.localhost,http://localhost:1420', gpu=(), gpu_assigned=None)
+[1m[2026-11-07|20:44:45|FrontendAPI][0m [32mINFO    [0m Default sampling config (source=model): temperature=1.0, top_k=20, top_p=0.95
+INFO:     Started server process [2409239]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:1919 (Press CTRL+C to quit)
+[1m[2026-11-07|20:44:46][0m [32mINFO    [0m reasoning-effort profile: supported=['high', 'low', 'max', 'medium', 'minimal', 'none', 'xhigh'] default=None
+INFO:     127.0.0.1:62516 - "GET /v1/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62520 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+/path/to/lightreason-benchmark/freetoken/lib/python3.12/site-packages/freetoken/engine/engine.py:1535: FutureWarning: torch.cuda._set_allocator_settings is deprecated. Use torch._C._accelerator_setAllocatorSettings instead.
+  torch.cuda.memory._set_allocator_settings("expandable_segments:True")
+[1m[2026-11-07|20:44:48|core|rank=0][0m [32mINFO    [0m Enabled expandable_segments (override via PYTORCH_ALLOC_CONF)
+[1m[2026-11-07|20:44:48|core|rank=0][0m [32mINFO    [0m Resolved config: moe_strategy='hybrid', attention_backend='triton', cache_type='naive', page_size=1
+[1m[2026-11-07|20:44:48|core|rank=0][0m [32mINFO    [0m Free memory before loading model: 23.09 GiB
+
+Loading weights:   0%|          | 0/26 [00:00<?, ?it/s]INFO:     127.0.0.1:45714 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:   4%|▍         | 1/26 [00:02<01:09,  2.78s/it]
+Loading weights:  12%|█▏        | 3/26 [00:03<00:19,  1.18it/s]
+Loading weights:  15%|█▌        | 4/26 [00:03<00:14,  1.51it/s]
+Loading weights:  31%|███       | 8/26 [00:03<00:04,  4.13it/s]
+Loading weights:  54%|█████▍    | 14/26 [00:03<00:01,  9.08it/s]
+Loading weights:  77%|███████▋  | 20/26 [00:03<00:00, 14.77it/s]INFO:     127.0.0.1:45716 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  92%|█████████▏| 24/26 [00:04<00:00,  9.32it/s]
+Loading weights: 100%|██████████| 26/26 [00:06<00:00,  3.81it/s]
+[1m[2026-11-07|20:44:55|core|rank=0][0m [32mINFO    [0m MoE experts: none via fused
+[1m[2026-11-07|20:44:55|core|rank=0][0m [32mINFO    [0m expert banks: slow path (serial build)
+
+Loading weights:   0%|          | 0/26 [00:00<?, ?it/s]INFO:     127.0.0.1:45722 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:   4%|▍         | 1/26 [00:00<00:23,  1.07it/s]
+Loading weights:   8%|▊         | 2/26 [00:01<00:23,  1.01it/s]INFO:     127.0.0.1:65188 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  12%|█▏        | 3/26 [00:04<00:33,  1.48s/it]
+Loading weights:  15%|█▌        | 4/26 [00:06<00:37,  1.72s/it]INFO:     127.0.0.1:65204 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  19%|█▉        | 5/26 [00:08<00:38,  1.85s/it]INFO:     127.0.0.1:65208 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  23%|██▎       | 6/26 [00:10<00:38,  1.92s/it]
+Loading weights:  27%|██▋       | 7/26 [00:11<00:30,  1.62s/it]INFO:     127.0.0.1:65220 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  31%|███       | 8/26 [00:12<00:25,  1.43s/it]
+Loading weights:  35%|███▍      | 9/26 [00:14<00:27,  1.60s/it]INFO:     127.0.0.1:40268 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  38%|███▊      | 10/26 [00:15<00:23,  1.44s/it]
+Loading weights:  42%|████▏     | 11/26 [00:17<00:24,  1.61s/it]INFO:     127.0.0.1:40278 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  46%|████▌     | 12/26 [00:18<00:21,  1.51s/it]
+Loading weights:  50%|█████     | 13/26 [00:20<00:20,  1.61s/it]INFO:     127.0.0.1:40284 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  54%|█████▍    | 14/26 [00:21<00:17,  1.45s/it]
+Loading weights:  58%|█████▊    | 15/26 [00:23<00:17,  1.59s/it]INFO:     127.0.0.1:57884 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  62%|██████▏   | 16/26 [00:25<00:17,  1.75s/it]
+Loading weights:  65%|██████▌   | 17/26 [00:26<00:13,  1.54s/it]INFO:     127.0.0.1:57894 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  69%|██████▉   | 18/26 [00:27<00:11,  1.44s/it]INFO:     127.0.0.1:57896 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  73%|███████▎  | 19/26 [00:32<00:15,  2.28s/it]INFO:     127.0.0.1:50828 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  77%|███████▋  | 20/26 [00:35<00:15,  2.55s/it]INFO:     127.0.0.1:50840 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50844 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  81%|████████  | 21/26 [00:41<00:18,  3.68s/it]INFO:     127.0.0.1:50854 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:21412 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  85%|████████▍ | 22/26 [00:48<00:18,  4.57s/it]INFO:     127.0.0.1:21424 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:21436 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:36806 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  88%|████████▊ | 23/26 [00:56<00:17,  5.82s/it]INFO:     127.0.0.1:36820 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:36824 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:54500 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  92%|█████████▏| 24/26 [01:05<00:13,  6.56s/it]INFO:     127.0.0.1:54512 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:54524 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights:  96%|█████████▌| 25/26 [01:10<00:06,  6.06s/it]INFO:     127.0.0.1:54538 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Loading weights: 100%|██████████| 26/26 [01:13<00:00,  5.24s/it]
+Loading weights: 100%|██████████| 26/26 [01:13<00:00,  2.83s/it]
+[1m[2026-11-07|20:46:09|core|rank=0][0m [32mINFO    [0m --moe-cache-mem 14.00 GiB resolved moe_cache_size=2389 (6.00 MiB per slot, prefill_overlap=True)
+[1m[2026-11-07|20:46:10|core|rank=0][0m [32mINFO    [0m CPU MoE executor ready: threads=8 (pinned to cores 8..15) isa=avx2 fmt=bf16: 40 layers H=2048 I=512 experts=256 layers=40 top_k=8 act=silu max_tokens=1 spin_wait=False handshake=kernel
+[1m[2026-11-07|20:46:10|core|rank=0][0m [33mWARNING [0m --moe-hybrid-max-fetch auto: no `ft bench bw` row for 40 MoE layers (bf16 2048x512) at 8 CPU threads; using a fixed fetch cap of 1 there. `ft bench bw --model <checkpoint>` benches each layer kind
+[1m[2026-11-07|20:46:10|core|rank=0][0m [32mINFO    [0m Multimodal disabled: --text-model-only
+[1m[2026-11-07|20:46:10|core|rank=0][0m [32mINFO    [0m Allocating 94682 tokens for KV cache, K + V = 1.81 GiB
+[1m[2026-11-07|20:46:10|core|rank=0][0m [32mINFO    [0m Free memory after initialization: 2.32 GiB
+[1m[2026-11-07|20:46:10|core|rank=0][0m [32mINFO    [0m Start capturing CUDA graphs with sizes: [1]
+[1m[2026-11-07|20:46:10|core|rank=0][0m [32mINFO    [0m Free GPU memory before capturing CUDA graphs: 2.32 GiB
+In file included from /home/benchmark/.local/share/uv/python/cpython-3.12.15-linux-x86_64-gnu/include/python3.12/Python.h:12,
+                 from /path/to/lightreason-benchmark/freetoken/lib/python3.12/site-packages/triton/backends/nvidia/driver.c:9:
+/home/benchmark/.local/share/uv/python/cpython-3.12.15-linux-x86_64-gnu/include/python3.12/pyconfig.h:1877:9: warning: ‘_POSIX_C_SOURCE’ redefined
+ 1877 | #define _POSIX_C_SOURCE 200809L
+      |         ^~~~~~~~~~~~~~~
+In file included from /usr/include/x86_64-linux-gnu/bits/libc-header-start.h:33,
+                 from /usr/include/stdlib.h:26,
+                 from /path/to/lightreason-benchmark/freetoken/lib/python3.12/site-packages/triton/backends/nvidia/include/cuda.h:56,
+                 from /path/to/lightreason-benchmark/freetoken/lib/python3.12/site-packages/triton/backends/nvidia/driver.c:1:
+/usr/include/features.h:319:10: note: this is the location of the previous definition
+  319 | # define _POSIX_C_SOURCE        202405L
+      |          ^~~~~~~~~~~~~~~
+INFO:     127.0.0.1:56682 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Preparing for capturing CUDA graphs...:   0%|          | 0/1 [00:00<?, ?batch/s]
+Capturing graphs: bs = 1   | avail_mem = 2.32 GiB:   0%|          | 0/1 [00:00<?, ?batch/s]INFO:     127.0.0.1:56692 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+
+Capturing graphs: bs = 1   | avail_mem = 2.32 GiB: 100%|██████████| 1/1 [00:03<00:00,  3.23s/batch]
+Capturing graphs: bs = 1   | avail_mem = 2.32 GiB: 100%|██████████| 1/1 [00:03<00:00,  3.23s/batch]
+[1m[2026-11-07|20:46:14|core|rank=0][0m [32mINFO    [0m Free GPU memory after capturing CUDA graphs: 2.30 GiB
+/path/to/lightreason-benchmark/freetoken/lib/python3.12/site-packages/triton/language/core.py:2625: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+  warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+INFO:     127.0.0.1:56704 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:28560 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:28566 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:28578 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:20926 - "POST /v1/completions HTTP/1.1" 503 Service Unavailable
+[1m[2026-11-07|20:46:30|core|rank=0][0m [32mINFO    [0m Prefill warmup complete for lengths [80, 128] in 15.712 s
+[1m[2026-11-07|20:46:31|core|rank=0][0m [32mINFO    [0m Scheduler is idle, waiting for new reqs...
+[1m[2026-11-07|20:46:31|FrontendAPI][0m [32mINFO    [0m API server is ready to serve on 127.0.0.1:1919
+[1m[2026-11-07|20:46:35|core|rank=0][0m [32mINFO    [0m Prefill batch, #new-seq: 1, #new-token: 20, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, input throughput (token/s): 4.44
+[1m[2026-11-07|20:46:35|core|rank=0][0m [32mINFO    [0m Scheduler is idle, waiting for new reqs...
+INFO:     127.0.0.1:20930 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20946 - "POST /v1/completions HTTP/1.1" 200 OK
+[1m[2026-11-07|20:46:38|core|rank=0][0m [32mINFO    [0m Prefill batch, #new-seq: 1, #new-token: 20, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, input throughput (token/s): 6.71
+[1m[2026-11-07|20:46:41|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 83, token usage: 0.00, gen throughput (token/s): 6.16, #queue-req: 0
+[1m[2026-11-07|20:46:41|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 48.8%, per layer-step miss 4.10 fetch 0.95 cpu 3.15
+[1m[2026-11-07|20:46:43|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 147, token usage: 0.00, gen throughput (token/s): 39.47, #queue-req: 0
+[1m[2026-11-07|20:46:43|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 79.4%, per layer-step miss 1.65 fetch 0.71 cpu 0.94
+[1m[2026-11-07|20:46:44|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 211, token usage: 0.00, gen throughput (token/s): 35.86, #queue-req: 0
+[1m[2026-11-07|20:46:44|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 76.0%, per layer-step miss 1.92 fetch 0.76 cpu 1.15
+[1m[2026-11-07|20:46:47|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 275, token usage: 0.00, gen throughput (token/s): 26.23, #queue-req: 0
+[1m[2026-11-07|20:46:47|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 62.1%, per layer-step miss 3.03 fetch 0.92 cpu 2.11
+[1m[2026-11-07|20:46:48|core|rank=0][0m [32mINFO    [0m Scheduler is idle, waiting for new reqs...
+[1m[2026-11-07|20:46:51|core|rank=0][0m [32mINFO    [0m Prefill batch, #new-seq: 1, #new-token: 20, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, input throughput (token/s): 1.53
+[1m[2026-11-07|20:46:52|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 40, token usage: 0.00, gen throughput (token/s): 12.86, #queue-req: 0
+[1m[2026-11-07|20:46:52|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 66.8%, per layer-step miss 2.66 fetch 0.89 cpu 1.77
+[1m[2026-11-07|20:46:54|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 104, token usage: 0.00, gen throughput (token/s): 35.48, #queue-req: 0
+[1m[2026-11-07|20:46:54|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 75.9%, per layer-step miss 1.93 fetch 0.80 cpu 1.13
+[1m[2026-11-07|20:46:55|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 168, token usage: 0.00, gen throughput (token/s): 34.70, #queue-req: 0
+[1m[2026-11-07|20:46:55|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 74.6%, per layer-step miss 2.03 fetch 0.79 cpu 1.24
+[1m[2026-11-07|20:46:57|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 232, token usage: 0.00, gen throughput (token/s): 33.63, #queue-req: 0
+[1m[2026-11-07|20:46:57|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 72.6%, per layer-step miss 2.19 fetch 0.77 cpu 1.41
+[1m[2026-11-07|20:47:00|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 296, token usage: 0.00, gen throughput (token/s): 27.98, #queue-req: 0
+[1m[2026-11-07|20:47:00|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 63.8%, per layer-step miss 2.90 fetch 0.91 cpu 1.98
+[1m[2026-11-07|20:47:02|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 360, token usage: 0.00, gen throughput (token/s): 29.39, #queue-req: 0
+[1m[2026-11-07|20:47:02|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 67.7%, per layer-step miss 2.58 fetch 0.88 cpu 1.70
+INFO:     127.0.0.1:25814 - "POST /v1/completions HTTP/1.1" 200 OK
+[1m[2026-11-07|20:47:02|core|rank=0][0m [32mINFO    [0m Scheduler is idle, waiting for new reqs...
+[1m[2026-11-07|20:47:05|core|rank=0][0m [32mINFO    [0m Prefill batch, #new-seq: 1, #new-token: 48, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, input throughput (token/s): 3.51
+[1m[2026-11-07|20:47:07|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 107, token usage: 0.00, gen throughput (token/s): 12.81, #queue-req: 0
+[1m[2026-11-07|20:47:07|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 67.6%, per layer-step miss 2.59 fetch 0.88 cpu 1.71
+[1m[2026-11-07|20:47:09|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 171, token usage: 0.00, gen throughput (token/s): 30.99, #queue-req: 0
+[1m[2026-11-07|20:47:09|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 69.6%, per layer-step miss 2.44 fetch 0.88 cpu 1.55
+[1m[2026-11-07|20:47:11|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 235, token usage: 0.00, gen throughput (token/s): 29.89, #queue-req: 0
+[1m[2026-11-07|20:47:11|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 69.3%, per layer-step miss 2.46 fetch 0.85 cpu 1.60
+[1m[2026-11-07|20:47:13|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 299, token usage: 0.00, gen throughput (token/s): 29.54, #queue-req: 0
+[1m[2026-11-07|20:47:13|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 67.7%, per layer-step miss 2.58 fetch 0.88 cpu 1.70
+[1m[2026-11-07|20:47:15|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 363, token usage: 0.00, gen throughput (token/s): 32.95, #queue-req: 0
+[1m[2026-11-07|20:47:15|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 73.0%, per layer-step miss 2.16 fetch 0.84 cpu 1.32
+[1m[2026-11-07|20:47:17|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 427, token usage: 0.00, gen throughput (token/s): 26.30, #queue-req: 0
+[1m[2026-11-07|20:47:18|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 61.1%, per layer-step miss 3.11 fetch 0.92 cpu 2.20
+[1m[2026-11-07|20:47:20|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 491, token usage: 0.01, gen throughput (token/s): 29.99, #queue-req: 0
+[1m[2026-11-07|20:47:20|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 68.2%, per layer-step miss 2.54 fetch 0.88 cpu 1.67
+[1m[2026-11-07|20:47:22|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 555, token usage: 0.01, gen throughput (token/s): 27.39, #queue-req: 0
+[1m[2026-11-07|20:47:22|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 64.0%, per layer-step miss 2.88 fetch 0.91 cpu 1.97
+[1m[2026-11-07|20:47:22|core|rank=0][0m [32mINFO    [0m Scheduler is idle, waiting for new reqs...
+INFO:     127.0.0.1:30856 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47704 - "POST /v1/completions HTTP/1.1" 200 OK
+[1m[2026-11-07|20:47:25|core|rank=0][0m [32mINFO    [0m Prefill batch, #new-seq: 1, #new-token: 48, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, input throughput (token/s): 2.39
+[1m[2026-11-07|20:47:27|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 108, token usage: 0.00, gen throughput (token/s): 12.94, #queue-req: 0
+[1m[2026-11-07|20:47:27|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 69.5%, per layer-step miss 2.44 fetch 0.87 cpu 1.57
+[1m[2026-11-07|20:47:29|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 172, token usage: 0.00, gen throughput (token/s): 28.16, #queue-req: 0
+[1m[2026-11-07|20:47:29|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 69.7%, per layer-step miss 2.43 fetch 0.89 cpu 1.54
+[1m[2026-11-07|20:47:31|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 236, token usage: 0.00, gen throughput (token/s): 30.27, #queue-req: 0
+[1m[2026-11-07|20:47:31|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 69.0%, per layer-step miss 2.48 fetch 0.85 cpu 1.62
+[1m[2026-11-07|20:47:34|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 300, token usage: 0.00, gen throughput (token/s): 27.78, #queue-req: 0
+[1m[2026-11-07|20:47:34|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 67.1%, per layer-step miss 2.63 fetch 0.90 cpu 1.74
+[1m[2026-11-07|20:47:36|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 364, token usage: 0.00, gen throughput (token/s): 33.02, #queue-req: 0
+[1m[2026-11-07|20:47:36|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 73.4%, per layer-step miss 2.13 fetch 0.84 cpu 1.29
+[1m[2026-11-07|20:47:38|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 428, token usage: 0.00, gen throughput (token/s): 26.11, #queue-req: 0
+[1m[2026-11-07|20:47:38|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 61.2%, per layer-step miss 3.10 fetch 0.92 cpu 2.19
+[1m[2026-11-07|20:47:40|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 492, token usage: 0.01, gen throughput (token/s): 29.81, #queue-req: 0
+[1m[2026-11-07|20:47:40|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 68.4%, per layer-step miss 2.53 fetch 0.87 cpu 1.65
+[1m[2026-11-07|20:47:42|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 556, token usage: 0.01, gen throughput (token/s): 27.11, #queue-req: 0
+[1m[2026-11-07|20:47:43|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 64.1%, per layer-step miss 2.87 fetch 0.90 cpu 1.97
+[1m[2026-11-07|20:47:43|core|rank=0][0m [32mINFO    [0m Scheduler is idle, waiting for new reqs...
+INFO:     127.0.0.1:33694 - "POST /v1/completions HTTP/1.1" 200 OK
+[1m[2026-11-07|20:47:45|core|rank=0][0m [32mINFO    [0m Prefill batch, #new-seq: 1, #new-token: 44, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, input throughput (token/s): 2.15
+[1m[2026-11-07|20:47:47|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 105, token usage: 0.00, gen throughput (token/s): 12.82, #queue-req: 0
+[1m[2026-11-07|20:47:48|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 67.4%, per layer-step miss 2.60 fetch 0.88 cpu 1.72
+[1m[2026-11-07|20:47:49|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 169, token usage: 0.00, gen throughput (token/s): 34.13, #queue-req: 0
+[1m[2026-11-07|20:47:49|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 74.4%, per layer-step miss 2.05 fetch 0.82 cpu 1.22
+[1m[2026-11-07|20:47:51|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 233, token usage: 0.00, gen throughput (token/s): 43.85, #queue-req: 0
+[1m[2026-11-07|20:47:51|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 82.9%, per layer-step miss 1.37 fetch 0.66 cpu 0.71
+[1m[2026-11-07|20:47:52|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 297, token usage: 0.00, gen throughput (token/s): 46.80, #queue-req: 0
+[1m[2026-11-07|20:47:52|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 84.1%, per layer-step miss 1.28 fetch 0.62 cpu 0.66
+[1m[2026-11-07|20:47:55|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 361, token usage: 0.00, gen throughput (token/s): 27.49, #queue-req: 0
+[1m[2026-11-07|20:47:55|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 64.5%, per layer-step miss 2.84 fetch 0.89 cpu 1.94
+[1m[2026-11-07|20:47:56|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 425, token usage: 0.00, gen throughput (token/s): 34.50, #queue-req: 0
+[1m[2026-11-07|20:47:56|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 74.6%, per layer-step miss 2.03 fetch 0.77 cpu 1.26
+[1m[2026-11-07|20:47:58|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 489, token usage: 0.01, gen throughput (token/s): 33.59, #queue-req: 0
+[1m[2026-11-07|20:47:58|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 72.3%, per layer-step miss 2.22 fetch 0.81 cpu 1.41
+[1m[2026-11-07|20:48:01|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 553, token usage: 0.01, gen throughput (token/s): 27.40, #queue-req: 0
+[1m[2026-11-07|20:48:01|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 65.6%, per layer-step miss 2.75 fetch 0.92 cpu 1.83
+[1m[2026-11-07|20:48:03|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 617, token usage: 0.01, gen throughput (token/s): 27.74, #queue-req: 0
+[1m[2026-11-07|20:48:03|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 65.9%, per layer-step miss 2.73 fetch 0.90 cpu 1.83
+[1m[2026-11-07|20:48:05|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 681, token usage: 0.01, gen throughput (token/s): 38.39, #queue-req: 0
+[1m[2026-11-07|20:48:05|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 78.9%, per layer-step miss 1.69 fetch 0.73 cpu 0.96
+[1m[2026-11-07|20:48:06|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 745, token usage: 0.01, gen throughput (token/s): 40.40, #queue-req: 0
+[1m[2026-11-07|20:48:06|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 78.6%, per layer-step miss 1.71 fetch 0.64 cpu 1.07
+[1m[2026-11-07|20:48:09|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 809, token usage: 0.01, gen throughput (token/s): 27.08, #queue-req: 0
+[1m[2026-11-07|20:48:09|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 63.1%, per layer-step miss 2.95 fetch 0.94 cpu 2.01
+[1m[2026-11-07|20:48:09|core|rank=0][0m [32mINFO    [0m Scheduler is idle, waiting for new reqs...
+[1m[2026-11-07|20:48:11|core|rank=0][0m [32mINFO    [0m Prefill batch, #new-seq: 1, #new-token: 44, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, input throughput (token/s): 1.69
+[1m[2026-11-07|20:48:14|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 106, token usage: 0.00, gen throughput (token/s): 12.72, #queue-req: 0
+[1m[2026-11-07|20:48:14|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 66.1%, per layer-step miss 2.71 fetch 0.88 cpu 1.83
+[1m[2026-11-07|20:48:15|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 170, token usage: 0.00, gen throughput (token/s): 34.23, #queue-req: 0
+[1m[2026-11-07|20:48:15|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 74.5%, per layer-step miss 2.04 fetch 0.83 cpu 1.21
+[1m[2026-11-07|20:48:17|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 234, token usage: 0.00, gen throughput (token/s): 31.54, #queue-req: 0
+[1m[2026-11-07|20:48:18|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 69.7%, per layer-step miss 2.42 fetch 0.82 cpu 1.60
+[1m[2026-11-07|20:48:19|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 298, token usage: 0.00, gen throughput (token/s): 33.24, #queue-req: 0
+[1m[2026-11-07|20:48:19|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 72.8%, per layer-step miss 2.18 fetch 0.82 cpu 1.35
+[1m[2026-11-07|20:48:21|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 362, token usage: 0.00, gen throughput (token/s): 33.13, #queue-req: 0
+[1m[2026-11-07|20:48:21|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 72.5%, per layer-step miss 2.20 fetch 0.78 cpu 1.42
+[1m[2026-11-07|20:48:23|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 426, token usage: 0.00, gen throughput (token/s): 34.71, #queue-req: 0
+[1m[2026-11-07|20:48:23|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 74.0%, per layer-step miss 2.08 fetch 0.80 cpu 1.28
+[1m[2026-11-07|20:48:26|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 490, token usage: 0.01, gen throughput (token/s): 26.52, #queue-req: 0
+[1m[2026-11-07|20:48:26|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 64.0%, per layer-step miss 2.88 fetch 0.92 cpu 1.96
+[1m[2026-11-07|20:48:28|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 554, token usage: 0.01, gen throughput (token/s): 30.52, #queue-req: 0
+[1m[2026-11-07|20:48:28|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 69.6%, per layer-step miss 2.43 fetch 0.86 cpu 1.57
+[1m[2026-11-07|20:48:29|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 618, token usage: 0.01, gen throughput (token/s): 38.88, #queue-req: 0
+[1m[2026-11-07|20:48:29|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 78.9%, per layer-step miss 1.69 fetch 0.73 cpu 0.96
+[1m[2026-11-07|20:48:31|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 682, token usage: 0.01, gen throughput (token/s): 43.97, #queue-req: 0
+[1m[2026-11-07|20:48:31|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 82.3%, per layer-step miss 1.41 fetch 0.65 cpu 0.77
+[1m[2026-11-07|20:48:33|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 746, token usage: 0.01, gen throughput (token/s): 35.32, #queue-req: 0
+[1m[2026-11-07|20:48:33|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 74.7%, per layer-step miss 2.02 fetch 0.77 cpu 1.26
+[1m[2026-11-07|20:48:35|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 810, token usage: 0.01, gen throughput (token/s): 28.28, #queue-req: 0
+[1m[2026-11-07|20:48:35|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 66.1%, per layer-step miss 2.71 fetch 0.89 cpu 1.82
+[1m[2026-11-07|20:48:35|core|rank=0][0m [32mINFO    [0m Scheduler is idle, waiting for new reqs...
+INFO:     127.0.0.1:34254 - "POST /v1/completions HTTP/1.1" 200 OK
+[1m[2026-11-07|20:48:38|core|rank=0][0m [32mINFO    [0m Prefill batch, #new-seq: 1, #new-token: 40, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, input throughput (token/s): 1.53
+[1m[2026-11-07|20:48:40|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 103, token usage: 0.00, gen throughput (token/s): 12.48, #queue-req: 0
+[1m[2026-11-07|20:48:40|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 63.5%, per layer-step miss 2.92 fetch 0.90 cpu 2.02
+[1m[2026-11-07|20:48:42|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 167, token usage: 0.00, gen throughput (token/s): 36.96, #queue-req: 0
+[1m[2026-11-07|20:48:42|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 77.1%, per layer-step miss 1.83 fetch 0.77 cpu 1.06
+[1m[2026-11-07|20:48:44|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 231, token usage: 0.00, gen throughput (token/s): 35.86, #queue-req: 0
+[1m[2026-11-07|20:48:44|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 75.9%, per layer-step miss 1.93 fetch 0.78 cpu 1.14
+[1m[2026-11-07|20:48:46|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 295, token usage: 0.00, gen throughput (token/s): 30.27, #queue-req: 0
+[1m[2026-11-07|20:48:46|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 69.8%, per layer-step miss 2.42 fetch 0.84 cpu 1.58
+[1m[2026-11-07|20:48:48|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 359, token usage: 0.00, gen throughput (token/s): 31.31, #queue-req: 0
+[1m[2026-11-07|20:48:48|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 71.1%, per layer-step miss 2.31 fetch 0.85 cpu 1.46
+[1m[2026-11-07|20:48:50|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 423, token usage: 0.00, gen throughput (token/s): 29.10, #queue-req: 0
+[1m[2026-11-07|20:48:50|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 67.2%, per layer-step miss 2.62 fetch 0.87 cpu 1.75
+[1m[2026-11-07|20:48:52|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 487, token usage: 0.01, gen throughput (token/s): 30.63, #queue-req: 0
+[1m[2026-11-07|20:48:52|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 69.5%, per layer-step miss 2.44 fetch 0.87 cpu 1.57
+[1m[2026-11-07|20:48:53|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 0, #token: 551, token usage: 0.01, gen throughput (token/s): 47.18, #queue-req: 0
+[1m[2026-11-07|20:48:53|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 84.5%, per layer-step miss 1.24 fetch 0.60 cpu 0.64
+[1m[2026-11-07|20:48:53|core|rank=0][0m [32mINFO    [0m Scheduler is idle, waiting for new reqs...
+INFO:     127.0.0.1:39692 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54548 - "POST /v1/completions HTTP/1.1" 200 OK
+[1m[2026-11-07|20:48:56|core|rank=0][0m [32mINFO    [0m Prefill batch, #new-seq: 1, #new-token: 40, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, input throughput (token/s): 2.17
+[1m[2026-11-07|20:48:58|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 104, token usage: 0.00, gen throughput (token/s): 13.11, #queue-req: 0
+[1m[2026-11-07|20:48:58|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 69.9%, per layer-step miss 2.41 fetch 0.84 cpu 1.57
+[1m[2026-11-07|20:49:00|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 168, token usage: 0.00, gen throughput (token/s): 36.45, #queue-req: 0
+[1m[2026-11-07|20:49:00|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 76.8%, per layer-step miss 1.85 fetch 0.77 cpu 1.08
+[1m[2026-11-07|20:49:02|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 232, token usage: 0.00, gen throughput (token/s): 34.55, #queue-req: 0
+[1m[2026-11-07|20:49:02|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 75.4%, per layer-step miss 1.97 fetch 0.80 cpu 1.17
+[1m[2026-11-07|20:49:04|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 296, token usage: 0.00, gen throughput (token/s): 29.83, #queue-req: 0
+[1m[2026-11-07|20:49:04|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 68.5%, per layer-step miss 2.52 fetch 0.85 cpu 1.67
+[1m[2026-11-07|20:49:06|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 360, token usage: 0.00, gen throughput (token/s): 30.99, #queue-req: 0
+[1m[2026-11-07|20:49:06|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 71.0%, per layer-step miss 2.32 fetch 0.84 cpu 1.48
+[1m[2026-11-07|20:49:08|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 424, token usage: 0.00, gen throughput (token/s): 30.68, #queue-req: 0
+[1m[2026-11-07|20:49:08|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 69.7%, per layer-step miss 2.43 fetch 0.87 cpu 1.56
+[1m[2026-11-07|20:49:10|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 1, #token: 488, token usage: 0.01, gen throughput (token/s): 31.39, #queue-req: 0
+[1m[2026-11-07|20:49:10|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 70.2%, per layer-step miss 2.39 fetch 0.86 cpu 1.52
+[1m[2026-11-07|20:49:12|core|rank=0][0m [32mINFO    [0m Decode batch, #running-req: 0, #token: 0, token usage: 0.00, gen throughput (token/s): 27.52, #queue-req: 0
+[1m[2026-11-07|20:49:12|core|rank=0][0m [32mINFO    [0m MoE decode, pinned 40 layers: hit 64.4%, per layer-step miss 2.85 fetch 0.91 cpu 1.94
+[1m[2026-11-07|20:49:12|core|rank=0][0m [32mINFO    [0m Scheduler is idle, waiting for new reqs...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [2409239]
+/home/benchmark/.local/share/uv/python/cpython-3.12.15-linux-x86_64-gnu/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 4 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

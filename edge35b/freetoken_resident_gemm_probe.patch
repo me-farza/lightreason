@@ -1,0 +1,91 @@
+--- a/freetoken/kernel/triton/fused_moe.py
++++ b/freetoken/kernel/triton/fused_moe.py
+@@ -151,6 +151,48 @@
+             accumulator.to(input_ptr.dtype.element_ty),
+             mask=offs_dim < dim_end,
+         )
++
++
++@triton.jit
++def _resident_bf16_load(data, meta, raw, offsets):
++    if meta == 0:
++        values = tl.load(raw.to(tl.pointer_type(tl.uint16)) + offsets)
++    else:
++        tile = offsets // 256
++        i = offsets % 256
++        header = tl.load(meta.to(tl.pointer_type(tl.uint32)) + tile)
++        base = header & 255
++        address = data.to(tl.pointer_type(tl.uint8)) + tile * 384 + (header >> 8) * 128
++        fallback = base == 255
++        original = tl.load(address.to(tl.pointer_type(tl.uint16)) + i, mask=fallback, other=0)
++        low = tl.load(address + i, mask=~fallback, other=0).to(tl.uint16)
++        byte = tl.load(address + 256 + i // 2, mask=~fallback, other=0)
++        nibble = (byte >> ((i % 2) * 4)) & 15
++        high = (base + (nibble & 7)) | ((nibble & 8) << 4)
++        values = tl.where(fallback, original, low | (high.to(tl.uint16) << 8)).to(tl.uint16)
++    return values.to(tl.bfloat16, bitcast=True)
++
++
++@triton.jit
++def _resident_bf16_load_shared_header(data, meta, raw, output_rows, stride, k_start, k_index):
++    offsets = output_rows[None, :] * stride + k_start + k_index[:, None]
++    if meta == 0:
++        values = tl.load(raw.to(tl.pointer_type(tl.uint16)) + offsets)
++    else:
++        tile = (output_rows * stride + k_start) // 256
++        header = tl.load(meta.to(tl.pointer_type(tl.uint32)) + tile)
++        base = (header & 255)[None, :]
++        tile_address = data.to(tl.pointer_type(tl.uint8)) + tile * 384 + (header >> 8) * 128
++        address = tile_address[None, :]
++        i = ((k_start + k_index) % 256)[:, None]
++        fallback = base == 255
++        original = tl.load(address.to(tl.pointer_type(tl.uint16)) + i, mask=fallback, other=0)
++        low = tl.load(address + i, mask=~fallback, other=0).to(tl.uint16)
++        byte = tl.load(address + 256 + i // 2, mask=~fallback, other=0)
++        nibble = (byte >> ((i % 2) * 4)) & 15
++        high = (base + (nibble & 7)) | ((nibble & 8) << 4)
++        values = tl.where(fallback, original, low | (high.to(tl.uint16) << 8)).to(tl.uint16)
++    return values.to(tl.bfloat16, bitcast=True)
+ 
+ 
+ @triton.jit
+@@ -188,6 +230,8 @@
+     top_k: tl.constexpr,
+     compute_type: tl.constexpr,
+     even_Ks: tl.constexpr,
++    RESIDENT_BF16: tl.constexpr = False,
++    SHARED_HEADER: tl.constexpr = False,
+ ):
+     """
+     Implements the fused computation for a Mixture of Experts (MOE) using
+@@ -251,6 +295,13 @@
+     # the expert base offset ``off_experts * stride_be`` overflows int32 and wraps to a
+     # negative address (illegal memory access). Mirrors the int64 cast of ``offs_token``.
+     off_experts = tl.load(expert_ids_ptr + pid_m).to(tl.int64)
++    if RESIDENT_BF16:
++        tl.static_assert(even_Ks)
++        descriptor = b_ptr + off_experts * 3
++        data = tl.load(descriptor)
++        meta = tl.load(descriptor + 1)
++        raw = tl.load(descriptor + 2)
++        offsets = offs_k[:, None] * stride_bk + offs_bn[None, :] * stride_bn
+     b_ptrs = (
+         b_ptr
+         + off_experts * stride_be
+@@ -273,7 +324,15 @@
+                 mask=token_mask[:, None],
+                 other=0.0,
+             )
+-            b = tl.load(b_ptrs)
++            if RESIDENT_BF16:
++                if SHARED_HEADER:
++                    tl.static_assert(256 % BLOCK_SIZE_K == 0)
++                    b = _resident_bf16_load_shared_header(data, meta, raw, offs_bn, stride_bn,
++                                                          k * BLOCK_SIZE_K, offs_k)
++                else:
++                    b = _resident_bf16_load(data, meta, raw, offsets + k * BLOCK_SIZE_K * stride_bk)
++            else:
++                b = tl.load(b_ptrs)
+         else:
+             a = tl.load(
+                 a_ptrs,

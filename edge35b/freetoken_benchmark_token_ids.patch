@@ -1,0 +1,74 @@
+--- a/freetoken/message/frontend.py
++++ b/freetoken/message/frontend.py
+@@ -60,6 +60,7 @@
+     finish_reason: str | None = None
+     # The stop string that ended generation (Anthropic reports it as stop_reason='stop_sequence').
+     matched_stop: str | None = None
++    token_ids: list[int] | None = None
+ 
+ 
+ @dataclass
+--- a/freetoken/tokenizer/server.py
++++ b/freetoken/tokenizer/server.py
+@@ -1,4 +1,6 @@
+ from __future__ import annotations
++
++import os
+ 
+ import multiprocessing as mp
+ from typing import Any, List
+@@ -237,6 +239,7 @@
+                         finish_reason=msg.finish_reason,
+                         matched_stop=msg.matched_stop,
+                         completion_tokens_delta=len(msg.next_tokens),
++                        token_ids=msg.next_tokens if os.getenv("LIGHTREASON_BENCH_TOKEN_IDS") == "1" else None,
+                         kv_used_pages=msg.kv_used_pages,
+                         kv_total_pages=msg.kv_total_pages,
+                         mamba_used_slots=msg.mamba_used_slots,
+--- a/freetoken/server/openai_api.py
++++ b/freetoken/server/openai_api.py
+@@ -459,6 +459,7 @@
+             )
+         )
+         text = ""
++        token_ids: list[int] = []
+         finish_reason = "stop"
+         async for ack in state.wait_for_ack(uid):
+             if getattr(ack, "error", None):
+@@ -467,12 +468,16 @@
+             completion_tokens += ack.completion_tokens_delta
+             cached_tokens += ack.cached_tokens
+             text += ack.incremental_output
++            token_ids.extend(ack.token_ids or ())
+             if ack.finished:
+                 if index == 0:
+                     first_timings = getattr(ack, "timings", None)
+                 finish_reason = getattr(ack, "finish_reason", None) or "stop"
+                 break
+-        choices.append({"index": index, "text": text, "finish_reason": finish_reason, "logprobs": None})
++        choice = {"index": index, "text": text, "finish_reason": finish_reason, "logprobs": None}
++        if token_ids:
++            choice["token_ids"] = token_ids
++        choices.append(choice)
+ 
+     response: dict[str, Any] = {
+         "id": f"cmpl-{uuid.uuid4().hex}",
+@@ -499,7 +504,9 @@
+         return _sse(chunk)
+ 
+     finish_reason = "stop"
++    token_ids: list[int] = []
+     async for ack in state.wait_for_ack(uid):
++        token_ids.extend(ack.token_ids or ())
+         if getattr(ack, "error", None):
+             yield _sse({"error": {"message": ack.error, "type": "invalid_request_error", "code": getattr(ack, "error_code", None)}})
+             yield b"data: [DONE]\n\n"
+@@ -537,6 +544,8 @@
+         "model": req.model,
+         "choices": [{"text": "", "index": 0, "finish_reason": finish_reason, "logprobs": None}],
+     }
++    if token_ids:
++        done_chunk["choices"][0]["token_ids"] = token_ids
+     if not include_usage and (t := timings_block(state, timings)) is not None:
+         # as on the chat stream: the finish chunk is the last one only when no usage
+         # chunk follows

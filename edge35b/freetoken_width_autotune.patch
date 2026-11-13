@@ -1,0 +1,256 @@
+--- a/freetoken/engine/engine.py
++++ b/freetoken/engine/engine.py
+@@ -1,6 +1,7 @@
+ from __future__ import annotations
+ 
+ import collections
++from copy import copy
+ import contextlib
+ import errno
+ import gc
+@@ -631,6 +632,10 @@
+ 
+         # ======================= Graph capture initialization ========================
+         self.graph_runner = self._make_graph_runner(config.cuda_graph_bs, init_free_memory, aligned_max_seq_len)
++        self.lightreason_width_runners = {}
++        self.lightreason_width_scratch = {}
++        if os.getenv("LIGHTREASON_WIDTH_TRIAL_PATH"):
++            self._capture_lightreason_widths(aligned_max_seq_len)
+         if config.attention_backend.split(",")[0] == "triton":
+             # Prefill runs on the first comma part; warm its autotune cache.
+             self._warmup_prefill()
+@@ -1358,13 +1363,59 @@
+             self.spec.capture_graphs(runner.graph_bs_list, runner.graph_pool)
+         return runner
+ 
++    def _capture_lightreason_widths(self, max_seq_len: int) -> None:
++        from freetoken.kvcache.linear_state_pool import LinearVerifyScratch
++
++        config, pool = self.config, self.linear_state_pool
++        if (config.max_running_req != 1 or config.tp_info.size != 1
++                or config.decode_rows_per_req != 8 or config.cache_type != "naive"
++                or config.speculative_algorithm != "dflash" or config.attention_backend != "triton"
++                or config.dtype != torch.bfloat16 or self.graph_runner.graph_bs_list != [1]
++                or pool is None or pool._verify_handlers or self.cpu_moe_executor is None
++                or self.moe_offload_cache._unpinned_layers):
++            raise ValueError("Width trials require one pinned hybrid Qwen BF16 request and the eight-row DFlash graph")
++        main_scratch = pool.verify_scratch
++        for width in (4, 6):
++            dummy = copy(self.dummy_req)
++            dummy.input_ids = dummy.input_ids[:width]
++            dummy.device_len = width
++            attn = create_attention_backend("triton", config.model_config)
++            linear = LinearAttnBackend(self.device, pool)
++            scratch = LinearVerifyScratch(pool, 1, width)
++            pool.verify_scratch = scratch
++            try:
++                runner = GraphRunner(
++                    stream=self.stream, device=self.device, forward=self.model.forward,
++                    attn_backend=attn, cuda_graph_bs=[1], cuda_graph_max_bs=1,
++                    free_memory=get_free_memory(self.device), max_seq_len=max_seq_len,
++                    dummy_req=dummy, moe_offload_cache=self.moe_offload_cache,
++                    mrope=config.model_config.model_is_mrope, rows_per_req=width, phase="verify",
++                    ctx_override={"attn_backend": attn}, batch_hook=self._prepare_verify_batch,
++                    out_dtype=torch.float32, linear_backend=linear,
++                )
++            finally:
++                pool.verify_scratch = main_scratch
++            self.lightreason_width_runners[width] = runner
++            self.lightreason_width_scratch[width] = scratch
++            logger.info_rank0(f"Lightreason captured {width} actual target verification positions")
++
++    def lightreason_graph(self, batch: Batch) -> GraphRunner:
++        if batch.phase == "verify":
++            return self.lightreason_width_runners.get(batch.rows_per_req, self.graph_runner)
++        return self.graph_runner
++
+     def _prepare_verify_batch(self, batch: Batch) -> None:
+         batch.features = self.spec.feature_sink(batch)
+ 
+-    def commit_verify(self, reqs, counts, out: torch.Tensor) -> None:
++    def commit_verify(self, reqs, counts, out: torch.Tensor, rows_per_req: int = 0) -> None:
+         """Commit each verified request's first ``counts`` tokens (row i of ``out`` is reqs[i]) to the target's per-request state."""
+         if self.linear_state_pool is not None and self.linear_state_pool.verify_scratch is not None:
+-            self.linear_state_pool.commit_verify([gdn_slot(r) for r in reqs], counts)
++            slots = [gdn_slot(r) for r in reqs]
++            scratch = self.lightreason_width_scratch.get(rows_per_req)
++            if scratch is None:
++                self.linear_state_pool.commit_verify(slots, counts)
++            else:
++                scratch.commit(self.linear_state_pool, slots, counts)
+         for req, n, tokens in zip(reqs, counts, out):
+             if req.output_token_counts is not None:
+                 req.output_token_counts.scatter_add_(0, tokens[:n], req.output_token_counts.new_ones(n))
+@@ -1378,9 +1429,10 @@
+ 
+     def forward_logits(self, batch: Batch) -> torch.Tensor:
+         """The batch's logits from its captured graph, or eagerly when none fits."""
+-        use_graph = self.graph_runner.can_use_cuda_graph(batch)
+-        with self.ctx.forward_batch(batch), self.model.forward_host_ctx(batch, use_graph):
+-            logits = self.graph_runner.replay(batch) if use_graph else self.model.forward()
++        runner = self.lightreason_graph(batch)
++        use_graph = runner.can_use_cuda_graph(batch)
++        with self.ctx.forward_batch(batch, **runner.ctx_override), self.model.forward_host_ctx(batch, use_graph):
++            logits = runner.replay(batch) if use_graph else self.model.forward()
+         if self.cpu_moe_executor is not None:
+             # One pinned read: surfaces a fired flag-handshake watchdog (dead coordinator
+             # -> stale expert outputs) as a loud error instead of silent corruption.
+@@ -1471,6 +1523,8 @@
+         )
+ 
+     def shutdown(self) -> None:
++        for runner in self.lightreason_width_runners.values():
++            runner.destroy_cuda_graphs()
+         self.graph_runner.destroy_cuda_graphs()
+         torch.distributed.destroy_process_group()
+         destroy_distributed()
+--- a/freetoken/scheduler/scheduler.py
++++ b/freetoken/scheduler/scheduler.py
+@@ -153,6 +153,12 @@
+         self._model_is_mrope = config.model_config.model_is_mrope
+         self._warned_cut_image = False
+         moe_cache = getattr(self.engine, "moe_offload_cache", None)
++        self.lightreason_width_trial = None
++        if trial_path := os.getenv("LIGHTREASON_WIDTH_TRIAL_PATH"):
++            from pathlib import Path
++            from edge35b.width_autotune import WidthTrial
++
++            self.lightreason_width_trial = WidthTrial(Path(trial_path))
+         self.status_reporter = SchedulerStatusReporter(
+             log=logger.info_rank0,
+             decode_log_interval=config.decode_log_interval,
+@@ -427,7 +433,7 @@
+ 
+     def _drain_verify(self, batch: Batch, output, reply: List[DetokenizeMsg], new_finished_reqs: Set[Req]) -> int:
+         """Commit each request's accepted tokens, return the slots its rejected rows took, then the target state; returns the tokens committed."""
+-        k = self.config.decode_rows_per_req - 1
++        k = batch.rows_per_req - 1
+         counts, finished = [], []
+         now = time.perf_counter()
+         for i, req in enumerate(batch.reqs):
+@@ -453,7 +459,7 @@
+             if msg.finished:
+                 finished.append(req)
+         # before any finish free: the hybrid finish donates the live GDN slot the commit writes
+-        self.engine.commit_verify(batch.reqs, counts, output.next_tokens_gpu)
++        self.engine.commit_verify(batch.reqs, counts, output.next_tokens_gpu, batch.rows_per_req)
+         # the last committed token is pending at cached_len, like a decode step's sampled token
+         table, pos, last = torch.tensor(
+             [(r.table_idx, r.cached_len, n - 1) for r, n in zip(batch.reqs, counts)],
+@@ -464,7 +470,10 @@
+             self.decode_manager.remove_req(req)
+             self._free_req_resources(req)
+             new_finished_reqs.add(req)
+-        return sum(counts)
++        committed = sum(counts)
++        if self.lightreason_width_trial is not None:
++            self.lightreason_width_trial.observe(batch.rows_per_req, committed, bool(finished))
++        return committed
+ 
+     def _commit_tokens(self, req: Req, tokens: torch.Tensor) -> Tuple[DetokenizeMsg, int]:
+         """Append sampled tokens in order until one finishes the request; returns the reply and how many tokens were committed."""
+@@ -894,9 +903,15 @@
+             logger.warning(f"could not log cache geometry: {e!r}")
+ 
+     def _prepare_batch(self, batch: Batch) -> ForwardInput:
++        trial = self.lightreason_width_trial
++        if trial is not None and batch.is_prefill and trial.begin(batch.reqs[0].uid):
++            self.engine.moe_offload_cache.reset()
++            self.engine.cpu_moe_executor._ext.set_pair_threshold(trial.min_pairs)
+         if self.spec is not None and batch.is_decode:
+-            batch.phase, batch.rows_per_req = "verify", self.config.decode_rows_per_req
+-        self.engine.graph_runner.pad_batch(batch)
++            width = trial.choose() if trial is not None else self.config.decode_rows_per_req
++            batch.phase, batch.rows_per_req = "verify", width
++        runner = self.engine.lightreason_graph(batch)
++        runner.pad_batch(batch)
+         self._forward_iter += 1
+         if not batch.is_prefill:
+             # Free each decoding request's now-out-of-window SWA slots BEFORE the alloc below,
+@@ -922,7 +937,7 @@
+         self.cache_manager.allocate_paged(batch.reqs)
+         if batch.phase == "verify":
+             # the drafts run on the GPU while the host builds this batch's metadata below
+-            self.spec.propose_into(batch.reqs, self.token_pool)
++            self.spec.propose_into(batch.reqs, self.token_pool, batch.rows_per_req - 1)
+         if batch.is_prefill:
+             self._gather_multimodal(batch)
+         batch.positions = _make_positions(batch, self.device)
+@@ -931,13 +946,15 @@
+         input_mapping = _make_input_tuple(batch, self.device)
+         write_mapping = None if batch.phase == "verify" else _make_write_tuple(batch, self.device)
+         batch.out_loc = self.engine.page_table[input_mapping]
+-        if self.engine.linear_backend is not None:
+-            self.engine.linear_backend.prepare_metadata(batch)
++        if runner.linear_backend is not None:
++            runner.linear_backend.prepare_metadata(batch)
++            if batch.phase == "verify" and batch.rows_per_req in self.engine.lightreason_width_scratch:
++                batch.fla_metadata.verify_scratch = self.engine.lightreason_width_scratch[batch.rows_per_req]
+         if not batch.is_prefill:
+             # This batch's padded per-row page-table rows. Backends that snapshot the table for
+             # a captured replay (DSV4) read them in prepare_metadata / prepare_for_replay.
+             batch.active_table_idx = input_mapping[0][:: batch.rows_per_req].view(-1)
+-        self.engine.attn_backend.prepare_metadata(batch)
++        runner.attn_backend.prepare_metadata(batch)
+         return ForwardInput(
+             batch=batch,
+             sample_args=sample_args,
+--- a/freetoken/spec/runner.py
++++ b/freetoken/spec/runner.py
+@@ -84,17 +84,18 @@
+     def on_prefill(self, batch: Batch, next_tokens_gpu: torch.Tensor) -> None:
+         self.proposer.on_prefill(batch, next_tokens_gpu)
+ 
+-    def propose_into(self, reqs: List[Req], token_pool: torch.Tensor) -> None:
++    def propose_into(self, reqs: List[Req], token_pool: torch.Tensor, k: int | None = None) -> None:
+         """Draft k tokens per request into token_pool after its pending token at cached_len."""
+         rows = make_device_tensor([r.table_idx for r in reqs], torch.int64, self.device)
+         cols = make_device_tensor([r.cached_len for r in reqs], torch.int64, self.device)
+         self._proposal = self.proposer.propose(reqs, rows, token_pool[rows, cols])
+-        cols = cols.unsqueeze(1) + 1 + torch.arange(self.k, device=self.device)
+-        token_pool[rows.unsqueeze(1), cols] = self._proposal.draft_token_ids.to(token_pool.dtype)
++        k = self.k if k is None else k
++        cols = cols.unsqueeze(1) + 1 + torch.arange(k, device=self.device)
++        token_pool[rows.unsqueeze(1), cols] = self._proposal.draft_token_ids[:, :k].to(token_pool.dtype)
+ 
+     def verify_step(self, batch: Batch, sample_args: BatchSamplingArgs) -> SpecForwardOutput:
+         engine = self.engine
+-        bs, width = batch.size, self.k + 1
++        bs, width = batch.size, batch.rows_per_req
+         # each request's rows read its pending token then its drafts
+         drafts = batch.input_ids[: bs * width].view(bs, width)[:, 1:].to(torch.int64)
+         batch.features = self.feature_sink(batch)
+@@ -102,11 +103,12 @@
+         proposal, self._proposal = self._proposal, None
+         if proposal.draft_support_probs is not None:
+             out, emitted = reject_with_draft_probs(
+-                logits, drafts, proposal.draft_support_ids, proposal.draft_support_probs, sample_args, engine.sampler,
++                logits, drafts, proposal.draft_support_ids[:, :width - 1],
++                proposal.draft_support_probs[:, :width - 1], sample_args, engine.sampler,
+             )
+         else:
+             out, emitted = reject(logits, drafts, sample_args, engine.sampler)
+-        host = self._host[:bs]
++        host = self._host[:bs, :width + 1]
+         host.copy_(torch.cat([out, emitted.unsqueeze(1)], dim=1), non_blocking=True)
+         copy_done = torch.cuda.Event()
+         copy_done.record(engine.stream)
+--- a/freetoken/spec/dflash/proposer.py
++++ b/freetoken/spec/dflash/proposer.py
+@@ -292,14 +292,14 @@
+ 
+     def post_verify(self, batch: Batch, out: torch.Tensor, emitted: torch.Tensor) -> None:
+         """Every verify row's context into the ring and the window; the rows past the accepted ones are overwritten by the next block before anything reads them."""
+-        padded, block = batch.padded_size, self.block
++        padded, block = batch.padded_size, batch.rows_per_req
+         n = padded * block
+         rows = batch.active_table_idx.repeat_interleave(block)
+         slots = None
+         if self.window is not None:
+             slots = make_device_tensor([gdn_slot(r) for r in batch.padded_reqs], torch.int64, self.device).repeat_interleave(block)
+         graph = self._inject_graphs.get(padded)
+-        if graph is None:
++        if graph is None or block != self.block:
+             self._inject(self.aux_buf[:n], batch.positions[:n], rows, slots)
+             return
+         g_pos, g_rows, g_slots = self._inject_in

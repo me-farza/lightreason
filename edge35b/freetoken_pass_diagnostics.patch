@@ -1,0 +1,295 @@
+--- /dev/null
++++ b/freetoken/moe/lr_expert_timing.py
+@@ -0,0 +1,39 @@
++"""Opt-in timing markers in a separate hybrid verifier graph."""
++
++import torch
++import triton
++import triton.language as tl
++
++
++@triton.jit(do_not_specialize=["layer"])
++def _stamp(stamps, fetched, misses, cpu_ids, layer, STAGE: tl.constexpr, ROUTES: tl.constexpr):
++    now = tl.inline_asm_elementwise(
++        "mov.u64 $0, %globaltimer;", constraints="=l", args=[], dtype=tl.int64,
++        is_pure=False, pack=1,
++    )
++    base = stamps + layer * 10
++    tl.store(base + STAGE, now)
++    if STAGE == 1:
++        ids = tl.load(cpu_ids + tl.arange(0, ROUTES))
++        tl.store(base + 7, tl.load(fetched))
++        tl.store(base + 8, tl.load(misses))
++        tl.store(base + 9, tl.sum((ids >= 0).to(tl.int64)))
++
++
++class ExpertTiming:
++    def __init__(self, layers, device):
++        self.device_stamps = torch.empty((layers, 10), dtype=torch.int64, device=device)
++        self.host_stamps = torch.empty((layers, 10), dtype=torch.int64, pin_memory=True)
++
++    def stamp(self, layer, stage, *, cache=None, cpu_ids=None):
++        if stage == 1:
++            fetched, misses = cache.num_indices, cache.num_missing_full
++            routes = cpu_ids.numel()
++            assert routes in (32, 64)
++        else:
++            fetched = misses = cpu_ids = self.device_stamps
++            routes = 1
++        _stamp[(1,)](self.device_stamps, fetched, misses, cpu_ids, layer, stage, routes, num_warps=1)
++
++    def copy_to_host(self):
++        self.host_stamps.copy_(self.device_stamps, non_blocking=True)
+--- a/freetoken/layers/moe.py
++++ b/freetoken/layers/moe.py
+@@ -318,8 +318,16 @@
+         # complete payload or the bank's zero fill (never uninitialized storage), times weight 0
+         # with several quants this holds only because the cache zeroes its staging area after prefill
+         clamp = not self.skips_inactive_slots
++        timing = getattr(cache, "_lightreason_expert_timing", None)
++        if timing is not None:
++            assert _HYBRID_OVERLAP
++            timing.stamp(self.layer_id, 0)
+         gpu_slots, gpu_w, cpu_ids = cache.ensure_experts_hybrid(self.layer_id, topk_ids, topk_weights, clamp=clamp)
++        if timing is not None:
++            timing.stamp(self.layer_id, 1, cache=cache, cpu_ids=cpu_ids)
+         pending = executor.decode_submit(self.layer_id, hidden_states, topk_weights, cpu_ids)
++        if timing is not None:
++            timing.stamp(self.layer_id, 2)
+ 
+         # Measurement knob: FREETOKEN_HYBRID_OVERLAP=0 syncs the CPU pool *before* the
+         # PCIe fetch + GPU GEMM, serializing the two so an A/B isolates the overlap win.
+@@ -328,6 +336,8 @@
+         )
+ 
+         cache.copy_missing()
++        if timing is not None:
++            timing.stamp(self.layer_id, 3)
+         gpu_routed = self._expert_gemm(
+             cache,
+             hidden_states,
+@@ -340,7 +350,12 @@
+         )
+         if not _HYBRID_OVERLAP:
+             return gpu_routed + cpu_routed_early
+-        return executor.decode_sync(pending, add_to=gpu_routed)
++        if timing is None:
++            return executor.decode_sync(pending, add_to=gpu_routed)
++        timing.stamp(self.layer_id, 4)
++        result = executor.decode_sync(pending, add_to=gpu_routed, after_wait=lambda: timing.stamp(self.layer_id, 5))
++        timing.stamp(self.layer_id, 6)
++        return result
+ 
+     def _prefill_routed(
+         self,
+--- a/freetoken/moe/cpu_executor.py
++++ b/freetoken/moe/cpu_executor.py
+@@ -692,7 +692,7 @@
+             self._ext.submit_with_cuda_stream(stream, layer_id, bs)
+         return (bs, out, False)
+ 
+-    def decode_sync(self, pending: tuple, add_to: torch.Tensor | None = None) -> torch.Tensor:
++    def decode_sync(self, pending: tuple, add_to: torch.Tensor | None = None, *, after_wait=None) -> torch.Tensor:
+         """Issue the CPU-pool sync + the H2D result copy for a prior :meth:`decode_submit`,
+         and return the GPU output tensor. With flag-sync the wait is a front-end stream
+         memop on done (set by the CPU coordinator); otherwise a cudaLaunchHostFunc.
+@@ -705,6 +705,8 @@
+             self._ext.flag_wait(stream)
+         else:
+             self._ext.sync_with_cuda_stream(stream)
++        if after_wait is not None:
++            after_wait()
+         if kernel_io:
+             if add_to is not None and add_to.dtype == torch.bfloat16 and add_to.is_contiguous() and add_to.shape == out.shape:
+                 self._ext.flag_combine(stream, add_to.data_ptr(), bs, True)
+--- a/freetoken/engine/engine.py
++++ b/freetoken/engine/engine.py
+@@ -634,6 +634,8 @@
+         self.graph_runner = self._make_graph_runner(config.cuda_graph_bs, init_free_memory, aligned_max_seq_len)
+         self.lightreason_width_runners = {}
+         self.lightreason_width_scratch = {}
++        self.lightreason_profile_runners = {}
++        self.lightreason_expert_timing = None
+         if os.getenv("LIGHTREASON_WIDTH_TRIAL_PATH"):
+             self._capture_lightreason_widths(aligned_max_seq_len)
+         if config.attention_backend.split(",")[0] == "triton":
+@@ -1375,14 +1377,26 @@
+                 or self.moe_offload_cache._unpinned_layers):
+             raise ValueError("Width trials require one pinned hybrid Qwen BF16 request and the eight-row DFlash graph")
+         main_scratch = pool.verify_scratch
+-        for width in (4, 6):
++        profiles = []
++        if os.getenv("LIGHTREASON_PASS_DIAGNOSTICS") == "1":
++            from freetoken.moe.lr_expert_timing import ExpertTiming
++
++            if not self.cpu_moe_executor._flag_sync:
++                raise ValueError("Expert timing requires the CPU doorbell path")
++            self.lightreason_expert_timing = ExpertTiming(self.moe_offload_cache.num_layers, self.device)
++            profiles = [(4, True), (8, True)]
++        for width, profiling in [(4, False), (6, False), *profiles]:
+             dummy = copy(self.dummy_req)
+             dummy.input_ids = dummy.input_ids[:width]
+             dummy.device_len = width
+             attn = create_attention_backend("triton", config.model_config)
+             linear = LinearAttnBackend(self.device, pool)
+-            scratch = LinearVerifyScratch(pool, 1, width)
++            if profiling:
++                scratch = self.lightreason_width_scratch.get(width, main_scratch)
++            else:
++                scratch = LinearVerifyScratch(pool, 1, width)
+             pool.verify_scratch = scratch
++            self.moe_offload_cache._lightreason_expert_timing = self.lightreason_expert_timing if profiling else None
+             try:
+                 runner = GraphRunner(
+                     stream=self.stream, device=self.device, forward=self.model.forward,
+@@ -1395,12 +1409,19 @@
+                 )
+             finally:
+                 pool.verify_scratch = main_scratch
+-            self.lightreason_width_runners[width] = runner
+-            self.lightreason_width_scratch[width] = scratch
+-            logger.info_rank0(f"Lightreason captured {width} actual target verification positions")
++                self.moe_offload_cache._lightreason_expert_timing = None
++            if profiling:
++                self.lightreason_profile_runners[width] = runner
++                logger.info_rank0(f"Lightreason captured a timed {width}-position verifier")
++            else:
++                self.lightreason_width_runners[width] = runner
++                self.lightreason_width_scratch[width] = scratch
++                logger.info_rank0(f"Lightreason captured {width} actual target verification positions")
+ 
+     def lightreason_graph(self, batch: Batch) -> GraphRunner:
+         if batch.phase == "verify":
++            if getattr(batch, "lightreason_expert_profile", False):
++                return self.lightreason_profile_runners[batch.rows_per_req]
+             return self.lightreason_width_runners.get(batch.rows_per_req, self.graph_runner)
+         return self.graph_runner
+ 
+@@ -1523,7 +1544,7 @@
+         )
+ 
+     def shutdown(self) -> None:
+-        for runner in self.lightreason_width_runners.values():
++        for runner in (*self.lightreason_profile_runners.values(), *self.lightreason_width_runners.values()):
+             runner.destroy_cuda_graphs()
+         self.graph_runner.destroy_cuda_graphs()
+         torch.distributed.destroy_process_group()
+--- a/freetoken/spec/dflash/proposer.py
++++ b/freetoken/spec/dflash/proposer.py
+@@ -271,6 +271,8 @@
+             g_flags[:padded].copy_(flags, non_blocking=True)
+             self._graphs[padded].replay()
+             tokens, cand, q = (t[:bs] for t in self._out)
++        if getattr(self, "_lightreason_capture_candidates", False):
++            self._lightreason_candidates = cand
+         return SpecProposal(tokens) if all(greedy) else SpecProposal(tokens, cand, q)
+ 
+     # ------------------------------------------------------------------ target features
+--- a/freetoken/spec/runner.py
++++ b/freetoken/spec/runner.py
+@@ -2,6 +2,7 @@
+ 
+ from __future__ import annotations
+ 
++import json
+ from typing import TYPE_CHECKING, List
+ 
+ import torch
+@@ -37,6 +38,7 @@
+         self.proposer = proposer_class(config)(config, engine.model)
+         self.radix_lookahead = self.proposer.radix_lookahead
+         self.engine = None
++        self.lightreason_diagnostics = "off"
+         # the step's drafts, from propose_into to the verify_step of the same batch
+         self._proposal: SpecProposal | None = None
+ 
+@@ -93,13 +95,52 @@
+         cols = cols.unsqueeze(1) + 1 + torch.arange(k, device=self.device)
+         token_pool[rows.unsqueeze(1), cols] = self._proposal.draft_token_ids[:, :k].to(token_pool.dtype)
+ 
++    def begin_lightreason_diagnostics(self, mode, path) -> None:
++        self.lightreason_diagnostics = mode
++        self._lightreason_details_path = path
++        self._lightreason_passes = []
++        self.proposer._lightreason_capture_candidates = mode == "audit"
++        self.engine.cpu_moe_executor._ext.set_expert_profile(mode == "profile")
++        if mode == "audit":
++            self._lightreason_draft_host = torch.empty(self.k, dtype=torch.int64, pin_memory=True)
++            self._lightreason_candidates_host = torch.empty(
++                (self.k, self.proposer.draft_config.selector_top_k), dtype=torch.int64, pin_memory=True,
++            )
++        elif mode == "profile":
++            self._lightreason_graph_start = torch.cuda.Event(enable_timing=True)
++            self._lightreason_graph_stop = torch.cuda.Event(enable_timing=True)
++
++    def record_lightreason_pass(self, width, committed, finished) -> None:
++        mode = self.lightreason_diagnostics
++        if mode == "off":
++            return
++        info = {"width": width, "committed": committed, "accepted_drafts": int(self._host[0, width])}
++        if mode == "audit":
++            info["target_ids"] = self._host[0, :width].tolist()
++            info["draft_ids"] = self._lightreason_draft_host.tolist()
++            info["candidate_ids"] = self._lightreason_candidates_host.tolist()
++        else:
++            expert = self.engine.lightreason_expert_timing
++            info["target_graph_ms"] = self._lightreason_graph_start.elapsed_time(self._lightreason_graph_stop)
++            info["gpu_layer_stamps"] = expert.host_stamps.tolist()
++            info["cpu_service_ns"] = self.engine.cpu_moe_executor._ext.expert_profile_ns()
++        self._lightreason_passes.append(info)
++        if finished:
++            with self._lightreason_details_path.open("a") as stream:
++                stream.write(json.dumps({"mode": mode, "passes": self._lightreason_passes}) + "\n")
++
+     def verify_step(self, batch: Batch, sample_args: BatchSamplingArgs) -> SpecForwardOutput:
+         engine = self.engine
+         bs, width = batch.size, batch.rows_per_req
+         # each request's rows read its pending token then its drafts
+         drafts = batch.input_ids[: bs * width].view(bs, width)[:, 1:].to(torch.int64)
+         batch.features = self.feature_sink(batch)
++        mode = self.lightreason_diagnostics
++        if mode == "profile":
++            self._lightreason_graph_start.record(engine.stream)
+         logits = engine.forward_logits(batch)[: bs * width]
++        if mode == "profile":
++            self._lightreason_graph_stop.record(engine.stream)
+         proposal, self._proposal = self._proposal, None
+         if proposal.draft_support_probs is not None:
+             out, emitted = reject_with_draft_probs(
+@@ -110,6 +151,12 @@
+             out, emitted = reject(logits, drafts, sample_args, engine.sampler)
+         host = self._host[:bs, :width + 1]
+         host.copy_(torch.cat([out, emitted.unsqueeze(1)], dim=1), non_blocking=True)
++        if mode == "profile":
++            engine.lightreason_expert_timing.copy_to_host()
++        elif mode == "audit":
++            assert bs == 1 and width == self.k + 1 and proposal.draft_support_probs is None
++            self._lightreason_draft_host.copy_(drafts[0], non_blocking=True)
++            self._lightreason_candidates_host.copy_(self.proposer._lightreason_candidates[0], non_blocking=True)
+         copy_done = torch.cuda.Event()
+         copy_done.record(engine.stream)
+         # after the D2H is queued: the drain waits for the copy only, while the draft's work overlaps it
+--- a/freetoken/scheduler/scheduler.py
++++ b/freetoken/scheduler/scheduler.py
+@@ -473,6 +473,7 @@
+         committed = sum(counts)
+         if self.lightreason_width_trial is not None:
+             self.lightreason_width_trial.observe(batch.rows_per_req, committed, bool(finished))
++            self.spec.record_lightreason_pass(batch.rows_per_req, committed, bool(finished))
+         return committed
+ 
+     def _commit_tokens(self, req: Req, tokens: torch.Tensor) -> Tuple[DetokenizeMsg, int]:
+@@ -907,9 +908,13 @@
+         if trial is not None and batch.is_prefill and trial.begin(batch.reqs[0].uid):
+             self.engine.moe_offload_cache.reset()
+             self.engine.cpu_moe_executor._ext.set_pair_threshold(trial.min_pairs)
++            if os.getenv("LIGHTREASON_PASS_DIAGNOSTICS") == "1":
++                self.spec.begin_lightreason_diagnostics(trial.diagnostics, trial.diagnostic_log)
+         if self.spec is not None and batch.is_decode:
+             width = trial.choose() if trial is not None else self.config.decode_rows_per_req
+             batch.phase, batch.rows_per_req = "verify", width
++            if trial is not None and trial.diagnostics == "profile":
++                batch.lightreason_expert_profile = True
+         runner = self.engine.lightreason_graph(batch)
+         runner.pad_batch(batch)
+         self._forward_iter += 1

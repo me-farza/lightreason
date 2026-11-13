@@ -1,0 +1,114 @@
+[
+  {
+    "file": "v2-profile-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 49,
+    "cpu_c": 56.25
+  },
+  {
+    "file": "v2-pipeline-audit-b-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 50,
+    "cpu_c": 58.5
+  },
+  {
+    "file": "v2-pipeline-timing-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 53,
+    "cpu_c": 65.0
+  },
+  {
+    "file": "v3-mtp-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 35,
+    "cpu_c": 63.75
+  },
+  {
+    "file": "v4-fused-audit-watch.json",
+    "outcome": "external_command_failed",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 38,
+    "cpu_c": 57.75
+  },
+  {
+    "file": "v4-fused-timing-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 44,
+    "cpu_c": 64.5
+  },
+  {
+    "file": "v4-recurrent-mtp-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 49,
+    "cpu_c": 61.25
+  },
+  {
+    "file": "v5-cpu-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 52,
+    "cpu_c": 63.5
+  },
+  {
+    "file": "v6-batched-audit-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 43,
+    "cpu_c": 64.25
+  },
+  {
+    "file": "v6-batched-timing-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 36,
+    "cpu_c": 65.0
+  },
+  {
+    "file": "v7-six-token-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 34,
+    "cpu_c": 63.75
+  },
+  {
+    "file": "v7-full-answer-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 34,
+    "cpu_c": 64.0
+  },
+  {
+    "file": "v8-hybrid-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 34,
+    "cpu_c": 63.25
+  },
+  {
+    "file": "v8-hybrid-answer-watch.json",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "gpu_c": 43,
+    "cpu_c": 60.75
+  }
+]

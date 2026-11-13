@@ -1,0 +1,217 @@
+{
+  "protocol": {
+    "paired_trials": 30,
+    "prompts": 6,
+    "repeats_per_prompt": 5,
+    "output_tokens": 128,
+    "batch_size": 1,
+    "natural_eos_validation_budget": 512,
+    "timing_scope": "Paired warmed CUDA-synchronized wall latency, alternating order; original prefill+cache transfer included; loading, compile/graph preparation and CPU output transfer excluded. Not throughput batching.",
+    "speedup_gate": "Every paired prefill+decode generation latency speedup>=10; no batching throughput claim"
+  },
+  "model": {
+    "id": "Qwen/Qwen2.5-3B-Instruct",
+    "revision": "aa8e72537993ba99e69dfaafa59ed015b17504d1",
+    "parameters": 3085938688,
+    "dtype": "torch.bfloat16",
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "validation_gpu_uuid": "3607ad3f-d2b7-522a-fd1f-0df7547482a0",
+    "timing_gpu_uuid_recorded": false,
+    "runtime": {
+      "torch": "2.9.1+cu128",
+      "transformers": "4.57.1",
+      "cuda": "12.8",
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "gpu_uuid": "3607ad3f-d2b7-522a-fd1f-0df7547482a0",
+      "capability": [
+        8,
+        9
+      ],
+      "sdpa_flash_enabled": true,
+      "sdpa_memory_efficient_enabled": true,
+      "sdpa_math_enabled": true,
+      "allow_tf32": false,
+      "allow_bf16_reduced_precision_reduction": true,
+      "float32_matmul_precision": "highest",
+      "cublas_workspace_config": null
+    },
+    "checkpoint_files": {
+      "model-00001-of-00002.safetensors": "67347b23fb4165b652eb6611f5e1f2a06dfcddba8e909df1b2b0b1857bee06c2",
+      "model-00002-of-00002.safetensors": "a40d941d0e7e0b966ad8b62bb6d6b7c88cce1299197b599d9d0a4ce59aabfc1d"
+    },
+    "unchanged_live_parameter_sha256": "ab4dc8672b41311882ed404da089baad41db202eda849c68c14df3352c06e9a2"
+  },
+  "timing": {
+    "trials": 30,
+    "median_total_speedup": 2.1856841059416388,
+    "minimum_total_speedup": 2.0964687191034024,
+    "median_decode_speedup": 2.2144811293870537,
+    "baseline_median_decode_tokens_s": 62.953057346383815,
+    "candidate_median_decode_tokens_s": 139.5697243981678,
+    "minimum_decode_speedup": 2.1226333757799645,
+    "maximum_total_speedup": 2.2164012461787954,
+    "absolute_median_latency_ms": {
+      "baseline": {
+        "prefill_ms": 18.7212317250669,
+        "decode_ms": 2017.3762212507427,
+        "total_ms": 2036.178844049573
+      },
+      "candidate": {
+        "prefill_ms": 20.549556240439415,
+        "decode_ms": 909.9945505149662,
+        "total_ms": 930.7266450487077
+      }
+    },
+    "per_prompt_medians": [
+      {
+        "prompt_index": 0,
+        "baseline": {
+          "prefill_s": 0.019146975129842758,
+          "decode_s": 2.013590903952718,
+          "total_s": 2.0327545795589685,
+          "decode_tokens_s": 63.071401321239854
+        },
+        "candidate": {
+          "prefill_s": 0.020556971430778503,
+          "decode_s": 0.9028780898079276,
+          "total_s": 0.9234712822362781,
+          "decode_tokens_s": 140.6612935164006
+        },
+        "paired_median_total_speedup": 2.2004826204422394,
+        "minimum_total_speedup": 2.1999582119712886
+      },
+      {
+        "prompt_index": 1,
+        "baseline": {
+          "prefill_s": 0.01862779352813959,
+          "decode_s": 2.0133682806044817,
+          "total_s": 2.0319960741326213,
+          "decode_tokens_s": 63.07837528952739
+        },
+        "candidate": {
+          "prefill_s": 0.020558691583573818,
+          "decode_s": 0.9000538559630513,
+          "total_s": 0.9205949269235134,
+          "decode_tokens_s": 141.10266753327875
+        },
+        "paired_median_total_speedup": 2.206816763931362,
+        "minimum_total_speedup": 2.203928485870752
+      },
+      {
+        "prompt_index": 2,
+        "baseline": {
+          "prefill_s": 0.01867141481488943,
+          "decode_s": 2.0128135196864605,
+          "total_s": 2.031434123404324,
+          "decode_tokens_s": 63.09576061461621
+        },
+        "candidate": {
+          "prefill_s": 0.020603821612894535,
+          "decode_s": 0.9171000802889466,
+          "total_s": 0.9377686139196157,
+          "decode_tokens_s": 138.47997915340568
+        },
+        "paired_median_total_speedup": 2.1666084054665284,
+        "minimum_total_speedup": 2.164443748043645
+      },
+      {
+        "prompt_index": 3,
+        "baseline": {
+          "prefill_s": 0.018737126141786575,
+          "decode_s": 2.0210013249889016,
+          "total_s": 2.039729541167617,
+          "decode_tokens_s": 62.84013693098268
+        },
+        "candidate": {
+          "prefill_s": 0.020550371147692204,
+          "decode_s": 0.9392304206266999,
+          "total_s": 0.9597371714189649,
+          "decode_tokens_s": 135.21708540409014
+        },
+        "paired_median_total_speedup": 2.1253001362361434,
+        "minimum_total_speedup": 2.121828727109702
+      },
+      {
+        "prompt_index": 4,
+        "baseline": {
+          "prefill_s": 0.01874394714832306,
+          "decode_s": 2.020378002896905,
+          "total_s": 2.039121950045228,
+          "decode_tokens_s": 62.85952421670694
+        },
+        "candidate": {
+          "prefill_s": 0.020516510121524334,
+          "decode_s": 0.9026920665055513,
+          "total_s": 0.9232086567208171,
+          "decode_tokens_s": 140.6902804537044
+        },
+        "paired_median_total_speedup": 2.208430103749782,
+        "minimum_total_speedup": 2.2051882771834563
+      },
+      {
+        "prompt_index": 5,
+        "baseline": {
+          "prefill_s": 0.01871615555137396,
+          "decode_s": 2.018890426494181,
+          "total_s": 2.0376093722879887,
+          "decode_tokens_s": 62.90584091804154
+        },
+        "candidate": {
+          "prefill_s": 0.020548741333186626,
+          "decode_s": 0.9490317786112428,
+          "total_s": 0.9696370903402567,
+          "decode_tokens_s": 133.82059785800251
+        },
+        "paired_median_total_speedup": 2.1026080306135206,
+        "minimum_total_speedup": 2.0964687191034024
+      }
+    ],
+    "sum_of_six_prompt_medians": {
+      "baseline": {
+        "prefill_s": 0.11264341231435537,
+        "decode_s": 12.100042458623648,
+        "total_s": 12.212645640596747
+      },
+      "candidate": {
+        "prefill_s": 0.12333510722965002,
+        "decode_s": 5.51098629180342,
+        "total_s": 5.634417741559446
+      },
+      "total_speedup_ratio": 2.167508019598248,
+      "decode_speedup_ratio": 2.1956219482200927
+    },
+    "all60_timed_outputs_equal_fresh_reference": true
+  },
+  "validation": {
+    "exact_cases": 38,
+    "natural_eos_cases": 32,
+    "strict_score_denominator": 32,
+    "baseline_strict_final_json_correct": 26,
+    "candidate_strict_final_json_correct": 26,
+    "baseline_correct_regressions": 0,
+    "head_step_audits": {
+      "required": true,
+      "completed": 5492,
+      "expected": 5492,
+      "passed": true
+    }
+  },
+  "excluded_setup": {
+    "model_load_s": 1.0301410919055343,
+    "graph_setup_s": 1.2301290072500706,
+    "head_index_setup_s": 0.18452659156173468,
+    "projection_copy_setup_s": 0.009164314717054367,
+    "reported_excluded_setup_s_sum": 2.453961005434394
+  },
+  "memory": {
+    "kv_allocated_bytes": 37748752,
+    "extra_projection_bytes": 3321925632,
+    "scope": "K/V and projection copies only; not total/peak GPU VRAM"
+  },
+  "limitations": [
+    "Finite tested output identity, not a global reasoning/accuracy or all-input guarantee",
+    "Natural-EOS validation timings are not used as speed evidence",
+    "Generation latency excludes tokenization, CPU result transfer, loading and compilation/graph setup",
+    "Benchmark harness and unrelated source additions may differ across artifacts; critical candidate sources must match"
+  ]
+}

@@ -1,0 +1,314 @@
+{
+  "revision": "345d467b117d1fd5eda9b879a5988de9ae5f47a7",
+  "rows": [
+    {
+      "fixtures": [
+        {
+          "case": "studio",
+          "layer": 2,
+          "cpu_routes": 13,
+          "active_routes": 51,
+          "experts": 30,
+          "weight_read_groups": 34,
+          "weight_bytes": 188743680,
+          "checks": {
+            "control": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "skip-zero-routes": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "paired": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            }
+          }
+        },
+        {
+          "case": "known-math",
+          "layer": 17,
+          "cpu_routes": 16,
+          "active_routes": 48,
+          "experts": 28,
+          "weight_read_groups": 31,
+          "weight_bytes": 176160768,
+          "checks": {
+            "control": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "skip-zero-routes": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "paired": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            }
+          }
+        },
+        {
+          "case": "coding",
+          "layer": 37,
+          "cpu_routes": 12,
+          "active_routes": 52,
+          "experts": 31,
+          "weight_read_groups": 34,
+          "weight_bytes": 195035136,
+          "checks": {
+            "control": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "skip-zero-routes": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "paired": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            }
+          }
+        },
+        {
+          "case": "chat",
+          "layer": 0,
+          "cpu_routes": 9,
+          "active_routes": 55,
+          "experts": 33,
+          "weight_read_groups": 38,
+          "weight_bytes": 207618048,
+          "checks": {
+            "control": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "skip-zero-routes": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "paired": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            }
+          }
+        },
+        {
+          "case": "studio",
+          "layer": 4,
+          "cpu_routes": 10,
+          "active_routes": 54,
+          "experts": 32,
+          "weight_read_groups": 36,
+          "weight_bytes": 201326592,
+          "checks": {
+            "control": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "skip-zero-routes": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "paired": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            }
+          }
+        },
+        {
+          "case": "coding",
+          "layer": 24,
+          "cpu_routes": 14,
+          "active_routes": 50,
+          "experts": 30,
+          "weight_read_groups": 34,
+          "weight_bytes": 188743680,
+          "checks": {
+            "control": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "skip-zero-routes": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "paired": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            }
+          }
+        },
+        {
+          "case": "chat",
+          "layer": 30,
+          "cpu_routes": 4,
+          "active_routes": 60,
+          "experts": 36,
+          "weight_read_groups": 42,
+          "weight_bytes": 226492416,
+          "checks": {
+            "control": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "skip-zero-routes": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "paired": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            }
+          }
+        },
+        {
+          "case": "known-math",
+          "layer": 36,
+          "cpu_routes": 18,
+          "active_routes": 46,
+          "experts": 27,
+          "weight_read_groups": 31,
+          "weight_bytes": 169869312,
+          "checks": {
+            "control": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "skip-zero-routes": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            },
+            "paired": {
+              "bitwise": true,
+              "max_error": 0.0,
+              "different_values": 0
+            }
+          }
+        }
+      ],
+      "samples_ms": {
+        "control": [
+          0.2187274992465973,
+          0.2182680070400238,
+          0.21820800006389618,
+          0.21777600049972534,
+          0.21785050630569458,
+          0.21779100596904755,
+          0.21775999665260315,
+          0.21777600049972534,
+          0.21778899431228638,
+          0.21772800385951996,
+          0.2178560048341751,
+          0.21792000532150269,
+          0.2179040014743805,
+          0.2178879976272583,
+          0.21785299479961395,
+          0.21779200434684753,
+          0.21796800196170807,
+          0.21772800385951996,
+          0.21766400337219238,
+          0.21780799329280853,
+          0.21786850690841675,
+          0.21774399280548096,
+          0.2179664969444275,
+          0.21761099994182587
+        ],
+        "skip-zero-routes": [
+          0.22044800221920013,
+          0.2205599993467331,
+          0.21970899403095245,
+          0.2199680060148239,
+          0.219760000705719,
+          0.21993599832057953,
+          0.2197760045528412,
+          0.21986649930477142,
+          0.21985599398612976,
+          0.2197760045528412,
+          0.22006399929523468,
+          0.21985149383544922,
+          0.22001299262046814,
+          0.21995200216770172,
+          0.21991750597953796,
+          0.219868004322052,
+          0.21984000504016876,
+          0.21980799734592438,
+          0.21985599398612976,
+          0.219760000705719,
+          0.21993599832057953,
+          0.21983599662780762,
+          0.21987150609493256,
+          0.21995100378990173
+        ],
+        "paired": [
+          0.22168000042438507,
+          0.2216159999370575,
+          0.22092300653457642,
+          0.22103899717330933,
+          0.22073550522327423,
+          0.22089199721813202,
+          0.22064000368118286,
+          0.22111999988555908,
+          0.2204274982213974,
+          0.22097499668598175,
+          0.22092799842357635,
+          0.22082950174808502,
+          0.22099100053310394,
+          0.22071999311447144,
+          0.22099199891090393,
+          0.220783993601799,
+          0.22092799842357635,
+          0.22094400227069855,
+          0.22100800275802612,
+          0.22094400227069855,
+          0.22089600563049316,
+          0.22082750499248505,
+          0.22097299993038177,
+          0.22103750705718994
+        ]
+      },
+      "median_ms": {
+        "control": 0.21782924979925156,
+        "skip-zero-routes": 0.2198672518134117,
+        "paired": 0.22093600034713745
+      }
+    }
+  ],
+  "repeats": 24,
+  "replays": 8,
+  "rotating": true,
+  "scope": "Original Qwen BF16 expert rows and synthetic eight-position routes sized by the frozen trace",
+  "replay_output_checked": true,
+  "initial_run_medians_ms": [
+    {
+      "control": 0.21774199604988098,
+      "skip-zero-routes": 0.21983200311660767,
+      "paired": 0.2209407538175583
+    }
+  ]
+}

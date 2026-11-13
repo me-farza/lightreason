@@ -1,0 +1,209 @@
+--- a/freetoken/engine/engine.py
++++ b/freetoken/engine/engine.py
+@@ -636,6 +636,9 @@
+         self.lightreason_width_scratch = {}
+         self.lightreason_profile_runners = {}
+         self.lightreason_expert_timing = None
++        self.lightreason_packed_transport = None
++        self.lightreason_packed_runners = {}
++        self.lightreason_expert_fetch_trace = None
+         if os.getenv("LIGHTREASON_WIDTH_TRIAL_PATH"):
+             self._capture_lightreason_widths(aligned_max_seq_len)
+         if config.attention_backend.split(",")[0] == "triton":
+@@ -1204,6 +1207,9 @@
+         if (moe_cache_size is None and num_pages is None and num_mamba_slots is None
+                 and num_swa_pages is None):
+             return
++
++        if self.lightreason_packed_transport is not None:
++            raise CacheRebuildRejected("The packed BF16 trial requires fixed cache geometry")
+ 
+         # 0a. Geometry prevalidation BEFORE any destructive free. An invalid target (moe
+         #     slots on a model with no offload cache, moe below num_experts / above the
+@@ -1385,18 +1391,44 @@
+                 raise ValueError("Expert timing requires the CPU doorbell path")
+             self.lightreason_expert_timing = ExpertTiming(self.moe_offload_cache.num_layers, self.device)
+             profiles = [(4, True), (8, True)]
+-        for width, profiling in [(4, False), (6, False), *profiles]:
++        captures = [(w, p, "raw") for w, p in [(4, False), (6, False), *profiles]]
++        if os.getenv("LIGHTREASON_PACKED_BF16_TRANSFER") == "1":
++            from edge35b.freetoken_packed_transfer import ExpertFetchTrace, PackedBf16Transport
++            from edge35b.width_autotune import PACKED_TRANSFER_WIDTHS
++
++            if not profiles:
++                raise ValueError("Packed transfer trials require the expert timing graphs")
++            width = int(os.getenv("LIGHTREASON_PACKED_BF16_WIDTH", "4"))
++            if width not in PACKED_TRANSFER_WIDTHS:
++                raise ValueError("Packed transfer trials require four or eight positions")
++            hot_plan = os.getenv("LIGHTREASON_PACKED_BF16_HOT_PLAN")
++            if hot_plan and width != 8:
++                raise ValueError("The hot expert source requires the eight-position verifier")
++            self.lightreason_packed_transport = PackedBf16Transport(self.moe_offload_cache, hot_plan)
++            self.lightreason_expert_fetch_trace = ExpertFetchTrace(self.moe_offload_cache.num_layers, width, self.device)
++            size = sum(bank.nbytes for bank in self.lightreason_packed_transport.storage)
++            logger.info_rank0(f"Lightreason verified and pinned {size / 2**30:.2f} GiB of packed BF16 experts")
++            # The original untimed eight-position graph is already captured.
++            # Skip unused graphs to retain VRAM for the comparison.
++            hot_base = self.lightreason_packed_transport.hot_base
++            captures = [(w, p, "raw") for w, p, _ in captures if w == width and hot_base != "packed"]
++            modes = ("packed",) if not hot_plan else ("hot",) if hot_base == "raw" else ("packed", "hot")
++            captures += [(width, profile, mode) for mode in modes for profile in (False, True)]
++        for width, profiling, transport in captures:
+             dummy = copy(self.dummy_req)
+             dummy.input_ids = dummy.input_ids[:width]
+             dummy.device_len = width
+             attn = create_attention_backend("triton", config.model_config)
+             linear = LinearAttnBackend(self.device, pool)
+-            if profiling:
++            if profiling or transport != "raw":
+                 scratch = self.lightreason_width_scratch.get(width, main_scratch)
+             else:
+                 scratch = LinearVerifyScratch(pool, 1, width)
+             pool.verify_scratch = scratch
+             self.moe_offload_cache._lightreason_expert_timing = self.lightreason_expert_timing if profiling else None
++            self.moe_offload_cache._lightreason_packed_transfer = self.lightreason_packed_transport if transport != "raw" else None
++            self.moe_offload_cache._lightreason_hot_sources = transport == "hot"
++            self.moe_offload_cache._lightreason_fetch_trace = self.lightreason_expert_fetch_trace if profiling else None
+             try:
+                 runner = GraphRunner(
+                     stream=self.stream, device=self.device, forward=self.model.forward,
+@@ -1410,7 +1442,13 @@
+             finally:
+                 pool.verify_scratch = main_scratch
+                 self.moe_offload_cache._lightreason_expert_timing = None
+-            if profiling:
++                self.moe_offload_cache._lightreason_packed_transfer = None
++                self.moe_offload_cache._lightreason_fetch_trace = None
++                self.moe_offload_cache._lightreason_hot_sources = False
++            if transport != "raw":
++                self.lightreason_packed_runners[width, profiling, transport] = runner
++                logger.info_rank0(f"Lightreason captured {transport} BF16 {width}-position verification (timed={profiling})")
++            elif profiling:
+                 self.lightreason_profile_runners[width] = runner
+                 logger.info_rank0(f"Lightreason captured a timed {width}-position verifier")
+             else:
+@@ -1420,7 +1458,13 @@
+ 
+     def lightreason_graph(self, batch: Batch) -> GraphRunner:
+         if batch.phase == "verify":
+-            if getattr(batch, "lightreason_expert_profile", False):
++            profiling = getattr(batch, "lightreason_expert_profile", False)
++            if getattr(batch, "lightreason_packed_transfer", False):
++                key = (batch.rows_per_req, profiling, batch.lightreason_packed_transfer)
++                if key not in self.lightreason_packed_runners:
++                    raise ValueError("Packed BF16 transfer requires the graph for its exact verifier width")
++                return self.lightreason_packed_runners[key]
++            if profiling:
+                 return self.lightreason_profile_runners[batch.rows_per_req]
+             return self.lightreason_width_runners.get(batch.rows_per_req, self.graph_runner)
+         return self.graph_runner
+@@ -1452,6 +1496,8 @@
+         """The batch's logits from its captured graph, or eagerly when none fits."""
+         runner = self.lightreason_graph(batch)
+         use_graph = runner.can_use_cuda_graph(batch)
++        if not use_graph and getattr(batch, "lightreason_packed_transfer", False):
++            raise RuntimeError("Packed BF16 trial cannot fall back to eager verification")
+         with self.ctx.forward_batch(batch, **runner.ctx_override), self.model.forward_host_ctx(batch, use_graph):
+             logits = runner.replay(batch) if use_graph else self.model.forward()
+         if self.cpu_moe_executor is not None:
+@@ -1544,7 +1590,8 @@
+         )
+ 
+     def shutdown(self) -> None:
+-        for runner in (*self.lightreason_profile_runners.values(), *self.lightreason_width_runners.values()):
++        for runner in (*self.lightreason_packed_runners.values(), *self.lightreason_profile_runners.values(),
++                       *self.lightreason_width_runners.values()):
+             runner.destroy_cuda_graphs()
+         self.graph_runner.destroy_cuda_graphs()
+         torch.distributed.destroy_process_group()
+--- a/freetoken/layers/moe.py
++++ b/freetoken/layers/moe.py
+@@ -335,7 +335,10 @@
+             executor.decode_sync(pending) if not _HYBRID_OVERLAP else None
+         )
+ 
+-        cache.copy_missing()
++        packed = getattr(cache, "_lightreason_packed_transfer", None)
++        if packed is None or not packed.copy_missing(
++                cache, self.layer_id, topk_ids.numel(), hot=cache._lightreason_hot_sources):
++            cache.copy_missing()
+         if timing is not None:
+             timing.stamp(self.layer_id, 3)
+         gpu_routed = self._expert_gemm(
+@@ -356,6 +359,9 @@
+         timing.stamp(self.layer_id, 4)
+         result = executor.decode_sync(pending, add_to=gpu_routed, after_wait=lambda: timing.stamp(self.layer_id, 5))
+         timing.stamp(self.layer_id, 6)
++        fetch_trace = getattr(cache, "_lightreason_fetch_trace", None)
++        if fetch_trace is not None:
++            fetch_trace.capture(self.layer_id, cache)
+         return result
+ 
+     def _prefill_routed(
+--- a/freetoken/spec/runner.py
++++ b/freetoken/spec/runner.py
+@@ -119,7 +119,7 @@
+             self._lightreason_graph_start = torch.cuda.Event(enable_timing=True)
+             self._lightreason_graph_stop = torch.cuda.Event(enable_timing=True)
+ 
+-    def record_lightreason_pass(self, width, committed, finished) -> None:
++    def record_lightreason_pass(self, width, committed, finished, transport="raw", hot_limit=None) -> None:
+         mode = self.lightreason_diagnostics
+         if mode == "off":
+             return
+@@ -133,6 +133,13 @@
+             info["target_graph_ms"] = self._lightreason_graph_start.elapsed_time(self._lightreason_graph_stop)
+             info["gpu_layer_stamps"] = expert.host_stamps.tolist()
+             info["cpu_service_ns"] = self.engine.cpu_moe_executor._ext.expert_profile_ns()
++            trace = self.engine.lightreason_expert_fetch_trace
++            if trace is not None:
++                codec = self.engine.lightreason_packed_transport
++                payload = codec.hot_payload(hot_limit) if transport == "hot" else (
++                    codec.payload_by_expert if transport == "packed" else None
++                )
++                info.update(trace.report(info["gpu_layer_stamps"], payload, codec.raw_expert_bytes))
+         self._lightreason_passes.append(info)
+         if finished:
+             with self._lightreason_details_path.open("a") as stream:
+@@ -153,6 +160,8 @@
+         host.copy_(torch.cat([out, emitted.unsqueeze(1)], dim=1), non_blocking=True)
+         if mode == "profile":
+             engine.lightreason_expert_timing.copy_to_host()
++            if engine.lightreason_expert_fetch_trace is not None:
++                engine.lightreason_expert_fetch_trace.copy_to_host()
+         elif mode == "audit":
+             assert bs == 1 and width == self.k + 1 and proposal.draft_support_probs is None
+             self._lightreason_draft_host.copy_(drafts[0], non_blocking=True)
+--- a/freetoken/scheduler/scheduler.py
++++ b/freetoken/scheduler/scheduler.py
+@@ -473,7 +473,10 @@
+         committed = sum(counts)
+         if self.lightreason_width_trial is not None:
+             self.lightreason_width_trial.observe(batch.rows_per_req, committed, bool(finished))
+-            self.spec.record_lightreason_pass(batch.rows_per_req, committed, bool(finished))
++            self.spec.record_lightreason_pass(
++                batch.rows_per_req, committed, bool(finished), self.lightreason_width_trial.transport,
++                self.lightreason_width_trial.hot_expert_limit,
++            )
+         return committed
+ 
+     def _commit_tokens(self, req: Req, tokens: torch.Tensor) -> Tuple[DetokenizeMsg, int]:
+@@ -910,11 +913,16 @@
+             self.engine.cpu_moe_executor._ext.set_pair_threshold(trial.min_pairs)
+             if os.getenv("LIGHTREASON_PASS_DIAGNOSTICS") == "1":
+                 self.spec.begin_lightreason_diagnostics(trial.diagnostics, trial.diagnostic_log)
++            if trial.transport == "hot":
++                self.engine.lightreason_packed_transport.set_hot_limit(trial.hot_expert_limit)
+         if self.spec is not None and batch.is_decode:
+             width = trial.choose() if trial is not None else self.config.decode_rows_per_req
+             batch.phase, batch.rows_per_req = "verify", width
+-            if trial is not None and trial.diagnostics == "profile":
+-                batch.lightreason_expert_profile = True
++            if trial is not None:
++                if trial.diagnostics == "profile":
++                    batch.lightreason_expert_profile = True
++                if trial.transport != "raw":
++                    batch.lightreason_packed_transfer = trial.transport
+         runner = self.engine.lightreason_graph(batch)
+         runner.pad_batch(batch)
+         self._forward_iter += 1

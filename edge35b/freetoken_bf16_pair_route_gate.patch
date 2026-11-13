@@ -1,0 +1,68 @@
+--- a/freetoken/kernel/csrc/cpu_moe/cpu_moe_ext.cpp
++++ b/freetoken/kernel/csrc/cpu_moe/cpu_moe_ext.cpp
+@@ -59,6 +59,11 @@
+ constexpr int kWidenGate = 1;
+ constexpr int kWidenDown = 2;
+ constexpr int kWidenMask = kWidenGate | kWidenDown;
++constexpr int kChunkShift = 2;
++constexpr int kChunkMask = 7;
++constexpr int kRouteShift = 5;
++constexpr int kAllRoutes = 64;
++constexpr int kDefaultPairSettings = (kAllRoutes << kRouteShift) | (1 << kChunkShift);
+ 
+ // One MoE layer on the first num_tokens rows of the pinned IO.
+ // It is also the doorbell word the GPU writes, a constant baked into each captured graph; num_tokens >= 1 keeps it nonzero, since 0 means no doorbell.
+@@ -151,7 +156,7 @@
+   struct RoutePair { int first, second; };
+   std::vector<RoutePair> pair_tasks;
+   // Publish both settings together and read them once before dispatch.
+-  std::atomic<int> pair_settings{1 << 2};
++  std::atomic<int> pair_settings{kDefaultPairSettings};
+   int pair_widen = 0;
+   int pair_chunk = 1;
+   AlignedVector<float> pair_input;
+@@ -266,6 +271,14 @@
+            params.I == 512 && params.max_tokens <= 8;
+   }
+ 
++  void set_pair_tuning(int widen, int chunk, int max_routes) {
++    if (widen < 0 || widen > kWidenMask || (chunk != 1 && chunk != 2 && chunk != 4) ||
++        max_routes < 1 || max_routes > kAllRoutes)
++      throw std::invalid_argument("invalid BF16 pair tuning");
++    pair_settings.store((max_routes << kRouteShift) | (chunk << kChunkShift) | widen,
++                        std::memory_order_relaxed);
++  }
++
+   void prepare_pairs(const MoeFormat& fmt, int tokens) {
+     use_pairs = false;
+ #if CPU_MOE_X86
+@@ -288,9 +301,13 @@
+     if (count < minimum) return;
+     for (const int route : pending)
+       if (route >= 0) pair_tasks.push_back({route, -1});
+-    const int settings = pair_settings.load(std::memory_order_relaxed);
++    const int configured = pair_settings.load(std::memory_order_relaxed);
++    // The expanded inputs can put more pressure on caches as the CPU handles
++    // more routes. Keep the original paired kernel above the measured cutoff.
++    const int settings = static_cast<int>(active_routes.size()) <= (configured >> kRouteShift)
++                             ? configured : kDefaultPairSettings;
+     pair_widen = settings & kWidenMask;
+-    pair_chunk = settings >> 2;
++    pair_chunk = (settings >> kChunkShift) & kChunkMask;
+     if (pair_widen & kWidenGate) {
+       unsigned paired_tokens = 0;
+       for (const auto [r0, r1] : pair_tasks)
+@@ -700,11 +717,8 @@
+         if (minimum < 0 || minimum > 32) throw std::invalid_argument("invalid BF16 pair threshold");
+         e.pair_threshold.store(minimum, std::memory_order_relaxed);
+       })
+-      .def("set_pair_tuning", [](CpuMoeExecutor& e, int widen, int chunk) {
+-        if (widen < 0 || widen > 3 || (chunk != 1 && chunk != 2 && chunk != 4))
+-          throw std::invalid_argument("invalid BF16 pair tuning");
+-        e.pair_settings.store((chunk << 2) | widen, std::memory_order_relaxed);
+-      })
++      .def("set_pair_tuning", &CpuMoeExecutor::set_pair_tuning,
++           py::arg("widen"), py::arg("chunk"), py::arg("max_routes") = 64)
+       .def("flag_served", [](const CpuMoeExecutor& e) { return e.flag_served.load(); })
+       .def("start_flag_coordinator", &CpuMoeExecutor::start_flag_coordinator, py::arg("pin_core"))
+       .def("flag_signal", &CpuMoeExecutor::flag_signal, py::arg("stream"), py::arg("layer_id"),

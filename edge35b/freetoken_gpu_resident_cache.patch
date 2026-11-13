@@ -1,0 +1,51 @@
+--- a/freetoken/engine/engine.py
++++ b/freetoken/engine/engine.py
+@@ -1455,6 +1455,21 @@
+                         control_layers=shared_control_layers,
+                     )
+                     logger.info_rank0(f"Lightreason shared CUDA gather: {shared_tag}, {len(shared_layers)} layers")
++                    resident_plan = os.getenv("LIGHTREASON_GPU_RESIDENT_PLAN")
++                    if resident_plan:
++                        from edge35b.gpu_resident_experts import GpuResidentExperts
++
++                        if draft_budget or shared_control_layers != shared_layers or width != 8:
++                            raise ValueError("GPU residency needs paired eight-position graphs with the same BF16 banks")
++                        resident = GpuResidentExperts(
++                            self.moe_offload_cache, self.lightreason_packed_transport, resident_plan,
++                            int(os.environ["LIGHTREASON_GPU_RESIDENT_MIB"]), os.environ["LIGHTREASON_GPU_RESIDENT_REPORT"],
++                        )
++                        self.lightreason_packed_transport.gpu_resident = resident
++                        logger.info_rank0(
++                            f"Lightreason GPU replicas: {len(resident.keys['raw'])} raw or "
++                            f"{len(resident.keys['packed'])} packed in {resident.capacity / 2**20:.0f} MiB"
++                        )
+                 if self.lightreason_cpu_read_banks is not None:
+                     audit = self.lightreason_cpu_read_banks.audit
+                     size = sum(row["allocation_bytes"] for row in audit)
+@@ -1545,6 +1560,15 @@
+                 self.lightreason_width_scratch[width] = scratch
+                 logger.info_rank0(f"Lightreason captured {width} actual target verification positions")
+ 
++        transport = self.lightreason_packed_transport
++        resident = transport.gpu_resident if transport is not None else None
++        if resident is not None:
++            free = torch.cuda.mem_get_info(self.device)[0]
++            if free < 256 * 2**20:
++                raise MemoryError("Insufficient workspace after capturing the resident verifier graphs")
++            resident.report["free_gpu_bytes_after_capture"] = free
++            resident.save_report()
++
+     def lightreason_graph(self, batch: Batch) -> GraphRunner:
+         if batch.phase == "verify":
+             profiling = getattr(batch, "lightreason_expert_profile", False)
+--- a/freetoken/scheduler/scheduler.py
++++ b/freetoken/scheduler/scheduler.py
+@@ -931,6 +931,8 @@
+                 self.spec.begin_lightreason_diagnostics(trial.diagnostics, trial.diagnostic_log)
+             if trial.uses_hot_source:
+                 self.engine.lightreason_packed_transport.set_hot_limit(trial.hot_expert_limit)
++            if trial.gpu_resident_layout is not None:
++                self.engine.lightreason_packed_transport.gpu_resident.select(trial.gpu_resident_layout)
+         draft_prepared = False
+         if self.spec is not None and batch.is_decode:
+             if trial is None:

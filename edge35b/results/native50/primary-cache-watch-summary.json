@@ -1,0 +1,74 @@
+{
+  "staged-primary": {
+    "run_directory": "target100-primary.TnSKjF",
+    "outcome": "completed_external_command",
+    "reason": null,
+    "returncode": 0,
+    "stock_limit_w": 450,
+    "stale_stop_s": 0.75,
+    "elapsed_s": 1172.4618070219876,
+    "peak_gpu_c": 53,
+    "peak_cpu_c": 72.5,
+    "hardware_changes_applied": false
+  },
+  "compact-tail": {
+    "run_directory": "target100-primary.LiQLQ3",
+    "outcome": "external_command_failed",
+    "reason": null,
+    "returncode": 1,
+    "stock_limit_w": 450,
+    "stale_stop_s": 0.75,
+    "elapsed_s": 608.7832326290081,
+    "peak_gpu_c": 45,
+    "peak_cpu_c": 69.5,
+    "hardware_changes_applied": false
+  },
+  "fixed-2048": {
+    "run_directory": "target100-fixed-primary.oC5zUw",
+    "outcome": "aborted",
+    "reason": "SensorError: Temperature telemetry stale for>750ms",
+    "returncode": -15,
+    "stock_limit_w": 450,
+    "stale_stop_s": 0.75,
+    "elapsed_s": 852.6429254579998,
+    "peak_gpu_c": 52,
+    "peak_cpu_c": 62.5,
+    "hardware_changes_applied": false
+  },
+  "fixed-1024-chunked-replicas": {
+    "run_directory": "target100-fixed-primary.pXOI4K",
+    "outcome": "aborted",
+    "reason": "SensorError: Temperature telemetry stale for>750ms",
+    "returncode": -15,
+    "stock_limit_w": 450,
+    "stale_stop_s": 0.75,
+    "elapsed_s": 302.9301921990118,
+    "peak_gpu_c": 41,
+    "peak_cpu_c": 65.25,
+    "hardware_changes_applied": false
+  },
+  "fixed-1024-reused-upload": {
+    "run_directory": "target100-fixed-primary.YFR0hM",
+    "outcome": "aborted",
+    "reason": "SensorError: Temperature telemetry stale for>750ms",
+    "returncode": -15,
+    "stock_limit_w": 450,
+    "stale_stop_s": 0.75,
+    "elapsed_s": 272.70542154301074,
+    "peak_gpu_c": 46,
+    "peak_cpu_c": 66.0,
+    "hardware_changes_applied": false
+  },
+  "fixed-1024-chunked-shared-banks": {
+    "run_directory": "target100-fixed-primary.QJAEfW",
+    "outcome": "aborted",
+    "reason": "SensorError: Temperature telemetry stale for>750ms",
+    "returncode": -15,
+    "stock_limit_w": 450,
+    "stale_stop_s": 0.75,
+    "elapsed_s": 272.4089711709821,
+    "peak_gpu_c": 48,
+    "peak_cpu_c": 64.0,
+    "hardware_changes_applied": false
+  }
+}

@@ -6,6 +6,15 @@
 
 Use the [Studio quickstart](../README.md#run-on-a-gpu-machine) to reproduce an interactive comparison with just the public Qwen checkpoint. Run the same input once to prepare the required graphs, then repeat it with the same output limit. Record generation time, first-token latency, token IDs and stop reason separately from graph setup and browser rendering.
 
+For the published six-prompt, 30-pair target-only result, run the following from the repository root with the same model and environment. The harness warms each prompt and alternates the pair order. The recorded median prompt-plus-generation speedup was **2.19×**. [Raw timing pairs](data/qwen25-3b/target-only-pairs.json) · [Separate output validation](data/qwen25-3b/target-only-validation.json)
+
+```bash
+python benchmark_3b.py --mode timing --model-path model-3b --engine bucketed \
+  --prompts 6 --tokens 128 --repeats 5 --max-len 1024 --share-pool \
+  --norm-mode triton --pointwise compiled --fuse-cache --screen-head \
+  --combine-projections --combine-mode kv --out /tmp/lightreason-target-only.json
+```
+
 ## GPU coordination experiment
 
 The lab test used the same pinned BF16 target, an RTX 4090 at stock settings, native EOS, and greedy token selection. We froze the original Hugging Face runner and the prior optimized runner before profiling.

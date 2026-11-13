@@ -1,0 +1,16 @@
+--- a/freetoken/scheduler/scheduler.py
++++ b/freetoken/scheduler/scheduler.py
+@@ -906,7 +906,12 @@
+         trial = self.lightreason_width_trial
+         if trial is not None and batch.is_prefill and trial.begin(batch.reqs[0].uid):
+             self.engine.moe_offload_cache.reset()
+-            self.engine.cpu_moe_executor._ext.set_pair_threshold(trial.min_pairs)
++            executor = self.engine.cpu_moe_executor._ext
++            executor.set_pair_threshold(trial.min_pairs)
++            if hasattr(executor, "set_pair_tuning"):
++                executor.set_pair_tuning(*trial.cpu_pair_tuning)
++            elif trial.cpu_pair_tuning != (0, 1, 64):
++                raise RuntimeError("The CPU kernel trial requires the native tuning extension.")
+         if self.spec is not None and batch.is_decode:
+             width = trial.choose() if trial is not None else self.config.decode_rows_per_req
+             batch.phase, batch.rows_per_req = "verify", width

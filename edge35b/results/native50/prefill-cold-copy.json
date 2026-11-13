@@ -1,0 +1,99 @@
+{
+  "device": "NVIDIA GeForce RTX 4090",
+  "method": "Pinned host to device indexed copy via FreeToken CUDA graphs",
+  "row_bytes": [
+    4194304,
+    2097152
+  ],
+  "measured_calls_per_row": 48,
+  "rows": [
+    {
+      "rows": 6,
+      "blocks_per_bank": 8,
+      "ms": 1.486080010732015,
+      "gbps": 25.401550204154677,
+      "exact_bytes": true
+    },
+    {
+      "rows": 6,
+      "blocks_per_bank": 32,
+      "ms": 1.5160746574401855,
+      "gbps": 24.89899545167308,
+      "exact_bytes": true
+    },
+    {
+      "rows": 6,
+      "blocks_per_bank": 64,
+      "ms": 1.6278187433878581,
+      "gbps": 23.1897661538387,
+      "exact_bytes": true
+    },
+    {
+      "rows": 6,
+      "blocks_per_bank": 8,
+      "ms": 1.611178716023763,
+      "gbps": 23.429266799874515,
+      "exact_bytes": true
+    },
+    {
+      "rows": 13,
+      "blocks_per_bank": 8,
+      "ms": 3.129472096761068,
+      "gbps": 26.13505584045618,
+      "exact_bytes": true
+    },
+    {
+      "rows": 13,
+      "blocks_per_bank": 32,
+      "ms": 3.2588586807250977,
+      "gbps": 25.097414773997478,
+      "exact_bytes": true
+    },
+    {
+      "rows": 13,
+      "blocks_per_bank": 64,
+      "ms": 3.301525433858236,
+      "gbps": 24.773072217232517,
+      "exact_bytes": true
+    },
+    {
+      "rows": 13,
+      "blocks_per_bank": 8,
+      "ms": 3.1882880528767905,
+      "gbps": 25.652929297339334,
+      "exact_bytes": true
+    },
+    {
+      "rows": 150,
+      "blocks_per_bank": 8,
+      "ms": 35.916097005208336,
+      "gbps": 26.275639022334403,
+      "exact_bytes": true
+    },
+    {
+      "rows": 150,
+      "blocks_per_bank": 32,
+      "ms": 36.53873189290365,
+      "gbps": 25.827891421247813,
+      "exact_bytes": true
+    },
+    {
+      "rows": 150,
+      "blocks_per_bank": 64,
+      "ms": 36.5423583984375,
+      "gbps": 25.82532823169815,
+      "exact_bytes": true
+    },
+    {
+      "rows": 150,
+      "blocks_per_bank": 8,
+      "ms": 35.91407012939453,
+      "gbps": 26.277121935772918,
+      "exact_bytes": true
+    }
+  ],
+  "temperatures": {
+    "gpu_temperature_c": 38,
+    "cpu_temperature_max_c": 63.25
+  }
+}

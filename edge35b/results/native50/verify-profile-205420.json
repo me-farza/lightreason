@@ -1,0 +1,313 @@
+{
+  "setup": {
+    "load_s": 0.856980032287538,
+    "checkpoint_audit_s": 23.683559286408126,
+    "target_parameters": 34660610688,
+    "resident_weight_bytes": 4896711936,
+    "host_memory_after_load": {
+      "available_bytes": 99105529856,
+      "VmRSS_bytes": 70344097792,
+      "RssAnon_bytes": 624156672,
+      "RssFile_bytes": 69698338816,
+      "RssShmem_bytes": 21602304,
+      "VmSwap_bytes": 0
+    }
+  },
+  "target_revision": "345d467b117d1fd5eda9b879a5988de9ae5f47a7",
+  "cap": 48,
+  "modes": [
+    "flash4"
+  ],
+  "expert_cache_gib": 14,
+  "streaming": true,
+  "profiled_cycles": true,
+  "grouped_verifier": true,
+  "hybrid_verifier": true,
+  "rows": [
+    {
+      "case": "code",
+      "prompt": "Write a Python function merge_intervals(intervals) that merges overlapping closed intervals without mutating its input. Think through a counterexample before giving the function and its time complexity.",
+      "cap": 48,
+      "repeat": 0,
+      "runs": [
+        {
+          "token_ids": [
+            8160,
+            579,
+            264,
+            7047,
+            1817,
+            25,
+            271,
+            16,
+            13,
+            220,
+            2972,
+            15771,
+            2598,
+            279,
+            2570,
+            5952,
+            64700,
+            198,
+            256,
+            471,
+            2972,
+            4987,
+            64700,
+            1510,
+            18479,
+            87682,
+            1494,
+            40798,
+            44646,
+            198,
+            256,
+            471,
+            2972,
+            2425,
+            64700,
+            357,
+            1103,
+            314,
+            7629,
+            26126,
+            318,
+            22885,
+            72399,
+            14807,
+            430,
+            43716,
+            94889,
+            314
+          ],
+          "stop_reason": "limit",
+          "time_s": 5.850152153521776,
+          "first_token_s": 3.2576845288276672,
+          "decode_s": 2.592467624694109,
+          "decode_tokens": 47,
+          "decode_tokens_per_s": 18.129445302348042,
+          "proposed": 43,
+          "accepted": 32,
+          "verified": 58,
+          "accepted_per_block": [
+            0,
+            0,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            1,
+            1,
+            1
+          ],
+          "peak_cuda_allocated": 20885528576,
+          "prefill_experts": {
+            "layer_calls": 40,
+            "dense_layer_calls": 0,
+            "selected_layer_calls": 0,
+            "cached_layer_calls": 0,
+            "packed_layer_calls": 0,
+            "scheduled_layer_calls": 0,
+            "prefill_cache_bypasses": 0,
+            "prefill_packed_bypasses": 0,
+            "prefill_scheduled_bypasses": 0,
+            "scheduled_router_d2h_bytes": 0,
+            "packed_router_d2h_bytes": 0,
+            "packed_reuse_fences": 0,
+            "packed_h2d_copies": 0,
+            "routing_scalar_reads": 0,
+            "transferred_bytes": 24838668288,
+            "transferred_expert_rows": 3948,
+            "cache_hits": 0,
+            "cache_misses": 2360,
+            "cache_evictions": 0,
+            "peak_cached_bytes": 14847836160,
+            "cpu_expert_rows": 0,
+            "capacity_bytes": 15032385536,
+            "cached_bytes": 14847836160,
+            "cached_rows": 2360,
+            "non_blocking": true,
+            "packed_pinned_bytes": 0,
+            "packed_setup_s": 0.0
+          },
+          "total_experts": {
+            "layer_calls": 640,
+            "dense_layer_calls": 0,
+            "selected_layer_calls": 0,
+            "cached_layer_calls": 0,
+            "packed_layer_calls": 0,
+            "scheduled_layer_calls": 0,
+            "prefill_cache_bypasses": 0,
+            "prefill_packed_bypasses": 0,
+            "prefill_scheduled_bypasses": 0,
+            "scheduled_router_d2h_bytes": 0,
+            "packed_router_d2h_bytes": 0,
+            "packed_reuse_fences": 0,
+            "packed_h2d_copies": 0,
+            "routing_scalar_reads": 0,
+            "transferred_bytes": 34351349760,
+            "transferred_expert_rows": 5460,
+            "cache_hits": 8170,
+            "cache_misses": 3872,
+            "cache_evictions": 1483,
+            "peak_cached_bytes": 15030288384,
+            "cpu_expert_rows": 2678,
+            "capacity_bytes": 15032385536,
+            "cached_bytes": 15030288384,
+            "cached_rows": 2389,
+            "non_blocking": true,
+            "packed_pinned_bytes": 0,
+            "packed_setup_s": 0.0
+          },
+          "logits_sha256": null,
+          "cycle_samples": [
+            {
+              "committed": 1,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 153.26364245265722,
+              "draft_stream_span_ms": 6.363135814666748,
+              "verify_and_decide_stream_span_ms": 145.97158813476562,
+              "commit_and_observe_stream_span_ms": 0.864031970500946
+            },
+            {
+              "committed": 1,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 175.72271823883057,
+              "draft_stream_span_ms": 6.308703899383545,
+              "verify_and_decide_stream_span_ms": 168.51551818847656,
+              "commit_and_observe_stream_span_ms": 0.86627197265625
+            },
+            {
+              "committed": 4,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 162.25252766162157,
+              "draft_stream_span_ms": 6.285312175750732,
+              "verify_and_decide_stream_span_ms": 155.884033203125,
+              "commit_and_observe_stream_span_ms": 0.05177599936723709
+            },
+            {
+              "committed": 4,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 155.1623810082674,
+              "draft_stream_span_ms": 6.255616188049316,
+              "verify_and_decide_stream_span_ms": 148.82403564453125,
+              "commit_and_observe_stream_span_ms": 0.051231998950242996
+            },
+            {
+              "committed": 4,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 173.32565132528543,
+              "draft_stream_span_ms": 6.237184047698975,
+              "verify_and_decide_stream_span_ms": 167.00816345214844,
+              "commit_and_observe_stream_span_ms": 0.049247998744249344
+            },
+            {
+              "committed": 4,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 161.05216555297375,
+              "draft_stream_span_ms": 6.206463813781738,
+              "verify_and_decide_stream_span_ms": 154.7624053955078,
+              "commit_and_observe_stream_span_ms": 0.0530879981815815
+            },
+            {
+              "committed": 4,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 149.11396242678165,
+              "draft_stream_span_ms": 6.315008163452148,
+              "verify_and_decide_stream_span_ms": 142.71910095214844,
+              "commit_and_observe_stream_span_ms": 0.05004800111055374
+            },
+            {
+              "committed": 4,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 203.56122590601444,
+              "draft_stream_span_ms": 6.23308801651001,
+              "verify_and_decide_stream_span_ms": 197.24560546875,
+              "commit_and_observe_stream_span_ms": 0.05052800104022026
+            },
+            {
+              "committed": 4,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 215.50819836556911,
+              "draft_stream_span_ms": 6.258687973022461,
+              "verify_and_decide_stream_span_ms": 209.1623992919922,
+              "commit_and_observe_stream_span_ms": 0.05411199852824211
+            },
+            {
+              "committed": 4,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 176.74849834293127,
+              "draft_stream_span_ms": 6.228991985321045,
+              "verify_and_decide_stream_span_ms": 170.4368896484375,
+              "commit_and_observe_stream_span_ms": 0.05193600058555603
+            },
+            {
+              "committed": 4,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 180.64429331570864,
+              "draft_stream_span_ms": 6.2603840827941895,
+              "verify_and_decide_stream_span_ms": 174.30213928222656,
+              "commit_and_observe_stream_span_ms": 0.051263999193906784
+            },
+            {
+              "committed": 3,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 201.49168651551008,
+              "draft_stream_span_ms": 6.273791790008545,
+              "verify_and_decide_stream_span_ms": 194.37167358398438,
+              "commit_and_observe_stream_span_ms": 0.8130559921264648
+            },
+            {
+              "committed": 2,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 222.11444657295942,
+              "draft_stream_span_ms": 6.28220796585083,
+              "verify_and_decide_stream_span_ms": 215.01309204101562,
+              "commit_and_observe_stream_span_ms": 0.7856960296630859
+            },
+            {
+              "committed": 2,
+              "verified_positions": 4,
+              "wall_ms_with_instrumentation": 161.69518698006868,
+              "draft_stream_span_ms": 6.260735988616943,
+              "verify_and_decide_stream_span_ms": 154.60989379882812,
+              "commit_and_observe_stream_span_ms": 0.7943999767303467
+            },
+            {
+              "committed": 2,
+              "verified_positions": 2,
+              "wall_ms_with_instrumentation": 100.54200515151024,
+              "draft_stream_span_ms": 6.13478422164917,
+              "verify_and_decide_stream_span_ms": 94.3650894165039,
+              "commit_and_observe_stream_span_ms": 0.015296000055968761
+            }
+          ],
+          "stream_updates": 16,
+          "mode": "flash4",
+          "text": "Here's a thinking process:\n\n1.  **Understand the User Request:**\n   - **Function:** `merge_intervals(intervals)`\n   - **Input:** A list of closed intervals (presumably represented as tuples/lists of"
+        }
+      ]
+    }
+  ],
+  "warmup_s": {
+    "flash4": 2.639260089956224
+  },
+  "summary": {
+    "modes": {
+      "flash4": {
+        "time_s": 5.850152153521776,
+        "first_token_s": 3.2576845288276672,
+        "decode_tokens_per_s": 18.129445302348042
+      }
+    },
+    "comparisons": {}
+  },
+  "post_run_checkpoint_bytes_match": true
+}

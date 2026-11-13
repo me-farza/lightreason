@@ -1,0 +1,143 @@
+--- a/freetoken/moe/offload_cache.py
++++ b/freetoken/moe/offload_cache.py
+@@ -1166,6 +1166,9 @@
+         # Per-expert recency is not cache_size-shaped, so reset_cache leaves it alone; wipe
+         # it here so a new sequence starts with cold hybrid fetch priorities.
+         self.expert_recency.fill_(-1)
++        priority = getattr(self, "_lightreason_expert_priority", None)
++        if priority is not None:
++            priority.fill_(-1)
+ 
+     def reset_stats(self) -> None:
+         self.prefill_hit_rows = 0
+--- a/freetoken/moe/offload_kernels.py
++++ b/freetoken/moe/offload_kernels.py
+@@ -199,6 +199,8 @@
+     chunk = min(_HYBRID_EVICT_CHUNK, triton.next_power_of_2(num_slots))
+     # with 4 warps a 4096+ chunk spills on sm80-sm89
+     num_warps = 8 if chunk >= 4096 else 4
++    reuse_window = getattr(cache, "_lightreason_reuse_window", 0)
++    priority = cache._lightreason_expert_priority if reuse_window else cache.expert_recency
+     _ensure_experts_hybrid_kernel[(1,)](
+         expert_ids,
+         cache.slot_for_id,
+@@ -211,6 +213,7 @@
+         cache.num_indices,
+         cache.num_missing_full,
+         cache.expert_recency,
++        priority,
+         weights,
+         routes.cpu_ids,
+         routes.gpu_w,
+@@ -227,6 +230,7 @@
+         CHUNK=chunk,
+         SMALL=num_slots <= chunk,
+         BY_RECENCY=_HYBRID_FETCH_BY_RECENCY,
++        REUSE_WINDOW=reuse_window,
+         ROUND=_HYBRID_FETCH_ROUND,
+         CLAMP=clamp,
+         STATS=cache.collect_stats,
+@@ -333,6 +337,13 @@
+ 
+ 
+ 
++@triton.jit
++def _reuse_eviction_score(usage, slots, valid, id_of_slot_ptr, priority_ptr, step):
++    resident = tl.load(id_of_slot_ptr + slots, mask=valid, other=-1)
++    priority = tl.load(priority_ptr + resident, mask=resident >= 0, other=-1)
++    return tl.where(usage == step, 9223372036854775807, tl.maximum(usage, priority))
++
++
+ @triton.jit(do_not_specialize=["layer_id", "num_active", "max_fetch", "fetch_frac_q16", "fetch_cap", "cache_size", "id_of_slot_ptr", "usage_ptr"])
+ def _ensure_experts_hybrid_kernel(
+     expert_ids_ptr,
+@@ -346,6 +357,7 @@
+     num_indices_ptr,
+     num_missing_full_ptr,
+     expert_recency_ptr,
++    priority_ptr,
+     weights_ptr,
+     cpu_ids_ptr,
+     gpu_w_ptr,
+@@ -363,6 +375,7 @@
+     CHUNK: tl.constexpr,
+     SMALL: tl.constexpr,
+     BY_RECENCY: tl.constexpr,
++    REUSE_WINDOW: tl.constexpr,
+     ROUND: tl.constexpr,
+     CLAMP: tl.constexpr,
+     STATS: tl.constexpr,
+@@ -446,16 +459,21 @@
+         tl.debug_barrier()  # the scan below must see the hit stamps
+         if SMALL:
+             u_reg = tl.load(usage_ptr + off_k, mask=off_k < cache_size, other=9223372036854775807).to(tl.int64)
++            if REUSE_WINDOW:
++                u_reg = _reuse_eviction_score(u_reg, off_k, off_k < cache_size, id_of_slot_ptr, priority_ptr, step)
+         for i in tl.range(num_fetch):
+             if SMALL:
+                 victim = tl.argmin(u_reg, axis=0).to(tl.int32)
+-                u_reg = tl.where(off_k == victim, step, u_reg)
++                used = 9223372036854775807 if REUSE_WINDOW else step
++                u_reg = tl.where(off_k == victim, used, u_reg)
+             else:
+                 best_u = tl.full((), 9223372036854775807, tl.int64)
+                 best_s = tl.full((), 0, tl.int32)
+                 for c0 in tl.range(0, cache_size, CHUNK):
+                     offs = c0 + off_k
+                     uu = tl.load(usage_ptr + offs, mask=offs < cache_size, other=9223372036854775807).to(tl.int64)
++                    if REUSE_WINDOW:
++                        uu = _reuse_eviction_score(uu, offs, offs < cache_size, id_of_slot_ptr, priority_ptr, step)
+                     cmin = tl.min(uu, axis=0)
+                     carg = (tl.argmin(uu, axis=0) + c0).to(tl.int32)
+                     take = cmin < best_u
+@@ -504,6 +522,15 @@
+         tl.store(row + 2, tl.load(row + 2) + n_active)
+         tl.store(row + 3, tl.load(row + 3) + 1)
+ 
++    # Repeated use earns credit for a few passes. Current hits and empty
++    # slots remain protected by the existing slot rules.
++    if REUSE_WINDOW:
++        recency = tl.load(expert_recency_ptr + base + off_e, mask=e_mask, other=-1)
++        prior = tl.load(priority_ptr + base + off_e, mask=e_mask, other=-1)
++        repeated = (recency >= 0) & (step - recency <= REUSE_WINDOW)
++        credit = tl.minimum(REUSE_WINDOW, tl.maximum(0, prior - recency) + REUSE_WINDOW // 3)
++        tl.store(priority_ptr + base + off_e, step + tl.where(repeated, credit, 0), mask=is_active & e_mask)
++
+     # Bump every active expert's recency to this step (LRU on the expert): an overflow miss
+     # computed on the CPU now ranks high if it recurs, so it gets fetched next time.
+     if BY_RECENCY:
+--- a/freetoken/engine/engine.py
++++ b/freetoken/engine/engine.py
+@@ -1482,6 +1482,14 @@
+                 if hot_base != "raw":
+                     raise ValueError("Gather evolution requires an uncompressed BF16 hot source")
+                 captures += [(width, False, mode) for mode in GATHER_GEOMETRIES]
++        reuse_passes = int(os.getenv("LIGHTREASON_EXPERT_REUSE_WINDOW", "0"))
++        if reuse_passes:
++            if not shared_control_layers or not 1 <= reuse_passes <= 6:
++                raise ValueError("The expert reuse trial needs paired graphs and a window of one to six passes.")
++            self.moe_offload_cache._lightreason_expert_priority = torch.full_like(
++                self.moe_offload_cache.expert_recency, -1
++            )
++            logger.info_rank0(f"Lightreason expert retention: {reuse_passes} passes")
+         for width, profiling, transport in captures:
+             dummy = copy(self.dummy_req)
+             dummy.input_ids = dummy.input_ids[:width]
+@@ -1502,6 +1510,9 @@
+                 self.lightreason_packed_transport.capture_shared = transport in SHARED_CPU_TRANSPORTS
+                 self.lightreason_packed_transport.capture_shared_control = transport == SHARED_CPU_CONTROL_TRANSPORT
+             self.moe_offload_cache._lightreason_hot_sources = transport in ("hot", *NATIVE_TRANSPORTS) or geometry is not None
++            self.moe_offload_cache._lightreason_reuse_window = (
++                reuse_passes * self.moe_offload_cache.num_layers if transport == SHARED_CPU_TRANSPORT else 0
++            )
+             self.moe_offload_cache._lightreason_fetch_trace = self.lightreason_expert_fetch_trace if profiling else None
+             try:
+                 runner = GraphRunner(
+@@ -1519,6 +1530,7 @@
+                 self.moe_offload_cache._lightreason_packed_transfer = None
+                 self.moe_offload_cache._lightreason_fetch_trace = None
+                 self.moe_offload_cache._lightreason_hot_sources = False
++                self.moe_offload_cache._lightreason_reuse_window = 0
+                 if self.lightreason_packed_transport is not None:
+                     self.lightreason_packed_transport.gather_geometry = None
+                     self.lightreason_packed_transport.capture_native = False

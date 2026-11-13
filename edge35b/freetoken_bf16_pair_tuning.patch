@@ -1,0 +1,201 @@
+--- a/freetoken/kernel/csrc/cpu_moe/kernels/bf16.cpp
++++ b/freetoken/kernel/csrc/cpu_moe/kernels/bf16.cpp
+@@ -115,8 +115,14 @@
+   return _mm256_castsi256_ps(_mm256_slli_epi32(_mm256_cvtepu16_epi32(bits), 16));
+ }
+ 
++CPU_MOE_TARGET("avx2,fma") __attribute__((always_inline))
++inline __m256 load_pair_f32(const float* row) {
++  return _mm256_loadu_ps(row);
++}
++
++template<typename Input>
+ CPU_MOE_TARGET("avx2,fma")
+-void dot_pair_avx2(const bf16_t* w, const bf16_t* x0, const bf16_t* x1,
++void dot_pair_avx2(const bf16_t* w, const Input* x0, const Input* x1,
+                    int n, float& s0, float& s1) {
+   __m256 a0[4], a1[4];
+   for (int j = 0; j < 4; ++j) a0[j] = a1[j] = _mm256_setzero_ps();
+@@ -173,7 +179,8 @@
+     return dot_ == dot_avx2 && p.H == 2048 && p.I == 512 && p.act == ACT_SILU;
+   }
+ 
+-  void pair_gate(int layer, int e, int i0, int i1, const bf16_t* x0, const bf16_t* x1,
++  template<typename Input>
++  void pair_gate(int layer, int e, int i0, int i1, const Input* x0, const Input* x1,
+                  bf16_t* g0, bf16_t* g1) const {
+     const auto* w = static_cast<const bf16_t*>(tbl_at(gate_up_, layer)) + size_t(e) * 2 * p.I * p.H;
+     for (int i = i0; i < i1; ++i) {
+@@ -185,7 +192,8 @@
+     }
+   }
+ 
+-  void pair_down(int layer, int e, int h0, int h1, const bf16_t* g0, const bf16_t* g1,
++  template<typename Input>
++  void pair_down(int layer, int e, int h0, int h1, const Input* g0, const Input* g1,
+                  float* out0, float* out1) const {
+     const auto* w = static_cast<const bf16_t*>(tbl_at(down_, layer)) + size_t(e) * p.H * p.I;
+     for (int h = h0; h < h1; ++h)
+@@ -221,6 +229,21 @@
+                     const bf16_t* g0, const bf16_t* g1, float* out0, float* out1) {
+   static_cast<const Bf16Format&>(fmt).pair_down(layer, e, h0, h1, g0, g1, out0, out1);
+ }
++
++CPU_MOE_TARGET("avx2,fma")
++void bf16_pair_expand(const bf16_t* source, float* destination, int count) {
++  for (int i = 0; i < count; i += 8) _mm256_storeu_ps(destination + i, load_pair_f32(source + i));
++}
++
++void bf16_pair_gate_wide(const MoeFormat& fmt, int layer, int e, int i0, int i1,
++                         const float* x0, const float* x1, bf16_t* g0, bf16_t* g1) {
++  static_cast<const Bf16Format&>(fmt).pair_gate(layer, e, i0, i1, x0, x1, g0, g1);
++}
++
++void bf16_pair_down_wide(const MoeFormat& fmt, int layer, int e, int h0, int h1,
++                         const float* g0, const float* g1, float* out0, float* out1) {
++  static_cast<const Bf16Format&>(fmt).pair_down(layer, e, h0, h1, g0, g1, out0, out1);
++}
+ #endif
+ 
+ std::unique_ptr<MoeFormat> make_lightreason_bf16_format(const MoeParams& p, const FormatArgs& a) {
+--- a/freetoken/kernel/csrc/cpu_moe/cpu_moe_ext.cpp
++++ b/freetoken/kernel/csrc/cpu_moe/cpu_moe_ext.cpp
+@@ -41,6 +41,9 @@
+ #if CPU_MOE_X86
+ void bf16_pair_gate(const MoeFormat&, int, int, int, int, const bf16_t*, const bf16_t*, bf16_t*, bf16_t*);
+ void bf16_pair_down(const MoeFormat&, int, int, int, int, const bf16_t*, const bf16_t*, float*, float*);
++void bf16_pair_expand(const bf16_t*, float*, int);
++void bf16_pair_gate_wide(const MoeFormat&, int, int, int, int, const float*, const float*, bf16_t*, bf16_t*);
++void bf16_pair_down_wide(const MoeFormat&, int, int, int, int, const float*, const float*, float*, float*);
+ #endif
+ std::unique_ptr<MoeFormat> make_nvfp4_format(const MoeParams& p, const FormatArgs& a);
+ std::unique_ptr<MoeFormat> make_mxfp4_format(const MoeParams& p, const FormatArgs& a);
+@@ -53,6 +56,9 @@
+ namespace {
+ 
+ constexpr int kMaxTopK = 64;
++constexpr int kWidenGate = 1;
++constexpr int kWidenDown = 2;
++constexpr int kWidenMask = kWidenGate | kWidenDown;
+ 
+ // One MoE layer on the first num_tokens rows of the pinned IO.
+ // It is also the doorbell word the GPU writes, a constant baked into each captured graph; num_tokens >= 1 keeps it nonzero, since 0 means no doorbell.
+@@ -144,6 +150,12 @@
+   bool use_pairs = false;
+   struct RoutePair { int first, second; };
+   std::vector<RoutePair> pair_tasks;
++  // Publish both settings together and read them once before dispatch.
++  std::atomic<int> pair_settings{1 << 2};
++  int pair_widen = 0;
++  int pair_chunk = 1;
++  AlignedVector<float> pair_input;
++  AlignedVector<float> pair_intermediate;
+   std::atomic<int> done_count{0};
+   std::atomic<int> bar_count{0};
+   std::atomic<int> bar_sense{0};
+@@ -188,7 +200,11 @@
+     g_scratch.assign(static_cast<size_t>(params.max_tokens) * params.top_k * params.I, 0);
+     active_routes.reserve(static_cast<size_t>(params.max_tokens) * params.top_k);
+     active_tokens.reserve(params.max_tokens);
+-    if (pair_shape()) pair_tasks.reserve(64);
++    if (pair_shape()) {
++      pair_tasks.reserve(64);
++      pair_input.resize(size_t(params.max_tokens) * params.H);
++      pair_intermediate.resize(size_t(params.max_tokens) * params.top_k * params.I);
++    }
+     for (int t = 0; t < num_threads; ++t)
+       workers.emplace_back([this, t] { worker_loop(t); });
+   }
+@@ -272,6 +288,20 @@
+     if (count < minimum) return;
+     for (const int route : pending)
+       if (route >= 0) pair_tasks.push_back({route, -1});
++    const int settings = pair_settings.load(std::memory_order_relaxed);
++    pair_widen = settings & kWidenMask;
++    pair_chunk = settings >> 2;
++    if (pair_widen & kWidenGate) {
++      unsigned paired_tokens = 0;
++      for (const auto [r0, r1] : pair_tasks)
++        if (r1 >= 0) paired_tokens |= (1u << (r0 / 8)) | (1u << (r1 / 8));
++      for (int tok : active_tokens) {
++        if (paired_tokens & (1u << tok)) {
++          const size_t start = size_t(tok) * params.H;
++          bf16_pair_expand(io_x + start, pair_input.data() + start, params.H);
++        }
++      }
++    }
+     use_pairs = true;
+ #endif
+   }
+@@ -290,7 +320,19 @@
+     }
+     const bf16_t* x1 = io_x + size_t(r1 / 8) * params.H;
+     bf16_t* g1 = g_scratch.data() + size_t(r1) * params.I;
+-    bf16_pair_gate(fmt, task.layer, expert, offset, offset + kRowBlock, x0, x1, g0, g1);
++    if (pair_widen & kWidenGate) {
++      const float* a0 = pair_input.data() + size_t(r0 / 8) * params.H;
++      const float* a1 = pair_input.data() + size_t(r1 / 8) * params.H;
++      bf16_pair_gate_wide(fmt, task.layer, expert, offset, offset + kRowBlock, a0, a1, g0, g1);
++    } else {
++      bf16_pair_gate(fmt, task.layer, expert, offset, offset + kRowBlock, x0, x1, g0, g1);
++    }
++    // Widen after the original intermediate BF16 rounding. The existing
++    // phase barrier publishes each route's complete intermediate row.
++    if (pair_widen & kWidenDown) {
++      bf16_pair_expand(g0 + offset, pair_intermediate.data() + size_t(r0) * params.I + offset, kRowBlock);
++      bf16_pair_expand(g1 + offset, pair_intermediate.data() + size_t(r1) * params.I + offset, kRowBlock);
++    }
+   }
+ 
+   void run_pair_down(const MoeTask& task, int64_t item) {
+@@ -305,6 +347,10 @@
+       if (r1 < 0) {
+         const DownRoute route{expert, r0, g0};
+         fmt.down(task.layer, h0, h0 + kRowBlock, &route, 1, part[r0]);
++      } else if (pair_widen & kWidenDown) {
++        const float* a0 = pair_intermediate.data() + size_t(r0) * params.I;
++        const float* a1 = pair_intermediate.data() + size_t(r1) * params.I;
++        bf16_pair_down_wide(fmt, task.layer, expert, h0, h0 + kRowBlock, a0, a1, part[r0], part[r1]);
+       } else {
+         const bf16_t* g1 = g_scratch.data() + size_t(r1) * params.I;
+         bf16_pair_down(fmt, task.layer, expert, h0, h0 + kRowBlock, g0, g1, part[r0], part[r1]);
+@@ -378,17 +424,17 @@
+     int local_sense = 0;
+ #if CPU_MOE_X86
+     if (use_pairs) {
+-      for (;;) {
+-        const int64_t p = p1_next.fetch_add(1, std::memory_order_relaxed);
+-        if (p >= p1_total) break;
+-        run_pair_gate(t, p);
+-      }
++      auto run_chunks = [&](std::atomic<int64_t>& next, int64_t total, auto run) {
++        for (;;) {
++          const int64_t first = next.fetch_add(pair_chunk, std::memory_order_relaxed);
++          if (first >= total) break;
++          const int64_t end = std::min(first + pair_chunk, total);
++          for (int64_t p = first; p < end; ++p) run(p);
++        }
++      };
++      run_chunks(p1_next, p1_total, [&](int64_t p) { run_pair_gate(t, p); });
+       barrier(local_sense);
+-      for (;;) {
+-        const int64_t p = p2_next.fetch_add(1, std::memory_order_relaxed);
+-        if (p >= p2_total) break;
+-        run_pair_down(t, p);
+-      }
++      run_chunks(p2_next, p2_total, [&](int64_t p) { run_pair_down(t, p); });
+       return;
+     }
+ #endif
+@@ -654,6 +700,11 @@
+         if (minimum < 0 || minimum > 32) throw std::invalid_argument("invalid BF16 pair threshold");
+         e.pair_threshold.store(minimum, std::memory_order_relaxed);
+       })
++      .def("set_pair_tuning", [](CpuMoeExecutor& e, int widen, int chunk) {
++        if (widen < 0 || widen > 3 || (chunk != 1 && chunk != 2 && chunk != 4))
++          throw std::invalid_argument("invalid BF16 pair tuning");
++        e.pair_settings.store((chunk << 2) | widen, std::memory_order_relaxed);
++      })
+       .def("flag_served", [](const CpuMoeExecutor& e) { return e.flag_served.load(); })
+       .def("start_flag_coordinator", &CpuMoeExecutor::start_flag_coordinator, py::arg("pin_core"))
+       .def("flag_signal", &CpuMoeExecutor::flag_signal, py::arg("stream"), py::arg("layer_id"),

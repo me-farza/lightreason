@@ -1,0 +1,54 @@
+--- a/freetoken/layers/moe.py
++++ b/freetoken/layers/moe.py
+@@ -351,9 +351,27 @@
+         """Prefill movement: stream whole layers -- double-buffered behind the
+         previous layer's GEMMs when ``prefill_overlap`` is on, else a synchronous
+         ``materialize_layer``. In both, position == expert id, so the routing ids
+-        pass through unmapped."""
++        pass through unmapped. Short BF16 extensions can load just their routed rows."""
+         cache = self.offload_cache
+         assert cache is not None
++        routed_limit = int(os.environ.get("LIGHTREASON_ROUTED_PREFILL_MAX_TOKENS", "0"))
++        count = hidden_states.shape[0]
++        if (0 < count <= routed_limit and hidden_states.dtype == torch.bfloat16
++                and cache.decode_target == "hybrid" and len(cache.pool_sizes) == 1
++                and cache.pool_sizes[0] >= self.num_experts and not cache._unpinned_layers):
++            # The hybrid lookup uses bounded loops for a wide route set. With
++            # the whole layer admitted, it assigns every route to a GPU slot.
++            if self.layer_id == 0:
++                print(f"Lightreason routed prefill: {count} target positions", flush=True)
++            routes = cache.ensure_experts_hybrid(
++                self.layer_id, topk_ids.contiguous().clone(), topk_weights, all_gpu=True,
++            )
++            cache.copy_missing()
++            return self._expert_gemm(
++                cache, hidden_states, topk_weights, routes.gpu_slots,
++                views=cache.pool_bank_views(self.layer_id), n=None,
++                alphas=cache.alphas_for_slots(self.layer_id), is_prefill=True,
++            )
+         if cache.prefill_overlap:
+             views = self._wait_prefill_overlap(cache)
+             out = self._expert_gemm(
+--- a/freetoken/moe/offload_cache.py
++++ b/freetoken/moe/offload_cache.py
+@@ -1084,7 +1084,8 @@
+         ensure_experts(self, layer_id, expert_ids)
+ 
+     def ensure_experts_hybrid(
+-        self, layer_id: int, expert_ids: torch.Tensor, weights: torch.Tensor, clamp: bool = False
++        self, layer_id: int, expert_ids: torch.Tensor, weights: torch.Tensor, clamp: bool = False,
++        *, all_gpu: bool = False,
+     ) -> HybridRoutes:
+         """Capped-fetch LRU for the hybrid backend.
+ 
+@@ -1108,6 +1109,10 @@
+         if layer_id in self.locked_hybrid:
+             # a locked layer fetches through the staging, so at most its rows per step
+             (max_fetch, fraction), cap = self.locked_fetch.plan[layer_id], self.locked_fetch.max_fetch
++        if all_gpu:
++            if layer_id in self._unpinned_layers or self.pool_sizes[self.pool_of_layer[layer_id]] < self.num_experts:
++                raise ValueError("All-GPU routing requires pinned weights and room for the whole layer")
++            max_fetch, fraction, cap = self.num_experts, 0.0, self.num_experts
+         self._pending_fetch_cap = cap
+         return ensure_experts_hybrid(self, layer_id, expert_ids, weights, max_fetch, fraction, clamp, cap)
+ 

@@ -1,0 +1,125 @@
+{
+  "prefill-copy-cached": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "external_returncode": 0,
+    "hardware_changes_applied": false,
+    "sensor_stale_abort_s": 0.75,
+    "limits_c": [
+      70.0,
+      75.0
+    ],
+    "peaks_c": [
+      38,
+      63.25
+    ]
+  },
+  "prefill-cold-control": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "external_returncode": 0,
+    "hardware_changes_applied": false,
+    "sensor_stale_abort_s": 0.75,
+    "limits_c": [
+      70.0,
+      75.0
+    ],
+    "peaks_c": [
+      50,
+      69.25
+    ],
+    "decode_windows": 27,
+    "median_window_decode_hit_miss_fetch_cpu": [
+      67.5,
+      12.07,
+      6.39,
+      5.56
+    ]
+  },
+  "prefill-cold-selected": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "external_returncode": 0,
+    "hardware_changes_applied": false,
+    "sensor_stale_abort_s": 0.75,
+    "limits_c": [
+      70.0,
+      75.0
+    ],
+    "peaks_c": [
+      41,
+      71.25
+    ],
+    "prefill_staged_rows_cold_resident": [
+      [
+        568,
+        565
+      ],
+      [
+        5577,
+        0
+      ],
+      [
+        5326,
+        251
+      ],
+      [
+        3800,
+        1777
+      ],
+      [
+        4217,
+        1360
+      ],
+      [
+        3788,
+        1789
+      ]
+    ],
+    "decode_windows": 27,
+    "median_window_decode_hit_miss_fetch_cpu": [
+      67.5,
+      12.07,
+      6.39,
+      5.56
+    ]
+  },
+  "prefill-cold-cache16": {
+    "outcome": "aborted",
+    "reason": "SensorError: Temperature telemetry stale for>750ms",
+    "external_returncode": -15,
+    "hardware_changes_applied": false,
+    "sensor_stale_abort_s": 0.75,
+    "limits_c": [
+      70.0,
+      75.0
+    ],
+    "peaks_c": [
+      39,
+      67.5
+    ],
+    "startup_error": "Not enough memory for KV cache"
+  },
+  "prefill-cold-cache155": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "external_returncode": 0,
+    "hardware_changes_applied": false,
+    "sensor_stale_abort_s": 0.75,
+    "limits_c": [
+      70.0,
+      75.0
+    ],
+    "peaks_c": [
+      46,
+      69.25
+    ],
+    "decode_windows": 12,
+    "median_window_decode_hit_miss_fetch_cpu": [
+      65.75,
+      12.575,
+      6.654999999999999,
+      5.515000000000001
+    ]
+  }
+}

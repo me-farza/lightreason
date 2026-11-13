@@ -1,0 +1,194 @@
+{
+  "source": "One exact raw-profile episode per prompt",
+  "interpretation": "Stock routing unchanged. Static oracle knows the entire answer before loading. Dynamic overlays start empty, add only rows already fetched by the stock primary cache, and ignore copies/metadata overhead. The fetch oracle knows future demand and may bypass insertion. These are hit counts, not timing results, and do not bound a policy that can also retain rows from prefill.",
+  "rows": [
+    {
+      "case": "studio",
+      "fetches": 12848,
+      "passes": 55,
+      "budgets": [
+        {
+          "rows": 32,
+          "vram_mib": 192,
+          "dev_static_hits": 162,
+          "prompt_static_oracle_hits": 162,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 240
+        },
+        {
+          "rows": 64,
+          "vram_mib": 384,
+          "dev_static_hits": 322,
+          "prompt_static_oracle_hits": 322,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 464
+        },
+        {
+          "rows": 128,
+          "vram_mib": 768,
+          "dev_static_hits": 586,
+          "prompt_static_oracle_hits": 586,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 850
+        },
+        {
+          "rows": 192,
+          "vram_mib": 1152,
+          "dev_static_hits": null,
+          "prompt_static_oracle_hits": 842,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 1184
+        },
+        {
+          "rows": 256,
+          "vram_mib": 1536,
+          "dev_static_hits": null,
+          "prompt_static_oracle_hits": 1098,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 1454
+        }
+      ]
+    },
+    {
+      "case": "known-math",
+      "fetches": 16278,
+      "passes": 57,
+      "budgets": [
+        {
+          "rows": 32,
+          "vram_mib": 192,
+          "dev_static_hits": 67,
+          "prompt_static_oracle_hits": 208,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 321
+        },
+        {
+          "rows": 64,
+          "vram_mib": 384,
+          "dev_static_hits": 115,
+          "prompt_static_oracle_hits": 400,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 609
+        },
+        {
+          "rows": 128,
+          "vram_mib": 768,
+          "dev_static_hits": 291,
+          "prompt_static_oracle_hits": 771,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 1123
+        },
+        {
+          "rows": 192,
+          "vram_mib": 1152,
+          "dev_static_hits": null,
+          "prompt_static_oracle_hits": 1091,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 1516
+        },
+        {
+          "rows": 256,
+          "vram_mib": 1536,
+          "dev_static_hits": null,
+          "prompt_static_oracle_hits": 1411,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 1900
+        }
+      ]
+    },
+    {
+      "case": "coding",
+      "fetches": 34911,
+      "passes": 146,
+      "budgets": [
+        {
+          "rows": 32,
+          "vram_mib": 192,
+          "dev_static_hits": 163,
+          "prompt_static_oracle_hits": 402,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 805
+        },
+        {
+          "rows": 64,
+          "vram_mib": 384,
+          "dev_static_hits": 285,
+          "prompt_static_oracle_hits": 773,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 1520
+        },
+        {
+          "rows": 128,
+          "vram_mib": 768,
+          "dev_static_hits": 690,
+          "prompt_static_oracle_hits": 1477,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 2746
+        },
+        {
+          "rows": 192,
+          "vram_mib": 1152,
+          "dev_static_hits": null,
+          "prompt_static_oracle_hits": 2125,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 3814
+        },
+        {
+          "rows": 256,
+          "vram_mib": 1536,
+          "dev_static_hits": null,
+          "prompt_static_oracle_hits": 2765,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 4774
+        }
+      ]
+    },
+    {
+      "case": "chat",
+      "fetches": 43219,
+      "passes": 176,
+      "budgets": [
+        {
+          "rows": 32,
+          "vram_mib": 192,
+          "dev_static_hits": 167,
+          "prompt_static_oracle_hits": 507,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 989
+        },
+        {
+          "rows": 64,
+          "vram_mib": 384,
+          "dev_static_hits": 322,
+          "prompt_static_oracle_hits": 986,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 1890
+        },
+        {
+          "rows": 128,
+          "vram_mib": 768,
+          "dev_static_hits": 823,
+          "prompt_static_oracle_hits": 1882,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 3572
+        },
+        {
+          "rows": 192,
+          "vram_mib": 1152,
+          "dev_static_hits": null,
+          "prompt_static_oracle_hits": 2722,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 5021
+        },
+        {
+          "rows": 256,
+          "vram_mib": 1536,
+          "dev_static_hits": null,
+          "prompt_static_oracle_hits": 3554,
+          "second_lru_hits": 0,
+          "second_fetch_oracle_hits": 6350
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,267 @@
+{
+  "revision": "345d467b117d1fd5eda9b879a5988de9ae5f47a7",
+  "banks": [
+    {
+      "layer": 2,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 743678400,
+      "raw_fallback_bytes": 83886080,
+      "raw_rows": 20,
+      "bitwise_checked_rows": 236,
+      "packed_storage_bytes": 743680048
+    },
+    {
+      "layer": 2,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 371836848,
+      "raw_fallback_bytes": 41943040,
+      "raw_rows": 20,
+      "bitwise_checked_rows": 236,
+      "packed_storage_bytes": 371838432
+    },
+    {
+      "layer": 1,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 618087570,
+      "raw_fallback_bytes": 255852544,
+      "raw_rows": 61,
+      "bitwise_checked_rows": 195,
+      "packed_storage_bytes": 618088992
+    },
+    {
+      "layer": 1,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 309040848,
+      "raw_fallback_bytes": 127926272,
+      "raw_rows": 61,
+      "bitwise_checked_rows": 195,
+      "packed_storage_bytes": 309042192
+    },
+    {
+      "layer": 3,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 781023474,
+      "raw_fallback_bytes": 33554432,
+      "raw_rows": 8,
+      "bitwise_checked_rows": 248,
+      "packed_storage_bytes": 781025280
+    },
+    {
+      "layer": 3,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 390513294,
+      "raw_fallback_bytes": 16777216,
+      "raw_rows": 8,
+      "bitwise_checked_rows": 248,
+      "packed_storage_bytes": 390514992
+    },
+    {
+      "layer": 4,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 780770994,
+      "raw_fallback_bytes": 33554432,
+      "raw_rows": 8,
+      "bitwise_checked_rows": 248,
+      "packed_storage_bytes": 780772736
+    },
+    {
+      "layer": 4,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 390389568,
+      "raw_fallback_bytes": 16777216,
+      "raw_rows": 8,
+      "bitwise_checked_rows": 248,
+      "packed_storage_bytes": 390391424
+    },
+    {
+      "layer": 11,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 799266648,
+      "raw_fallback_bytes": 8388608,
+      "raw_rows": 2,
+      "bitwise_checked_rows": 254,
+      "packed_storage_bytes": 799268464
+    },
+    {
+      "layer": 11,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 399635850,
+      "raw_fallback_bytes": 4194304,
+      "raw_rows": 2,
+      "bitwise_checked_rows": 254,
+      "packed_storage_bytes": 399637632
+    },
+    {
+      "layer": 5,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 802552596,
+      "raw_fallback_bytes": 4194304,
+      "raw_rows": 1,
+      "bitwise_checked_rows": 255,
+      "packed_storage_bytes": 802554272
+    },
+    {
+      "layer": 5,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 401279058,
+      "raw_fallback_bytes": 2097152,
+      "raw_rows": 1,
+      "bitwise_checked_rows": 255,
+      "packed_storage_bytes": 401280864
+    },
+    {
+      "layer": 10,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 805586724,
+      "raw_fallback_bytes": 0,
+      "raw_rows": 0,
+      "bitwise_checked_rows": 256,
+      "packed_storage_bytes": 805588448
+    },
+    {
+      "layer": 10,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 402796806,
+      "raw_fallback_bytes": 0,
+      "raw_rows": 0,
+      "bitwise_checked_rows": 256,
+      "packed_storage_bytes": 402798608
+    },
+    {
+      "layer": 39,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 790042416,
+      "raw_fallback_bytes": 20971520,
+      "raw_rows": 5,
+      "bitwise_checked_rows": 251,
+      "packed_storage_bytes": 790044016
+    },
+    {
+      "layer": 39,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 395017044,
+      "raw_fallback_bytes": 10485760,
+      "raw_rows": 5,
+      "bitwise_checked_rows": 251,
+      "packed_storage_bytes": 395018800
+    },
+    {
+      "layer": 6,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 805601226,
+      "raw_fallback_bytes": 0,
+      "raw_rows": 0,
+      "bitwise_checked_rows": 256,
+      "packed_storage_bytes": 805603008
+    },
+    {
+      "layer": 6,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 402804870,
+      "raw_fallback_bytes": 0,
+      "raw_rows": 0,
+      "bitwise_checked_rows": 256,
+      "packed_storage_bytes": 402806816
+    },
+    {
+      "layer": 23,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 799292700,
+      "raw_fallback_bytes": 8388608,
+      "raw_rows": 2,
+      "bitwise_checked_rows": 254,
+      "packed_storage_bytes": 799294512
+    },
+    {
+      "layer": 23,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 399633990,
+      "raw_fallback_bytes": 4194304,
+      "raw_rows": 2,
+      "bitwise_checked_rows": 254,
+      "packed_storage_bytes": 399635744
+    },
+    {
+      "layer": 22,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 805610106,
+      "raw_fallback_bytes": 0,
+      "raw_rows": 0,
+      "bitwise_checked_rows": 256,
+      "packed_storage_bytes": 805611792
+    },
+    {
+      "layer": 22,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 402798222,
+      "raw_fallback_bytes": 0,
+      "raw_rows": 0,
+      "bitwise_checked_rows": 256,
+      "packed_storage_bytes": 402799984
+    },
+    {
+      "layer": 34,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 805651296,
+      "raw_fallback_bytes": 0,
+      "raw_rows": 0,
+      "bitwise_checked_rows": 256,
+      "packed_storage_bytes": 805653088
+    },
+    {
+      "layer": 34,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 402800316,
+      "raw_fallback_bytes": 0,
+      "raw_rows": 0,
+      "bitwise_checked_rows": 256,
+      "packed_storage_bytes": 402802080
+    },
+    {
+      "layer": 0,
+      "projection": "gate_up_proj",
+      "bf16_bytes": 1073741824,
+      "packed_bytes": 6416538,
+      "raw_fallback_bytes": 1065353216,
+      "raw_rows": 254,
+      "bitwise_checked_rows": 2,
+      "packed_storage_bytes": 6416560
+    },
+    {
+      "layer": 0,
+      "projection": "down_proj",
+      "bf16_bytes": 536870912,
+      "packed_bytes": 3208188,
+      "raw_fallback_bytes": 532676608,
+      "raw_rows": 254,
+      "bitwise_checked_rows": 2,
+      "packed_storage_bytes": 3208192
+    }
+  ],
+  "seconds": 70.69388830600019,
+  "peak_cpu_c": 58.25
+}

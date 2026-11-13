@@ -1,0 +1,622 @@
+{
+  "startup_retry": {
+    "outcome": "aborted",
+    "reason": "SensorError: Temperature telemetry stale for>750ms",
+    "hardware_changes_applied": false,
+    "external_returncode": -15,
+    "sensor_stale_abort_s": 0.75,
+    "power_limit_required_w": 450,
+    "inventory": {
+      "name": "NVIDIA GeForce RTX 4090",
+      "power_default_w": 450.0,
+      "maximum_pcie_generation": 4,
+      "maximum_pcie_width": 16
+    },
+    "limits": [
+      "Sampled thermal stops cannot prevent every between-sample overshoot.",
+      "Idle P8/low clocks or PCIe Gen1 alone are not evidence of an inference bottleneck.",
+      "Resident-weight decode need not be limited by PCIe; compare under-load telemetry and kernel profiles.",
+      "SIMT GEMV decode is not accelerated by a Tensor Core instruction-rate change.",
+      "This probe changes no manufacturer controls; unofficial firmware/register unlocks are outside this experiment.",
+      "Monitoring overhead and short stages mean these are hardware diagnostics, not a10x performance proof."
+    ],
+    "telemetry_by_phase": {
+      "idle": {
+        "samples": 9,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 45,
+            "median": 45,
+            "max": 45
+          },
+          "cpu_temperature_max_c": {
+            "min": 29.25,
+            "median": 29.75,
+            "max": 34.25
+          },
+          "power_draw_w": {
+            "min": 23.699,
+            "median": 23.882,
+            "max": 24.123
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      },
+      "external_command": {
+        "samples": 1061,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 44,
+            "median": 46,
+            "max": 48
+          },
+          "cpu_temperature_max_c": {
+            "min": 31.625,
+            "median": 44.5,
+            "max": 65.25
+          },
+          "power_draw_w": {
+            "min": 22.754,
+            "median": 24.691,
+            "max": 84.79
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      }
+    },
+    "samples": 1070,
+    "elapsed_s": 267.458095997019,
+    "remote_trial": "target100-dflash-prefix.E51FJi"
+  },
+  "joint": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "external_returncode": 0,
+    "sensor_stale_abort_s": 0.75,
+    "power_limit_required_w": 450,
+    "inventory": {
+      "name": "NVIDIA GeForce RTX 4090",
+      "power_default_w": 450.0,
+      "maximum_pcie_generation": 4,
+      "maximum_pcie_width": 16
+    },
+    "limits": [
+      "Sampled thermal stops cannot prevent every between-sample overshoot.",
+      "Idle P8/low clocks or PCIe Gen1 alone are not evidence of an inference bottleneck.",
+      "Resident-weight decode need not be limited by PCIe; compare under-load telemetry and kernel profiles.",
+      "SIMT GEMV decode is not accelerated by a Tensor Core instruction-rate change.",
+      "This probe changes no manufacturer controls; unofficial firmware/register unlocks are outside this experiment.",
+      "Monitoring overhead and short stages mean these are hardware diagnostics, not a10x performance proof."
+    ],
+    "telemetry_by_phase": {
+      "idle": {
+        "samples": 9,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 47,
+            "median": 47,
+            "max": 47
+          },
+          "cpu_temperature_max_c": {
+            "min": 29.375,
+            "median": 29.625,
+            "max": 35.5
+          },
+          "power_draw_w": {
+            "min": 27.001,
+            "median": 27.001,
+            "max": 27.123
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      },
+      "external_command": {
+        "samples": 5446,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 36,
+            "median": 40.0,
+            "max": 53
+          },
+          "cpu_temperature_max_c": {
+            "min": 33.25,
+            "median": 61.5,
+            "max": 72.25
+          },
+          "power_draw_w": {
+            "min": 22.816,
+            "median": 123.649,
+            "max": 158.341
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      },
+      "post_command_idle": {
+        "samples": 8,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 36,
+            "median": 36.0,
+            "max": 36
+          },
+          "cpu_temperature_max_c": {
+            "min": 62.75,
+            "median": 63.375,
+            "max": 64.0
+          },
+          "power_draw_w": {
+            "min": 59.68,
+            "median": 60.338,
+            "max": 60.416
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      }
+    },
+    "samples": 5463,
+    "elapsed_s": 1366.063443755993,
+    "remote_trial": "target100-dflash-prefix.qtqHMA"
+  },
+  "paired_gpu_layer": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "external_returncode": 0,
+    "sensor_stale_abort_s": 0.75,
+    "power_limit_required_w": 450,
+    "inventory": {
+      "name": "NVIDIA GeForce RTX 4090",
+      "power_default_w": 450.0,
+      "maximum_pcie_generation": 4,
+      "maximum_pcie_width": 16
+    },
+    "limits": [
+      "Sampled thermal stops cannot prevent every between-sample overshoot.",
+      "Idle P8/low clocks or PCIe Gen1 alone are not evidence of an inference bottleneck.",
+      "Resident-weight decode need not be limited by PCIe; compare under-load telemetry and kernel profiles.",
+      "SIMT GEMV decode is not accelerated by a Tensor Core instruction-rate change.",
+      "This probe changes no manufacturer controls; unofficial firmware/register unlocks are outside this experiment.",
+      "Monitoring overhead and short stages mean these are hardware diagnostics, not a10x performance proof."
+    ],
+    "telemetry_by_phase": {
+      "idle": {
+        "samples": 9,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 35,
+            "median": 35,
+            "max": 35
+          },
+          "cpu_temperature_max_c": {
+            "min": 53.125,
+            "median": 55.125,
+            "max": 56.5
+          },
+          "power_draw_w": {
+            "min": 58.338,
+            "median": 58.397,
+            "max": 58.728
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      },
+      "external_command": {
+        "samples": 43,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 33,
+            "median": 34,
+            "max": 39
+          },
+          "cpu_temperature_max_c": {
+            "min": 50.25,
+            "median": 53.75,
+            "max": 61.75
+          },
+          "power_draw_w": {
+            "min": 21.95,
+            "median": 33.675,
+            "max": 112.692
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      },
+      "post_command_idle": {
+        "samples": 8,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 34,
+            "median": 34.0,
+            "max": 34
+          },
+          "cpu_temperature_max_c": {
+            "min": 50.375,
+            "median": 51.4375,
+            "max": 53.75
+          },
+          "power_draw_w": {
+            "min": 59.623,
+            "median": 59.9165,
+            "max": 77.092
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      }
+    },
+    "samples": 60,
+    "elapsed_s": 14.783461668994278,
+    "remote_trial": "verifier-reuse-layer.SqE914"
+  },
+  "rotating_gpu_layers": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "external_returncode": 0,
+    "sensor_stale_abort_s": 0.75,
+    "power_limit_required_w": 450,
+    "limits": [
+      "Sampled thermal stops cannot prevent every between-sample overshoot.",
+      "Idle P8/low clocks or PCIe Gen1 alone are not evidence of an inference bottleneck.",
+      "Resident-weight decode need not be limited by PCIe; compare under-load telemetry and kernel profiles.",
+      "SIMT GEMV decode is not accelerated by a Tensor Core instruction-rate change.",
+      "This probe changes no manufacturer controls; unofficial firmware/register unlocks are outside this experiment.",
+      "Monitoring overhead and short stages mean these are hardware diagnostics, not a10x performance proof."
+    ],
+    "telemetry_by_phase": {
+      "idle": {
+        "samples": 9,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 41,
+            "median": 41,
+            "max": 41
+          },
+          "cpu_temperature_max_c": {
+            "min": 29.75,
+            "median": 30.25,
+            "max": 32.75
+          },
+          "power_draw_w": {
+            "min": 22.232,
+            "median": 22.477,
+            "max": 22.48
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      },
+      "external_command": {
+        "samples": 35,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 41,
+            "median": 42,
+            "max": 51
+          },
+          "cpu_temperature_max_c": {
+            "min": 36.875,
+            "median": 47.25,
+            "max": 58.25
+          },
+          "power_draw_w": {
+            "min": 22.228,
+            "median": 63.762,
+            "max": 263.912
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      },
+      "post_command_idle": {
+        "samples": 8,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 44,
+            "median": 44.0,
+            "max": 45
+          },
+          "cpu_temperature_max_c": {
+            "min": 48.375,
+            "median": 50.4375,
+            "max": 52.625
+          },
+          "power_draw_w": {
+            "min": 81.14,
+            "median": 81.198,
+            "max": 257.042
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      }
+    },
+    "samples": 52,
+    "elapsed_s": 12.781598800007487,
+    "remote_trial": "verifier-reuse-rotating.uUl2vT"
+  },
+  "paired_gpu_layer_retest": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "external_returncode": 0,
+    "sensor_stale_abort_s": 0.75,
+    "power_limit_required_w": 450,
+    "limits": [
+      "Sampled thermal stops cannot prevent every between-sample overshoot.",
+      "Idle P8/low clocks or PCIe Gen1 alone are not evidence of an inference bottleneck.",
+      "Resident-weight decode need not be limited by PCIe; compare under-load telemetry and kernel profiles.",
+      "SIMT GEMV decode is not accelerated by a Tensor Core instruction-rate change.",
+      "This probe changes no manufacturer controls; unofficial firmware/register unlocks are outside this experiment.",
+      "Monitoring overhead and short stages mean these are hardware diagnostics, not a10x performance proof."
+    ],
+    "telemetry_by_phase": {
+      "idle": {
+        "samples": 9,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 44,
+            "median": 44,
+            "max": 44
+          },
+          "cpu_temperature_max_c": {
+            "min": 29.625,
+            "median": 30.125,
+            "max": 34.0
+          },
+          "power_draw_w": {
+            "min": 23.894,
+            "median": 23.894,
+            "max": 23.955
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      },
+      "external_command": {
+        "samples": 17,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 44,
+            "median": 45,
+            "max": 51
+          },
+          "cpu_temperature_max_c": {
+            "min": 45.75,
+            "median": 49.0,
+            "max": 52.75
+          },
+          "power_draw_w": {
+            "min": 24.03,
+            "median": 63.61,
+            "max": 122.068
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      },
+      "post_command_idle": {
+        "samples": 8,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 46,
+            "median": 46.0,
+            "max": 46
+          },
+          "cpu_temperature_max_c": {
+            "min": 45.375,
+            "median": 47.125,
+            "max": 49.0
+          },
+          "power_draw_w": {
+            "min": 83.545,
+            "median": 83.57,
+            "max": 128.237
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      }
+    },
+    "samples": 34,
+    "elapsed_s": 8.277163902006578,
+    "remote_trial": "verifier-reuse-validated.zkyFVd"
+  },
+  "rotating_gpu_layers_retest": {
+    "outcome": "completed_external_command",
+    "reason": null,
+    "hardware_changes_applied": false,
+    "external_returncode": 0,
+    "sensor_stale_abort_s": 0.75,
+    "power_limit_required_w": 450,
+    "limits": [
+      "Sampled thermal stops cannot prevent every between-sample overshoot.",
+      "Idle P8/low clocks or PCIe Gen1 alone are not evidence of an inference bottleneck.",
+      "Resident-weight decode need not be limited by PCIe; compare under-load telemetry and kernel profiles.",
+      "SIMT GEMV decode is not accelerated by a Tensor Core instruction-rate change.",
+      "This probe changes no manufacturer controls; unofficial firmware/register unlocks are outside this experiment.",
+      "Monitoring overhead and short stages mean these are hardware diagnostics, not a10x performance proof."
+    ],
+    "telemetry_by_phase": {
+      "idle": {
+        "samples": 9,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 45,
+            "median": 45,
+            "max": 45
+          },
+          "cpu_temperature_max_c": {
+            "min": 41.875,
+            "median": 43.625,
+            "max": 45.375
+          },
+          "power_draw_w": {
+            "min": 49.066,
+            "median": 58.984,
+            "max": 58.984
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      },
+      "external_command": {
+        "samples": 21,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 45,
+            "median": 45,
+            "max": 53
+          },
+          "cpu_temperature_max_c": {
+            "min": 45.0,
+            "median": 49.875,
+            "max": 58.5
+          },
+          "power_draw_w": {
+            "min": 41.535,
+            "median": 68.46,
+            "max": 274.634
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      },
+      "post_command_idle": {
+        "samples": 9,
+        "ranges": {
+          "gpu_temperature_c": {
+            "min": 47,
+            "median": 47,
+            "max": 48
+          },
+          "cpu_temperature_max_c": {
+            "min": 48.5,
+            "median": 50.875,
+            "max": 53.375
+          },
+          "power_draw_w": {
+            "min": 84.622,
+            "median": 84.73,
+            "max": 274.634
+          },
+          "graphics_clock_mhz": null,
+          "memory_clock_mhz": null,
+          "gpu_utilization_percent": null,
+          "pcie_generation": null,
+          "pcie_width": null,
+          "cpu_frequency_mhz_median": null
+        },
+        "pstates": [],
+        "clock_event_masks": []
+      }
+    },
+    "samples": 39,
+    "elapsed_s": 9.526024966995465,
+    "remote_trial": "verifier-reuse-validated.zkyFVd"
+  }
+}

@@ -1,0 +1,112 @@
+--- a/freetoken/engine/engine.py
++++ b/freetoken/engine/engine.py
+@@ -1372,7 +1372,10 @@
+         return runner
+ 
+     def _capture_lightreason_widths(self, max_seq_len: int) -> None:
+-        from edge35b.width_autotune import GATHER_GEOMETRIES, NATIVE_PACKED_TRANSPORT
++        from edge35b.width_autotune import (
++            GATHER_GEOMETRIES, NATIVE_PACKED_TRANSPORT, NATIVE_TRANSPORTS,
++            SHARED_CPU_CONTROL_TRANSPORT, SHARED_CPU_TRANSPORT, SHARED_CPU_TRANSPORTS,
++        )
+         from freetoken.kvcache.linear_state_pool import LinearVerifyScratch
+ 
+         config, pool = self.config, self.linear_state_pool
+@@ -1411,10 +1414,16 @@
+                 from edge35b.native_bf16_gather import select_geometry
+ 
+                 native_geometry = select_geometry(native_tag)
++            shared_control_layers = [int(layer) for layer in
++                                     os.getenv("LIGHTREASON_SHARED_CPU_CONTROL_LAYERS", "").split(",") if layer]
+             self.lightreason_packed_transport = PackedBf16Transport(
+                 self.moe_offload_cache, hot_plan, native_geometry=native_geometry,
++                prepare_native_banks=not shared_control_layers,
+             )
+             cpu_read_policy = os.getenv("LIGHTREASON_CPU_READ_POLICY")
++            shared_tag = os.getenv("LIGHTREASON_SHARED_CPU_GATHER")
++            if shared_tag and not cpu_read_policy:
++                raise ValueError("The shared CUDA gather needs the packed CPU read plan")
+             if cpu_read_policy:
+                 from time import perf_counter
+ 
+@@ -1423,10 +1432,28 @@
+                 if native_geometry is None or width != 8:
+                     raise ValueError("CPU read trials require the eight-position native CUDA verifier")
+                 layers = [int(layer) for layer in os.getenv("LIGHTREASON_CPU_READ_LAYERS", "").split(",") if layer]
++                shared_layers = [int(layer) for layer in os.getenv("LIGHTREASON_SHARED_CPU_LAYERS", "").split(",")
++                                 if layer]
++                control_cpu_layers = [int(layer) for layer in
++                                      os.getenv("LIGHTREASON_CPU_READ_CONTROL_LAYERS", "").split(",") if layer]
++                if (bool(shared_layers) != bool(shared_tag)
++                        or bool(control_cpu_layers) != bool(shared_control_layers)
++                        or not set(control_cpu_layers) <= set(layers)
++                        or not set(control_cpu_layers) <= set(shared_control_layers)):
++                    raise ValueError("The shared CUDA geometry and consistent CPU and CUDA layer plans are required")
++                self.lightreason_cpu_read_control_layers = control_cpu_layers
+                 started = perf_counter()
+                 self.lightreason_cpu_read_banks = prepare_cpu_reads(
+                     self.moe_offload_cache, self.cpu_moe_executor._ext, cpu_read_policy, layers,
++                    shared_layers=shared_layers,
+                 )
++                if shared_tag:
++                    geometry = select_geometry(shared_tag, shared=True)
++                    self.lightreason_packed_transport.install_shared_sources(
++                        self.moe_offload_cache, self.lightreason_cpu_read_banks, shared_layers, geometry,
++                        control_layers=shared_control_layers,
++                    )
++                    logger.info_rank0(f"Lightreason shared CUDA gather: {shared_tag}, {len(shared_layers)} layers")
+                 if self.lightreason_cpu_read_banks is not None:
+                     audit = self.lightreason_cpu_read_banks.audit
+                     size = sum(row["allocation_bytes"] for row in audit)
+@@ -1447,6 +1474,9 @@
+             if native_geometry is not None:
+                 modes = (*modes, NATIVE_PACKED_TRANSPORT)
+                 logger.info_rank0(f"Lightreason native packed gather: {native_tag}, sm_89")
++            if shared_tag:
++                captures = []
++                modes = SHARED_CPU_TRANSPORTS if shared_control_layers else (NATIVE_PACKED_TRANSPORT, SHARED_CPU_TRANSPORT)
+             captures += [(width, profile, mode) for mode in modes for profile in (False, True)]
+             if os.getenv("LIGHTREASON_GATHER_EVOLUTION") == "1":
+                 if hot_base != "raw":
+@@ -1468,10 +1498,10 @@
+             geometry = GATHER_GEOMETRIES.get(transport)
+             if self.lightreason_packed_transport is not None:
+                 self.lightreason_packed_transport.gather_geometry = geometry
+-                self.lightreason_packed_transport.capture_native = transport == NATIVE_PACKED_TRANSPORT
+-            self.moe_offload_cache._lightreason_hot_sources = (
+-                transport in ("hot", NATIVE_PACKED_TRANSPORT) or geometry is not None
+-            )
++                self.lightreason_packed_transport.capture_native = transport in NATIVE_TRANSPORTS
++                self.lightreason_packed_transport.capture_shared = transport in SHARED_CPU_TRANSPORTS
++                self.lightreason_packed_transport.capture_shared_control = transport == SHARED_CPU_CONTROL_TRANSPORT
++            self.moe_offload_cache._lightreason_hot_sources = transport in ("hot", *NATIVE_TRANSPORTS) or geometry is not None
+             self.moe_offload_cache._lightreason_fetch_trace = self.lightreason_expert_fetch_trace if profiling else None
+             try:
+                 runner = GraphRunner(
+@@ -1492,6 +1522,8 @@
+                 if self.lightreason_packed_transport is not None:
+                     self.lightreason_packed_transport.gather_geometry = None
+                     self.lightreason_packed_transport.capture_native = False
++                    self.lightreason_packed_transport.capture_shared = False
++                    self.lightreason_packed_transport.capture_shared_control = False
+             if transport != "raw":
+                 self.lightreason_packed_runners[width, profiling, transport] = runner
+                 logger.info_rank0(f"Lightreason captured {transport} BF16 {width}-position verification (timed={profiling})")
+--- a/freetoken/scheduler/scheduler.py
++++ b/freetoken/scheduler/scheduler.py
+@@ -917,7 +917,14 @@
+             if cpu_read_policy:
+                 from edge35b.cpu_read_packing import CPU_READ_POLICIES
+ 
+-                self.engine.cpu_moe_executor._ext.set_cpu_read_policy(CPU_READ_POLICIES[trial.cpu_read_policy])
++                executor = self.engine.cpu_moe_executor._ext
++                control_layers = getattr(self.engine, "lightreason_cpu_read_control_layers", ())
++                if control_layers:
++                    from edge35b.width_autotune import SHARED_CPU_CONTROL_TRANSPORT
++
++                    layers = control_layers if trial.transport == SHARED_CPU_CONTROL_TRANSPORT else None
++                    self.engine.lightreason_cpu_read_banks.configure(executor, layers=layers)
++                executor.set_cpu_read_policy(CPU_READ_POLICIES[trial.cpu_read_policy])
+             if os.getenv("LIGHTREASON_PASS_DIAGNOSTICS") == "1":
+                 self.spec.begin_lightreason_diagnostics(trial.diagnostics, trial.diagnostic_log)
+             if trial.uses_hot_source:

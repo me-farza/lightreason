@@ -1,0 +1,53 @@
+--- a/freetoken/engine/engine.py
++++ b/freetoken/engine/engine.py
+@@ -1372,6 +1372,7 @@
+         return runner
+ 
+     def _capture_lightreason_widths(self, max_seq_len: int) -> None:
++        from edge35b.width_autotune import GATHER_GEOMETRIES
+         from freetoken.kvcache.linear_state_pool import LinearVerifyScratch
+ 
+         config, pool = self.config, self.linear_state_pool
+@@ -1414,6 +1415,10 @@
+             captures = [(w, p, "raw") for w, p, _ in captures if w == width and hot_base != "packed"]
+             modes = ("packed",) if not hot_plan else ("hot",) if hot_base == "raw" else ("packed", "hot")
+             captures += [(width, profile, mode) for mode in modes for profile in (False, True)]
++            if os.getenv("LIGHTREASON_GATHER_EVOLUTION") == "1":
++                if hot_base != "raw":
++                    raise ValueError("Gather evolution requires an uncompressed BF16 hot source")
++                captures += [(width, False, mode) for mode in GATHER_GEOMETRIES]
+         for width, profiling, transport in captures:
+             dummy = copy(self.dummy_req)
+             dummy.input_ids = dummy.input_ids[:width]
+@@ -1427,7 +1432,10 @@
+             pool.verify_scratch = scratch
+             self.moe_offload_cache._lightreason_expert_timing = self.lightreason_expert_timing if profiling else None
+             self.moe_offload_cache._lightreason_packed_transfer = self.lightreason_packed_transport if transport != "raw" else None
+-            self.moe_offload_cache._lightreason_hot_sources = transport == "hot"
++            geometry = GATHER_GEOMETRIES.get(transport)
++            if self.lightreason_packed_transport is not None:
++                self.lightreason_packed_transport.gather_geometry = geometry
++            self.moe_offload_cache._lightreason_hot_sources = transport == "hot" or geometry is not None
+             self.moe_offload_cache._lightreason_fetch_trace = self.lightreason_expert_fetch_trace if profiling else None
+             try:
+                 runner = GraphRunner(
+@@ -1445,6 +1453,8 @@
+                 self.moe_offload_cache._lightreason_packed_transfer = None
+                 self.moe_offload_cache._lightreason_fetch_trace = None
+                 self.moe_offload_cache._lightreason_hot_sources = False
++                if self.lightreason_packed_transport is not None:
++                    self.lightreason_packed_transport.gather_geometry = None
+             if transport != "raw":
+                 self.lightreason_packed_runners[width, profiling, transport] = runner
+                 logger.info_rank0(f"Lightreason captured {transport} BF16 {width}-position verification (timed={profiling})")
+--- a/freetoken/scheduler/scheduler.py
++++ b/freetoken/scheduler/scheduler.py
+@@ -913,7 +913,7 @@
+             self.engine.cpu_moe_executor._ext.set_pair_threshold(trial.min_pairs)
+             if os.getenv("LIGHTREASON_PASS_DIAGNOSTICS") == "1":
+                 self.spec.begin_lightreason_diagnostics(trial.diagnostics, trial.diagnostic_log)
+-            if trial.transport == "hot":
++            if trial.uses_hot_source:
+                 self.engine.lightreason_packed_transport.set_hot_limit(trial.hot_expert_limit)
+         if self.spec is not None and batch.is_decode:
+             width = trial.choose() if trial is not None else self.config.decode_rows_per_req

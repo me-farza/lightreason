@@ -1,0 +1,249 @@
+--- a/freetoken/kernel/csrc/cpu_moe/cpu_moe_ext.cpp
++++ b/freetoken/kernel/csrc/cpu_moe/cpu_moe_ext.cpp
+@@ -44,6 +44,8 @@
+ #if CPU_MOE_X86
+ void bf16_pair_gate(const MoeFormat&, int, int, int, int, const bf16_t*, const bf16_t*, bf16_t*, bf16_t*);
+ void bf16_pair_down(const MoeFormat&, int, int, int, int, const bf16_t*, const bf16_t*, float*, float*);
++void bf16_three_gate(const MoeFormat&, int, int, int, int, const bf16_t* const (&)[3], bf16_t* const (&)[3]);
++void bf16_three_down(const MoeFormat&, int, int, int, int, const bf16_t* const (&)[3], float* const (&)[3]);
+ #endif
+ std::unique_ptr<MoeFormat> make_nvfp4_format(const MoeParams& p, const FormatArgs& a);
+ std::unique_ptr<MoeFormat> make_mxfp4_format(const MoeParams& p, const FormatArgs& a);
+@@ -146,8 +148,11 @@
+   std::atomic<int> pair_threshold{0};
+   std::atomic<bool> record_expert_profile{false};
+   std::unique_ptr<std::atomic<int64_t>[]> profile_service_ns;
++  std::unique_ptr<std::atomic<int>[]> profile_read_groups;
+   bool use_pairs = false;
+-  struct RoutePair { int first, second; };
++  std::atomic<bool> share_three_routes{false};
++  std::atomic<int> weight_read_groups{0};
++  struct RoutePair { int first, second, third = -1; };
+   std::vector<RoutePair> pair_tasks;
+   std::atomic<int> done_count{0};
+   std::atomic<int> bar_count{0};
+@@ -180,7 +185,8 @@
+         io_y(reinterpret_cast<bf16_t*>(y_ptr)),
+         num_threads(num_threads_ > 0 ? num_threads_ : 1),
+         core_ids(std::move(core_ids_)),
+-        profile_service_ns(std::make_unique<std::atomic<int64_t>[]>(num_layers)) {
++        profile_service_ns(std::make_unique<std::atomic<int64_t>[]>(num_layers)),
++        profile_read_groups(std::make_unique<std::atomic<int>[]>(num_layers)) {
+     if (params.top_k > kMaxTopK) throw std::invalid_argument("CPU MoE supports top_k <= " + std::to_string(kMaxTopK));
+     for (auto& [name, banks, options] : formats)
+       fmts.push_back(make_format(name, params, FormatArgs{name, std::move(banks), std::move(options)}));
+@@ -261,6 +267,10 @@
+ #if CPU_MOE_X86
+     const int minimum = pair_threshold.load(std::memory_order_relaxed);
+     if (!minimum || tokens < 2 || !pair_shape() || !bf16_pairs_supported(fmt)) return;
++    if (share_three_routes.load(std::memory_order_relaxed) && prepare_three_route_groups(minimum)) {
++      use_pairs = true;
++      return;
++    }
+     std::array<int, 256> pending;
+     pending.fill(-1);
+     pair_tasks.clear();
+@@ -283,9 +293,42 @@
+   }
+ 
+ #if CPU_MOE_X86
++  bool prepare_three_route_groups(int minimum) {
++    std::array<std::array<int, 8>, 256> routes;
++    std::array<int, 256> counts{};
++    for (const int route : active_routes) {
++      const int expert = io_ids[route];
++      // Greedy top-k has at most one route to a given expert per token.
++      if (counts[expert] == 8) return false;
++      routes[expert][counts[expert]++] = route;
++    }
++    int pairs = 0;
++    bool saved_read = false;
++    for (const int count : counts) {
++      pairs += count / 2;
++      saved_read |= count == 3 || count >= 5;
++    }
++    if (!saved_read || pairs < minimum) return false;
++    pair_tasks.clear();
++    for (int expert = 0; expert < 256; ++expert) {
++      const auto& row = routes[expert];
++      int i = 0, left = counts[expert];
++      // Four routes need two reads either way. Use a triple when it
++      // reduces the number of reads, then handle pairs and singletons.
++      while (left >= 6 || (left >= 3 && left % 2 != 0)) {
++        pair_tasks.push_back({row[i], row[i + 1], row[i + 2]});
++        i += 3;
++        left -= 3;
++      }
++      for (; left >= 2; left -= 2, i += 2) pair_tasks.push_back({row[i], row[i + 1]});
++      if (left) pair_tasks.push_back({row[i], -1});
++    }
++    return true;
++  }
++
+   void run_pair_gate(const MoeTask& task, int64_t item) {
+     const int offset = (item % n_iblk) * kRowBlock;
+-    const auto [r0, r1] = pair_tasks[item / n_iblk];
++    const auto [r0, r1, r2] = pair_tasks[item / n_iblk];
+     const int expert = io_ids[r0];
+     const MoeFormat& fmt = format_of(task);
+     const bf16_t* x0 = io_x + size_t(r0 / 8) * params.H;
+@@ -296,7 +339,13 @@
+     }
+     const bf16_t* x1 = io_x + size_t(r1 / 8) * params.H;
+     bf16_t* g1 = g_scratch.data() + size_t(r1) * params.I;
+-    bf16_pair_gate(fmt, task.layer, expert, offset, offset + kRowBlock, x0, x1, g0, g1);
++    if (r2 >= 0) {
++      const bf16_t* x2 = io_x + size_t(r2 / 8) * params.H;
++      bf16_t* g2 = g_scratch.data() + size_t(r2) * params.I;
++      bf16_three_gate(fmt, task.layer, expert, offset, offset + kRowBlock, {x0, x1, x2}, {g0, g1, g2});
++    } else {
++      bf16_pair_gate(fmt, task.layer, expert, offset, offset + kRowBlock, x0, x1, g0, g1);
++    }
+   }
+ 
+   void run_pair_down(const MoeTask& task, int64_t item) {
+@@ -305,7 +354,7 @@
+     const MoeFormat& fmt = format_of(task);
+     // The worker owns this output stripe for every token, so it can reduce it
+     // immediately in router order after all shared expert dots are ready.
+-    for (const auto [r0, r1] : pair_tasks) {
++    for (const auto [r0, r1, r2] : pair_tasks) {
+       const int expert = io_ids[r0];
+       const bf16_t* g0 = g_scratch.data() + size_t(r0) * params.I;
+       if (r1 < 0) {
+@@ -313,7 +362,12 @@
+         fmt.down(task.layer, h0, h0 + kRowBlock, &route, 1, part[r0]);
+       } else {
+         const bf16_t* g1 = g_scratch.data() + size_t(r1) * params.I;
+-        bf16_pair_down(fmt, task.layer, expert, h0, h0 + kRowBlock, g0, g1, part[r0], part[r1]);
++        if (r2 >= 0) {
++          const bf16_t* g2 = g_scratch.data() + size_t(r2) * params.I;
++          bf16_three_down(fmt, task.layer, expert, h0, h0 + kRowBlock, {g0, g1, g2}, {part[r0], part[r1], part[r2]});
++        } else {
++          bf16_pair_down(fmt, task.layer, expert, h0, h0 + kRowBlock, g0, g1, part[r0], part[r1]);
++        }
+       }
+     }
+     for (const int tok : active_tokens) {
+@@ -477,7 +531,9 @@
+         std::memset(io_y + static_cast<size_t>(tok) * params.H, 0, sizeof(bf16_t) * params.H);
+     }
+     prepare_pairs(fmt, num_tokens);
+-    p1_total = static_cast<int64_t>(use_pairs ? pair_tasks.size() : active_routes.size()) * n_iblk;
++    const size_t groups = use_pairs ? pair_tasks.size() : active_routes.size();
++    weight_read_groups.store(static_cast<int>(groups), std::memory_order_relaxed);
++    p1_total = static_cast<int64_t>(groups) * n_iblk;
+     p2_total = use_pairs ? n_hblk : static_cast<int64_t>(active_tokens.size()) * n_hblk;
+     prt_total = fmt.preps_inter() ? static_cast<int64_t>(active_routes.size()) : 0;
+     p1_next.store(0, std::memory_order_relaxed);
+@@ -583,7 +639,8 @@
+         const MoeTask t = from_word(word);
+         const bool record = record_expert_profile.load(std::memory_order_relaxed);
+         const auto entered = record ? coord_clock::now() : coord_clock::time_point{};
+-        if (has_routes(t)) {
++        const bool routed = has_routes(t);
++        if (routed) {
+           submit(t);
+           sync(coord_pinned && spin_wait.load(std::memory_order_relaxed));
+         } else {
+@@ -594,6 +651,8 @@
+           const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+               coord_clock::now() - entered).count();
+           profile_service_ns[t.layer].store(ns, std::memory_order_release);
++          const int groups = routed ? weight_read_groups.load(std::memory_order_relaxed) : 0;
++          profile_read_groups[t.layer].store(groups, std::memory_order_release);
+         }
+         // Release: the workers' y stores are visible before the GPU sees done.
+         gpu_sync->cpu_done();
+@@ -677,6 +736,12 @@
+           result[layer] = e.profile_service_ns[layer].load(std::memory_order_acquire);
+         return result;
+       })
++      .def("expert_weight_read_groups", [](const CpuMoeExecutor& e) {
++        std::vector<int> result(e.num_layers);
++        for (int layer = 0; layer < e.num_layers; ++layer)
++          result[layer] = e.profile_read_groups[layer].load(std::memory_order_acquire);
++        return result;
++      })
+       .def("configure_cpu_read_tables", [](CpuMoeExecutor& e, uintptr_t gate, uintptr_t gate_bases,
+                                              uintptr_t down, uintptr_t down_bases) {
+         if (e.fmts.size() != 1) throw std::invalid_argument("Expected one CPU expert format");
+@@ -690,6 +755,11 @@
+         if (minimum < 0 || minimum > 32) throw std::invalid_argument("invalid BF16 pair threshold");
+         e.pair_threshold.store(minimum, std::memory_order_relaxed);
+       })
++      .def("set_three_route_reuse", [](CpuMoeExecutor& e, bool enabled) {
++        if (enabled && !e.pair_shape()) throw std::invalid_argument("Three-route reads require the Qwen BF16 decode shape");
++        e.share_three_routes.store(enabled, std::memory_order_relaxed);
++      })
++      .def("weight_read_groups", [](const CpuMoeExecutor& e) { return e.weight_read_groups.load(std::memory_order_relaxed); })
+       .def("flag_served", [](const CpuMoeExecutor& e) { return e.flag_served.load(); })
+       .def("start_flag_coordinator", &CpuMoeExecutor::start_flag_coordinator, py::arg("pin_core"))
+       .def("flag_signal", &CpuMoeExecutor::flag_signal, py::arg("stream"), py::arg("layer_id"),
+--- a/freetoken/kernel/csrc/cpu_moe/kernels/bf16.cpp
++++ b/freetoken/kernel/csrc/cpu_moe/kernels/bf16.cpp
+@@ -236,6 +236,30 @@
+       }
+     }
+   }
++  void three_gate(int layer, int e, int i0, int i1, const bf16_t* const (&x)[3],
++                  bf16_t* const (&g)[3]) const {
++    const auto* w = static_cast<const bf16_t*>(tbl_at(gate_up_, layer));
++    const auto reads = read_access(layer, true);
++    for (int i = i0; i < i1; ++i) {
++      const size_t row = size_t(e) * 2 * p.I + i;
++      float gate[3], up[3];
++      three_dots(reads, w, row, p.H, x, gate);
++      three_dots(reads, w, row + p.I, p.H, x, up);
++      for (int r = 0; r < 3; ++r) g[r][i] = f32_to_bf16(act_apply(p.act, gate[r]) * up[r]);
++    }
++  }
++
++  void three_down(int layer, int e, int h0, int h1, const bf16_t* const (&g)[3],
++                  float* const (&out)[3]) const {
++    const auto* w = static_cast<const bf16_t*>(tbl_at(down_, layer));
++    const auto reads = read_access(layer, false);
++    for (int h = h0; h < h1; ++h) {
++      float dots[3];
++      three_dots(reads, w, size_t(e) * p.H + h, p.I, g, dots);
++      for (int r = 0; r < 3; ++r) out[r][h - h0] = dots[r];
++    }
++  }
++
+   void configure_cpu_read_tables(std::array<uintptr_t, 4> tables) {
+     if (!pairs_supported()) throw std::invalid_argument("CPU read trials require Qwen AVX2 experts");
+     for (size_t i = 0; i < tables.size(); ++i) {
+@@ -284,6 +308,16 @@
+     dot_cpu_reads<Routes, 0, true>(raw, packed, bases, inputs, width, out);
+   }
+ 
++  static void three_dots(ReadAccess access, const bf16_t* weights, size_t row, int width,
++                         const bf16_t* const (&inputs)[3], float (&out)[3]) {
++    const bf16_t* raw = weights + row * width;
++    if (access.policy) {
++      read_dots(access, raw, row, width, inputs, out);
++    } else {
++      dot_cpu_reads<3, PF_AHEAD, false>(raw, nullptr, nullptr, inputs, width, out);
++    }
++  }
++
+   std::array<const uint64_t*, 4> read_tables_{};
+   std::atomic<int> read_policy_{0};
+ #endif
+@@ -314,6 +348,16 @@
+                     const bf16_t* g0, const bf16_t* g1, float* out0, float* out1) {
+   static_cast<const Bf16Format&>(fmt).pair_down(layer, e, h0, h1, g0, g1, out0, out1);
+ }
++
++void bf16_three_gate(const MoeFormat& fmt, int layer, int e, int i0, int i1,
++                     const bf16_t* const (&x)[3], bf16_t* const (&g)[3]) {
++  static_cast<const Bf16Format&>(fmt).three_gate(layer, e, i0, i1, x, g);
++}
++
++void bf16_three_down(const MoeFormat& fmt, int layer, int e, int h0, int h1,
++                     const bf16_t* const (&g)[3], float* const (&out)[3]) {
++  static_cast<const Bf16Format&>(fmt).three_down(layer, e, h0, h1, g, out);
++}
+ #endif
+ 
+ void configure_cpu_read_tables(MoeFormat& fmt, const std::array<uintptr_t, 4>& tables) {

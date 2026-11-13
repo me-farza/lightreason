@@ -1,12 +1,12 @@
 # Port Lightreason to another GPU
 
-The published Studio build is validated on Linux with an RTX 4090. The Qwen target-only path is the starting point for a port. The draft-assisted experiment adds a second model, an adapter, and a tree verifier. Add those after the target-only reference passes. [Studio quickstart](../README.md#run-on-a-gpu-machine) · [Experiment details](benchmarks.md)
+The published Studio build is validated on Linux with an RTX 4090. Start a 3B port with the target-only runner. Start a 35B port with Scheduled and a stock FreeToken BF16 run if supported, then measure which part of the hybrid path costs the most. The 3B draft-assisted path adds an auxiliary and a matching adapter. The 35B path uses the public DFlash2 draft. [3B Studio quickstart](../README.md#run-on-a-gpu-machine) · [35B reproduction](qwen35b.md)
 
 | Hardware | First milestone |
 | --- | --- |
-| RTX 4090 on Linux | Reproduce a Standard vs. Exact Studio run with the pinned environment. |
-| Other BF16-capable NVIDIA CUDA GPU | Run the original CLI with a PyTorch wheel supported by the device and driver. Match the target hash, get the reference output, then validate the CUDA graph and kernel path for that GPU. Studio has an RTX 4090 guard. |
-| AMD GPU | Establish a BF16 PyTorch ROCm reference on a supported GPU. Audit CUDA-specific kernels and graph assumptions and replace them where the ROCm backend requires it. [PyTorch HIP semantics](https://docs.pytorch.org/docs/stable/notes/hip.html) |
+| RTX 4090 on Linux | Reproduce 3B Standard vs. Exact in Studio. For 35B, check available system RAM and reproduce Scheduled before testing packed replicas. |
+| Other BF16-capable NVIDIA CUDA GPU | Run the original CLI with a compatible PyTorch wheel. Then validate graph replay and kernels on that architecture. The 3B Studio has a 4090 guard, and the 35B Ada gather explicitly targets SM 8.9. |
+| AMD GPU | Establish a BF16 PyTorch ROCm reference on a supported GPU. Use ROCm kernels and graph APIs where the CUDA-specific paths require replacement. [PyTorch HIP semantics](https://docs.pytorch.org/docs/stable/notes/hip.html) |
 | Apple Silicon or CPU | Establish a BF16 reference with the chosen backend first. Check BF16 operator support and memory before porting the runner. The released GPU graph and timing paths are CUDA-specific. [PyTorch MPS backend](https://docs.pytorch.org/docs/stable/notes/mps.html) |
 
 ## 1. Freeze the reference
@@ -33,6 +33,13 @@ For target-only work, compare graph replay, cache layout, projection packing and
 
 If the trace shows coordination cost, try device-side bookkeeping and preallocated suffix writes. If drafting dominates, any draft-only precision change needs a fresh acceptance and quality measurement. If target weight reads dominate, test the local GEMM shape and memory traffic in isolation. A lossless repack must recover every original BF16 value. A full request benchmark still decides whether to keep the change.
 
+### Translate the 35B gains to a different machine
+
+1. **Decide where the weights can live.** The full 35B text target needs 64.56 GiB of BF16 storage before runtime workspace, attention cache, or draft weights. When the target fits in device memory, benchmark a fully resident BF16 baseline first. When it spills, record host RAM, NUMA layout, link generation and width under load, and free VRAM after loading. Keep workspace and the target's state within budget before increasing the expert cache.
+2. **Measure CPU and link bandwidth together.** Run `ft bench bw --model "$MODEL" --formats bf16 --cpu-threads 8` with the intended CPU affinity. Record standalone and overlapped results. Choose the CPU/GPU expert split on development prompts. Both streams can compete for the same DRAM bandwidth.
+3. **Retune the actual workload.** Measure verified tokens per pass, expert misses, host bytes per committed token, and complete cycle time. Try the resident expert budget, CPU reuse and verifier widths independently. The supplied 34-layer and replica plans are calibrated on the 4090 setup. To generate a plan for a different workload, collect fresh fetch profiles and run [the replica ranking script](../edge35b/plan_gpu_resident_cache.py).
+4. **Keep the reference arithmetic and generation settings fixed where you claim exact output.** Re-run the same candidate inputs and verify which tokens were committed, the EOS or cap, and the accepted state after rejection. A different CPU/GPU split or kernel reduction can change the greedy decision while retaining every BF16 weight bit. Check the old archive and the new device's live control as separate comparisons. The [35B reproduction](qwen35b.md) describes how to bring up the measured configuration.
+
 ## 3. Test on held-out inputs and report the result
 
 Tune on development inputs and reserve a separate held-out set. Repeat warm baseline, prior optimized control if available, and candidate runs in alternating order. Run both streaming and non-streaming. Record latency, token count, tokens per second, first-token time, end-to-end time, and preparation. Keep stream transport and browser rendering distinct from model timings. Report per-case measurements and paired summaries.
@@ -46,8 +53,8 @@ Document the commands, input fixtures, environment, preparation cost, and measur
 From the repository on `main`, ask Codex to use `$lightreason-hardware`. For other coding agents, supply the [skill file](../.agents/skills/lightreason-hardware/SKILL.md). Codex discovers project skills in `.agents/skills`. [Codex skills documentation](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)
 
 ```text
-Use the Lightreason hardware skill to establish a Qwen2.5-3B BF16 baseline on my GPU.
-Profile one bottleneck and implement one measurable improvement. Keep the original
-target and greedy settings, compare held-out outputs and timings against the
-frozen baseline, and give me the commands to reproduce the result.
+Use the Lightreason hardware skill to establish a BF16 baseline for Qwen2.5-3B
+or Qwen3.6-35B on my machine. Profile the complete request, change one measured
+bottleneck, and compare repeated held-out token IDs, stops, and timings.
+Give me the commands and the hardware limits you actually measured.
 ```

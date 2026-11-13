@@ -1,0 +1,185 @@
+studio True 40.1546360431089 length False
+studio False 39.897965138033456 length False
+known-math False 37.456765359447694 stop False
+known-math True 38.30847248165755 stop False
+{
+  "outcome": "completed_external_command",
+  "reason": null,
+  "out": "/tmp/lightreason-edge35b/native50/dflash2-222802-watch.json",
+  "external_returncode": 0,
+  "wrapper_exit_code": 0,
+  "telemetry_by_phase": {
+    "idle": {
+      "samples": 9,
+      "ranges": {
+        "gpu_temperature_c": {
+          "min": 33,
+          "median": 33,
+          "max": 33
+        },
+        "cpu_temperature_max_c": {
+          "min": 58.125,
+          "median": 60.875,
+          "max": 63.75
+        },
+        "power_draw_w": {
+          "min": 50.442,
+          "median": 67.355,
+          "max": 67.355
+        },
+        "graphics_clock_mhz": {
+          "min": 435,
+          "median": 645,
+          "max": 645
+        },
+        "memory_clock_mhz": {
+          "min": 810,
+          "median": 5001,
+          "max": 5001
+        },
+        "gpu_utilization_percent": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "pcie_generation": {
+          "min": 2,
+          "median": 2,
+          "max": 4
+        },
+        "pcie_width": {
+          "min": 16,
+          "median": 16,
+          "max": 16
+        },
+        "cpu_frequency_mhz_median": {
+          "min": 1746.46,
+          "median": 1746.46,
+          "max": 1746.46
+        }
+      },
+      "pstates": [
+        "P3",
+        "P5"
+      ],
+      "clock_event_masks": [
+        "0x1"
+      ]
+    },
+    "external_command": {
+      "samples": 838,
+      "ranges": {
+        "gpu_temperature_c": {
+          "min": 30,
+          "median": 32.0,
+          "max": 41
+        },
+        "cpu_temperature_max_c": {
+          "min": 42.75,
+          "median": 52.25,
+          "max": 68.0
+        },
+        "power_draw_w": {
+          "min": 20.92,
+          "median": 21.465,
+          "max": 143.0
+        },
+        "graphics_clock_mhz": {
+          "min": 210,
+          "median": 210.0,
+          "max": 2790
+        },
+        "memory_clock_mhz": {
+          "min": 405,
+          "median": 405.0,
+          "max": 10251
+        },
+        "gpu_utilization_percent": {
+          "min": 0,
+          "median": 0.0,
+          "max": 100
+        },
+        "pcie_generation": {
+          "min": 1,
+          "median": 1.0,
+          "max": 4
+        },
+        "pcie_width": {
+          "min": 16,
+          "median": 16.0,
+          "max": 16
+        },
+        "cpu_frequency_mhz_median": {
+          "min": 1746.46,
+          "median": 1746.46,
+          "max": 3639.6285
+        }
+      },
+      "pstates": [
+        "P2",
+        "P5",
+        "P8"
+      ],
+      "clock_event_masks": [
+        "0x0",
+        "0x1"
+      ]
+    },
+    "post_command_idle": {
+      "samples": 8,
+      "ranges": {
+        "gpu_temperature_c": {
+          "min": 38,
+          "median": 38.0,
+          "max": 39
+        },
+        "cpu_temperature_max_c": {
+          "min": 59.875,
+          "median": 60.25,
+          "max": 60.5
+        },
+        "power_draw_w": {
+          "min": 75.683,
+          "median": 83.094,
+          "max": 108.247
+        },
+        "graphics_clock_mhz": {
+          "min": 2790,
+          "median": 2790.0,
+          "max": 2790
+        },
+        "memory_clock_mhz": {
+          "min": 10251,
+          "median": 10251.0,
+          "max": 10251
+        },
+        "gpu_utilization_percent": {
+          "min": 0,
+          "median": 0.0,
+          "max": 0
+        },
+        "pcie_generation": {
+          "min": 4,
+          "median": 4.0,
+          "max": 4
+        },
+        "pcie_width": {
+          "min": 16,
+          "median": 16.0,
+          "max": 16
+        },
+        "cpu_frequency_mhz_median": {
+          "min": 1746.46,
+          "median": 1746.46,
+          "max": 1746.46
+        }
+      },
+      "pstates": [
+        "P2"
+      ],
+      "clock_event_masks": [
+        "0x0"
+      ]
+    }
+  }
+}

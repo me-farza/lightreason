@@ -1,0 +1,58 @@
+[
+  {
+    "file": "audit-watch.json",
+    "outcome": "completed_external_command",
+    "hardware_changes_applied": false,
+    "gpu_c": 49,
+    "cpu_c": 61.25
+  },
+  {
+    "file": "baseline-watch.json",
+    "outcome": "completed_external_command",
+    "hardware_changes_applied": false,
+    "gpu_c": 52,
+    "cpu_c": 68.5
+  },
+  {
+    "file": "sustained-watch.json",
+    "outcome": "completed_external_command",
+    "hardware_changes_applied": false,
+    "gpu_c": 34,
+    "cpu_c": 64.25
+  },
+  {
+    "file": "reasoning-watch.json",
+    "outcome": "completed_external_command",
+    "hardware_changes_applied": false,
+    "gpu_c": 34,
+    "cpu_c": 65.5
+  },
+  {
+    "file": "scheduled-audit-watch.json",
+    "outcome": "completed_external_command",
+    "hardware_changes_applied": false,
+    "gpu_c": 33,
+    "cpu_c": 62.75
+  },
+  {
+    "file": "scheduled-full-watch.json",
+    "outcome": "completed_external_command",
+    "hardware_changes_applied": false,
+    "gpu_c": 33,
+    "cpu_c": 63.0
+  },
+  {
+    "file": "native-eos-watch.json",
+    "outcome": "completed_external_command",
+    "hardware_changes_applied": false,
+    "gpu_c": 35,
+    "cpu_c": 66.75
+  },
+  {
+    "file": "short-answer-watch.json",
+    "outcome": "completed_external_command",
+    "hardware_changes_applied": false,
+    "gpu_c": 34,
+    "cpu_c": 65.0
+  }
+]
