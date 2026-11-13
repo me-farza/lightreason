@@ -12,6 +12,9 @@ here=$(cd -- "$(dirname -- "$0")" && pwd)
 test -f "$source_dir/engine/engine.py"
 mkdir -- "$destination"
 cp -R -- "$source_dir" "$destination/freetoken"
+# An existing checkout can contain editable-build symlinks or in-place extensions.
+# The benchmark copies native modules from the selected Python environment.
+find "$destination/freetoken" \( -name '*.so' -o -name '*.so.*' -o -name '*.pyd' \) -delete
 
 patches=(
   routed_prefill selected_prefill benchmark_token_ids

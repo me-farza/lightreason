@@ -41,7 +41,7 @@ mkdir -p "$OUT_ROOT"
 
 ## Prepare the pinned FreeToken runtime
 
-The measured Python source revision is `8215a94f92449c1aff07627d95ef73377363315d`. The lab reused native extensions from the earlier `0.2.1+g14119b8cb` CPython 3.12 wheel after comparing its native source against the newer checkout. FreeToken's nightly wheel URL is rolling. The source-based setup below builds the native extensions locally from the pinned source. The full patch stack applied cleanly to the public source archive. Validate the source build on your machine before comparing its timings to the archived runs. [FreeToken installation and build notes](https://github.com/FlashML-org/FreeToken/blob/main/docs/install.md)
+The measured Python source revision is `8215a94f92449c1aff07627d95ef73377363315d`. The lab reused native extensions from the earlier `0.2.1+g14119b8cb` CPython 3.12 wheel after comparing its native source against the newer checkout. FreeToken's nightly wheel URL is rolling. The setup below builds those upstream extensions locally from the pinned source. The full patch stack applied cleanly to the public source archive. The patched C++ build and CUDA replay checks passed on the 4090 using the lab's native extensions. Validate a fresh source build before comparing its timings to the archive. [FreeToken installation and build notes](https://github.com/FlashML-org/FreeToken/blob/main/docs/install.md)
 
 Use Python 3.12, the CUDA 13.0 development toolkit (including `nvcc`), a matching NVIDIA driver, a C++20 compiler, Ninja, `patch`, and `uv`. The lab used PyTorch 2.14.1, Triton 3.8.0, Transformers 5.18.0 and `cuda-bindings==13.5.0` in this environment. The native build uses the Torch wheel's CUDA libraries and headers for the patched CPU extension. Keep this environment separate from 3B Studio.
 
@@ -71,6 +71,8 @@ for name in ("_cpu_moe", "_pinned_tensor", "_row_store"):
     shutil.copy2(source / (name + suffix), target / (name + suffix))
 PY
 bash edge35b/build_freetoken_bf16_pairs.sh "$FT_PYTHON" "$FT_SOURCE"
+PYTHONPATH="$PWD:$FT_SOURCE" "$FT_PYTHON" -m unittest \
+  edge35b.test_gpu_resident_experts edge35b.test_dflash_prefix_selection
 ```
 
 Run FreeToken's bandwidth calibration on the target machine. It compares expert compute and PCIe gathers while both use the same system memory. Match the benchmark's eight CPU workers and use the same cache directory during calibration and inference. Set `BENCH_CORES` and `MONITOR_CORES` to suitable disjoint CPU sets if your core numbering differs.
