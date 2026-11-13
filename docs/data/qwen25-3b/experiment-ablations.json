@@ -1,0 +1,183 @@
+{
+  "scope": "Selected development and component summaries from the lab experiment ledger. The six-prompt pilots use 128 output tokens and the original Hugging Face reference.",
+  "source": "optimization_20261106/component-summary.json and the named pilot reports",
+  "pilots": {
+    "folded-pard2-lora450-pilot6-v1.json": {
+      "trials": 6,
+      "complete_exact_sequences": 4,
+      "median_total_speedup": 4.04271414002133,
+      "minimum_total_speedup": 2.987428681852547,
+      "micro_committed_tokens_per_cycle": 4.329545454545454,
+      "excluded_graph_setup_s": 7.340006499551237
+    },
+    "compiled-folded-pard2-lora450-pilot6-v1.json": {
+      "trials": 6,
+      "complete_exact_sequences": 3,
+      "median_total_speedup": 4.518679225807986,
+      "minimum_total_speedup": 3.3366315310185484,
+      "micro_committed_tokens_per_cycle": 4.280898876404494,
+      "excluded_graph_setup_s": 55.73635141272098
+    },
+    "folded-pard2-lora-lr1e-3-best100-pilot6-v1.json": {
+      "trials": 6,
+      "complete_exact_sequences": 2,
+      "median_total_speedup": 3.942491245302974,
+      "minimum_total_speedup": 2.8798892615425022,
+      "micro_committed_tokens_per_cycle": 4.096774193548387,
+      "excluded_graph_setup_s": 7.297122082673013
+    },
+    "pard2-B31-M128-pilot6-v2.json": {
+      "trials": 6,
+      "complete_exact_sequences": 4,
+      "median_total_speedup": 3.437211031935918,
+      "minimum_total_speedup": 2.6969806100340596,
+      "micro_committed_tokens_per_cycle": 4.404624277456647,
+      "excluded_graph_setup_s": 11.638009519316256
+    }
+  },
+  "physical_widths": [
+    {
+      "physical_verifier_rows": 16,
+      "paired_trials": 6,
+      "complete_cycle_objective": {
+        "total_cycles": 237,
+        "committed_tokens": 1367,
+        "complete_decode_s": 2.768271015956998,
+        "mean_complete_cycle_ms": 11.680468421759485,
+        "mean_committed_tokens_per_cycle": 5.767932489451477,
+        "committed_tokens_per_complete_decode_second": 493.8100323704848,
+        "stream_consumer_final_drain_only_in_external_request_time": false
+      },
+      "exact_token_pairs_vs_current": 3,
+      "exact_token_pairs_vs_HF": 2
+    },
+    {
+      "physical_verifier_rows": 32,
+      "paired_trials": 6,
+      "complete_cycle_objective": {
+        "total_cycles": 210,
+        "committed_tokens": 1347,
+        "complete_decode_s": 2.4658241514116526,
+        "mean_complete_cycle_ms": 11.742019768626918,
+        "mean_committed_tokens_per_cycle": 6.414285714285715,
+        "committed_tokens_per_complete_decode_second": 546.2676643948271,
+        "stream_consumer_final_drain_only_in_external_request_time": false
+      },
+      "exact_token_pairs_vs_current": 4,
+      "exact_token_pairs_vs_HF": 2
+    },
+    {
+      "physical_verifier_rows": 48,
+      "paired_trials": 6,
+      "complete_cycle_objective": {
+        "total_cycles": 205,
+        "committed_tokens": 1382,
+        "complete_decode_s": 2.45015315618366,
+        "mean_complete_cycle_ms": 11.951966615530049,
+        "mean_committed_tokens_per_cycle": 6.741463414634146,
+        "committed_tokens_per_complete_decode_second": 564.0463725755792,
+        "stream_consumer_final_drain_only_in_external_request_time": false
+      },
+      "exact_token_pairs_vs_current": 3,
+      "exact_token_pairs_vs_HF": 1
+    },
+    {
+      "physical_verifier_rows": 64,
+      "paired_trials": 6,
+      "complete_cycle_objective": {
+        "total_cycles": 206,
+        "committed_tokens": 1427,
+        "complete_decode_s": 2.478676742874086,
+        "mean_complete_cycle_ms": 12.032411373175174,
+        "mean_committed_tokens_per_cycle": 6.927184466019417,
+        "committed_tokens_per_complete_decode_second": 575.7104084275866,
+        "stream_consumer_final_drain_only_in_external_request_time": false
+      },
+      "exact_token_pairs_vs_current": 4,
+      "exact_token_pairs_vs_HF": 2
+    },
+    {
+      "physical_verifier_rows": 96,
+      "paired_trials": 6,
+      "complete_cycle_objective": {
+        "total_cycles": 194,
+        "committed_tokens": 1376,
+        "complete_decode_s": 2.491793249733746,
+        "mean_complete_cycle_ms": 12.844295101720341,
+        "mean_committed_tokens_per_cycle": 7.092783505154639,
+        "committed_tokens_per_complete_decode_second": 552.2127488494597,
+        "stream_consumer_final_drain_only_in_external_request_time": false
+      },
+      "exact_token_pairs_vs_current": 4,
+      "exact_token_pairs_vs_HF": 2
+    },
+    {
+      "physical_verifier_rows": 128,
+      "paired_trials": 6,
+      "complete_cycle_objective": {
+        "total_cycles": 191,
+        "committed_tokens": 1371,
+        "complete_decode_s": 2.5975323989987373,
+        "mean_complete_cycle_ms": 13.599646068056217,
+        "mean_committed_tokens_per_cycle": 7.178010471204188,
+        "committed_tokens_per_complete_decode_second": 527.8086234953123,
+        "stream_consumer_final_drain_only_in_external_request_time": false
+      },
+      "exact_token_pairs_vs_current": 3,
+      "exact_token_pairs_vs_HF": 2
+    }
+  ],
+  "alternate_attention_160_case_quality": {
+    "artifact": "quality-owned-both4096-v1.json",
+    "collected": 160,
+    "native_EOS": 159,
+    "budget_exhausted": 1,
+    "semantic_current_and_HF_correct": 126,
+    "semantic_candidate_correct": 124,
+    "same_token_sequences_vs_current": 97,
+    "same_token_sequences_vs_HF": 96
+  },
+  "lossless_staging_gemm": {
+    "artifact": "lossless-staging-gemm-probe-v1.json",
+    "completed_trained_matrix_cases": 18,
+    "all_source_weight_BF16_bits_and_outputs_exact": true,
+    "scratch_decode_write_and_cuBLAS_read_timed": true,
+    "decision": "Reject unfused lossless staging: all measured full decode+GEMM pipelines slower,0.2330\u20130.5859x GPU original/candidate; no full W12 integration justified by this prototype"
+  },
+  "two_query_draft": {
+    "artifact": "two-query-dev-v1.json",
+    "trial_scope": "six fixed development inputs, one nonstreaming repeat, unchanged native EOS and caps, alternating three-engine execution",
+    "candidate_decode_vs_one_query_reference_rate_ratio": 0.8129809466696472,
+    "break_even_committed_tokens_per_cycle_at_measured_two_query_time": 8.368987956074315,
+    "decision": "Reject based on complete request latency and committed tokens per complete decode second. The tested quality grades showed zero paired changes."
+  },
+  "retained_auxiliary_training": {
+    "updates": 450,
+    "trainable_parameters": 14811136,
+    "lora_parameters": 6422528,
+    "projector_parameters": 8388608,
+    "elapsed_s": 248.70670702774078,
+    "feature_taps": [
+      2,
+      18,
+      33,
+      36
+    ],
+    "training_config": {
+      "max_length": 512,
+      "draft_tokens": 15,
+      "accumulation": 4,
+      "learning_rate": 1e-06,
+      "lora_learning_rate": 1e-05,
+      "lora_rank": 16,
+      "lora_alpha": 16.0,
+      "grad_clip": 0.5,
+      "label_source": "actual",
+      "seed": 20261106
+    },
+    "train_records": 256,
+    "development_records": 32,
+    "protected_evaluation_exclusion_verified": true,
+    "original_target_unchanged": true
+  }
+}

@@ -1,33 +1,38 @@
 {
   "hardware": "One NVIDIA RTX 4090 at stock settings, batch size one",
   "precision": "Original target BF16 weights",
+  "ratio": "Decode throughput divided by the original runner's decode throughput for the same prompt or suite and output budget.",
   "panels": [
     {
       "title": "Qwen2.5-3B-Instruct",
-      "subtitle": "3.09B dense parameters  •  Hugging Face reference",
+      "subtitle": "3.09B dense  /  Hugging Face reference",
       "limits": [0, 800],
       "ticks": [0, 200, 400, 600, 800],
+      "rate_decimals": 1,
       "points": [
-        {"label": "Original Hugging Face", "context": "Greedy · six prompts", "value": 62.953057346383815, "display": "63.0", "marker": "reference", "source": "docs/data/qwen25-3b/target-only.json"},
-        {"label": "Lightreason Exact", "context": "Same six prompts · 30/30 exact", "value": 139.5697243981678, "display": "139.6", "marker": "filled", "source": "docs/data/qwen25-3b/target-only.json"},
-        {"label": "Compiled draft + verifier", "context": "Six prompts · 15/30 exact", "value": 308.030757343151, "display": "308.0", "marker": "open", "source": "docs/data/qwen25-3b/compiled-draft.json"},
-        {"label": "Prior tree verifier", "context": "Weather · 492 tokens to EOS", "value": 495.11036166906086, "display": "495.1", "marker": "filled", "source": "docs/data/qwen25-3b/gpu-coordination.json"},
-        {"label": "GPU tree coordination", "context": "Weather vs 58.3 tok/s · 3/3 exact", "value": 525.1576100264527, "display": "525.2", "marker": "filled", "source": "docs/data/qwen25-3b/gpu-coordination.json"},
-        {"label": "Best exact code slice", "context": "128-token cap · 5/5 exact", "value": 724.3559553740905, "display": "724.4", "marker": "filled", "source": "docs/data/qwen25-3b/compiled-draft.json"}
+        {"label": "Original Hugging Face", "context": "Greedy · six prompts", "value": 62.953057346383815, "reference_value": 62.953057346383815, "marker": "reference", "source": "docs/data/qwen25-3b/target-only.json"},
+        {"label": "LR · CUDA graphs + compact KV", "context": "Same six prompts · 30/30 exact", "value": 139.5697243981678, "reference_value": 62.953057346383815, "marker": "filled", "source": "docs/data/qwen25-3b/target-only.json"},
+        {"label": "LR · Same target-only runner", "context": "Python, JS, SQL · 9/9 exact to EOS", "value": 138.5533605644425, "reference_value": 59.36421464023673, "marker": "filled", "source": "docs/data/qwen25-3b/coding-target-only.json"},
+        {"label": "LR · Compiled PARD2 draft", "context": "Six prompts · 15/30 exact", "value": 308.030757343151, "reference_value": 63.276362094965094, "marker": "open", "source": "docs/data/qwen25-3b/compiled-draft.json"},
+        {"label": "LR · PARD2 tree verifier", "context": "Weather · 492 tokens to EOS", "value": 495.11036166906086, "reference_value": 58.349145939689095, "marker": "filled", "source": "docs/data/qwen25-3b/gpu-coordination.json"},
+        {"label": "LR · GPU tree coordination", "context": "Same weather prompt · 3/3 exact", "value": 525.1576100264527, "reference_value": 58.349145939689095, "marker": "filled", "source": "docs/data/qwen25-3b/gpu-coordination.json"},
+        {"label": "LR · PARD2 on Fibonacci", "context": "Best coding slice · 128 tokens · 5/5 exact", "value": 724.3559553740905, "reference_value": 63.555702921017065, "marker": "filled", "source": "docs/data/qwen25-3b/compiled-draft.json"}
       ]
     },
     {
       "title": "Qwen3.6-35B-A3B",
-      "subtitle": "34.66B text parameters  •  Weather dashboard unless marked",
+      "subtitle": "34.66B text parameters  /  Scheduled reference",
       "limits": [0, 64],
       "ticks": [0, 15, 30, 45, 60],
+      "rate_decimals": 2,
       "points": [
-        {"label": "Original Scheduled", "context": "Weather · 256-token cap", "value": 7.785281958003389, "display": "7.79", "marker": "reference", "source": "edge35b/benchmark-suite.json"},
-        {"label": "Packed Replay", "context": "Archived weather comparison", "value": 17.17700801987825, "display": "17.18", "marker": "open", "source": "edge35b/benchmark-suite.json"},
-        {"label": "DFlash2 + Ada gather", "context": "Exact vs paired 8-position", "value": 39.2218, "display": "39.22", "marker": "filled", "source": "edge35b/results/native50/native-cuda-qwen.json"},
-        {"label": "34 packed host layers", "context": "Exact vs paired 8-position", "value": 45.8007, "display": "45.80", "marker": "filled", "source": "edge35b/results/native50/cpu-shared-coverage34.json.gz"},
-        {"label": "Packed GPU replicas", "context": "Exact vs paired 8-position", "value": 46.80282772379452, "display": "46.80", "marker": "filled", "source": "edge35b/results/native50/gpu-resident-qwen.json.gz"},
-        {"label": "Packed replicas · coding", "context": "768-token cap · same 8-position ref.", "value": 51.077222323393045, "display": "51.08", "marker": "filled", "source": "edge35b/results/native50/gpu-resident-qwen.json.gz"}
+        {"label": "LR · Original Scheduled", "context": "Weather · 256-token cap", "value": 7.785281958003389, "reference_value": 7.785281958003389, "marker": "reference", "source": "edge35b/benchmark-suite.json"},
+        {"label": "LR · Packed Replay", "context": "Weather · CPU/GPU split + graphs", "value": 17.17700801987825, "reference_value": 7.785281958003389, "marker": "open", "source": "edge35b/benchmark-suite.json"},
+        {"label": "Stock FreeToken", "context": "Python · 768-token cap", "value": 32.88316584687976, "reference_value": 7.926890963527339, "marker": "open", "source": "edge35b/results/native50/freetoken-bf16.json", "reference_source": "docs/data/qwen35b/scheduled-coding.json"},
+        {"label": "LR · Ada gather + DFlash2", "context": "Weather · built on FreeToken", "value": 39.2218, "reference_value": 7.785281958003389, "marker": "open", "source": "edge35b/results/native50/native-cuda-qwen.json"},
+        {"label": "LR · Shared host packing", "context": "Weather · 34 packed layers", "value": 45.8007, "reference_value": 7.785281958003389, "marker": "open", "source": "edge35b/results/native50/cpu-shared-coverage34.json.gz"},
+        {"label": "LR · Packed GPU replicas", "context": "Weather · 187 packed replicas", "value": 46.80282772379452, "reference_value": 7.785281958003389, "marker": "open", "source": "edge35b/results/native50/gpu-resident-qwen.json.gz"},
+        {"label": "LR · Packed replicas on Python", "context": "First duplicate · 768-token cap", "value": 51.077222323393045, "reference_value": 7.926890963527339, "marker": "open", "source": "edge35b/results/native50/gpu-resident-qwen.json.gz", "reference_source": "docs/data/qwen35b/scheduled-coding.json"}
       ]
     }
   ]

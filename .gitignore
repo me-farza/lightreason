@@ -9,12 +9,17 @@ __pycache__/
 demo_chat/runs/
 models/
 model-3b/
+bench-35b/
+/checkpoints/
 results3b/model-manifest.json
 *.pt
 *.pth
+*.ckpt
 *.safetensors
 *.bin
 *.gguf
+*.ggml
+*.onnx
 *.log
 *.jsonl
 *.part

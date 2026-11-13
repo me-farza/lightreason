@@ -1,0 +1,2095 @@
+{
+  "scope": "Two held-out Python cases from the archived GPU coordination suite",
+  "records": [
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "baseline",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    \n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    \n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the input list is empty. If it is, the function returns an empty list.\n- A set `seen` is used to keep track of the strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each word in the input list. If the word has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "e0f12d966c56f97609041d8f72e417c704a4272fd7e8fa7c10f2923f278ffbfa"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "current",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "strict",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "baseline",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    \n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    \n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the input list is empty. If it is, the function returns an empty list.\n- A set `seen` is used to keep track of the strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each word in the input list. If the word has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "e0f12d966c56f97609041d8f72e417c704a4272fd7e8fa7c10f2923f278ffbfa"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "current",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "strict",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "baseline",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    \n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    \n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the input list is empty. If it is, the function returns an empty list.\n- A set `seen` is used to keep track of the strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each word in the input list. If the word has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "e0f12d966c56f97609041d8f72e417c704a4272fd7e8fa7c10f2923f278ffbfa"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "current",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "strict",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "baseline",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    \n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    \n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the input list is empty. If it is, the function returns an empty list.\n- A set `seen` is used to keep track of the strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each word in the input list. If the word has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "e0f12d966c56f97609041d8f72e417c704a4272fd7e8fa7c10f2923f278ffbfa"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "current",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "strict",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "baseline",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    \n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    \n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the input list is empty. If it is, the function returns an empty list.\n- A set `seen` is used to keep track of the strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each word in the input list. If the word has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "e0f12d966c56f97609041d8f72e417c704a4272fd7e8fa7c10f2923f278ffbfa"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "current",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "strict",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "baseline",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    \n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    \n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the input list is empty. If it is, the function returns an empty list.\n- A set `seen` is used to keep track of the strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each word in the input list. If the word has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "e0f12d966c56f97609041d8f72e417c704a4272fd7e8fa7c10f2923f278ffbfa"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "current",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-dedupe",
+      "engine": "strict",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `stable_dedupe` that returns each distinct input string once, in its first-appearance order:\n\n```python\ndef stable_dedupe(words):\n    if not words:\n        return []\n    \n    seen = set()\n    result = []\n    for word in words:\n        if word not in seen:\n            seen.add(word)\n            result.append(word)\n    return result\n```\n\n### Explanation:\n- The function `stable_dedupe` takes a list of strings `words` as input.\n- It first checks if the list is empty. If it is, it returns an empty list immediately.\n- A set `seen` is used to keep track of strings that have already been encountered.\n- A list `result` is used to store the distinct strings in the order they first appear.\n- The function iterates over each string in the input list `words`. If a string has not been seen before (i.e., it is not in the `seen` set), it is added to the `seen` set and appended to the `result` list.\n- Finally, the function returns the `result` list, which contains each distinct string in the order of their first appearance.",
+      "token_ids_sha256": "70ed00cefd4c6eaf22c79e2e7d291d461ed5730201a626db6ba868c8e85771d0"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "baseline",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, the function returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is crucial for merging overlapping intervals.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list:\n   - If the `merged` list is empty or the last interval in `merged` does not overlap with the current interval (i.e., the end of the last interval is less than the start of the current interval), we simply append the current interval to `merged`.\n   - If there is an overlap, we merge the current interval with the last interval in `merged` by updating the end of the last interval to be the maximum of the two ends.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the function returns the `merged` list containing the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "2cd1ca8190f3f2a7b6bf48421f16a607834e84c2dcd942491de6585b479c6707"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "current",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "strict",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "baseline",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, the function returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is crucial for merging overlapping intervals.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list:\n   - If the `merged` list is empty or the last interval in `merged` does not overlap with the current interval (i.e., the end of the last interval is less than the start of the current interval), we simply append the current interval to `merged`.\n   - If there is an overlap, we merge the current interval with the last interval in `merged` by updating the end of the last interval to be the maximum of the two ends.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the function returns the `merged` list containing the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "2cd1ca8190f3f2a7b6bf48421f16a607834e84c2dcd942491de6585b479c6707"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "current",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "strict",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "baseline",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, the function returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is crucial for merging overlapping intervals.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list:\n   - If the `merged` list is empty or the last interval in `merged` does not overlap with the current interval (i.e., the end of the last interval is less than the start of the current interval), we simply append the current interval to `merged`.\n   - If there is an overlap, we merge the current interval with the last interval in `merged` by updating the end of the last interval to be the maximum of the two ends.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the function returns the `merged` list containing the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "2cd1ca8190f3f2a7b6bf48421f16a607834e84c2dcd942491de6585b479c6707"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "current",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "strict",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "baseline",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, the function returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is crucial for merging overlapping intervals.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list:\n   - If the `merged` list is empty or the last interval in `merged` does not overlap with the current interval (i.e., the end of the last interval is less than the start of the current interval), we simply append the current interval to `merged`.\n   - If there is an overlap, we merge the current interval with the last interval in `merged` by updating the end of the last interval to be the maximum of the two ends.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the function returns the `merged` list containing the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "2cd1ca8190f3f2a7b6bf48421f16a607834e84c2dcd942491de6585b479c6707"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "current",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "strict",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "baseline",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, the function returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is crucial for merging overlapping intervals.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list:\n   - If the `merged` list is empty or the last interval in `merged` does not overlap with the current interval (i.e., the end of the last interval is less than the start of the current interval), we simply append the current interval to `merged`.\n   - If there is an overlap, we merge the current interval with the last interval in `merged` by updating the end of the last interval to be the maximum of the two ends.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the function returns the `merged` list containing the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "2cd1ca8190f3f2a7b6bf48421f16a607834e84c2dcd942491de6585b479c6707"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "current",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "strict",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "baseline",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, the function returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is crucial for merging overlapping intervals.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list:\n   - If the `merged` list is empty or the last interval in `merged` does not overlap with the current interval (i.e., the end of the last interval is less than the start of the current interval), we simply append the current interval to `merged`.\n   - If there is an overlap, we merge the current interval with the last interval in `merged` by updating the end of the last interval to be the maximum of the two ends.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the function returns the `merged` list containing the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "2cd1ca8190f3f2a7b6bf48421f16a607834e84c2dcd942491de6585b479c6707"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "current",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    },
+    {
+      "case_id": "heldout-code-intervals",
+      "engine": "strict",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true,
+      "text": "Here is the Python function `merge_intervals` that merges overlapping and touching intervals:\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort intervals based on the start of each interval\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = []\n    for current_start, current_end in intervals:\n        # If the list of merged intervals is empty or if the current\n        # interval does not overlap with the previous, simply append it.\n        if not merged or merged[-1][1] < current_start:\n            merged.append([current_start, current_end])\n        else:\n            # Otherwise, there is overlap, so we merge the current and previous intervals.\n            merged[-1][1] = max(merged[-1][1], current_end)\n    \n    return merged\n```\n\n### Explanation:\n1. **Check for Empty Input**: The function first checks if the input list `intervals` is empty. If it is, it returns an empty list immediately.\n\n2. **Sort Intervals**: The function sorts the intervals based on their start times. This is necessary to ensure that when we iterate through the intervals, we can easily check for overlaps.\n\n3. **Initialize Merged List**: We initialize an empty list `merged` to store the merged intervals.\n\n4. **Iterate Through Intervals**: We iterate through each interval in the sorted list. For each interval, we check if it overlaps with the last interval in the `merged` list:\n   - If there is no previous interval or the end of the previous interval is less than the start of the current interval, we append the current interval to the `merged` list.\n   - If there is an overlap, we update the end of the last interval in the `merged` list to be the maximum of the current interval's end and the previous interval's end.\n\n5. **Return Merged Intervals**: After iterating through all intervals, the `merged` list contains the merged intervals.\n\nThis function ensures that all overlapping and touching intervals are merged into a single interval, and the intervals are returned in a sorted order.",
+      "token_ids_sha256": "c992a81ab1a363460b557f1a7b4fcfd42a675eba49d3bdf36597df257fdf6935"
+    }
+  ],
+  "grades": [
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-dedupe",
+      "split": "heldout",
+      "semantic_pass": true,
+      "strict_format_pass": true,
+      "details": {
+        "function": "stable_dedupe",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          }
+        ],
+        "tests": 7,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 0,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 0,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 1,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 1,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 2,
+      "streaming": true,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "baseline",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "current",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    },
+    {
+      "id": "heldout-code-intervals",
+      "split": "heldout",
+      "semantic_pass": false,
+      "strict_format_pass": true,
+      "details": {
+        "function": "merge_intervals",
+        "checks": [
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": true
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          },
+          {
+            "behavior_pass": true,
+            "input_unchanged": false
+          }
+        ],
+        "tests": 8,
+        "generated_module_examples_executed": false
+      },
+      "engine": "strict",
+      "repeat": 2,
+      "streaming": false,
+      "stop_reason": "eos",
+      "finished_eos": true
+    }
+  ]
+}

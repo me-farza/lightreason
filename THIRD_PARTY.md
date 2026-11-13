@@ -16,6 +16,8 @@ The repository's [0BSD license](LICENSE) covers original Lightreason source and 
 
 Model weights, tokenizer files, the trained LoRA/projector adapter, datasets, and dependency binaries are downloaded or supplied separately. 0BSD does not replace their terms. The download manifest points to the original Qwen license and files at the pinned revision.
 
+The experiment history credits the papers and projects used in each runner and identifies the changes made in Lightreason. [Technique credits and trajectory](docs/experiments.md#upstream-techniques-and-lightreason-changes)
+
 The Scheduled baseline in `edge35b/expert_stream.py` adapts the eager Qwen MoE expert calculation from [Transformers 5.7.0](https://github.com/huggingface/transformers/blob/v5.7.0/src/transformers/models/qwen3_5_moe/modeling_qwen3_5_moe.py). That upstream code is Apache-2.0.
 
 The search-and-replace prototype follows the edit format described by [Aider](https://aider.chat/docs/more/edit-formats.html). The implementation is part of Lightreason; no Aider code is bundled.

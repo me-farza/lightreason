@@ -2,16 +2,20 @@
 
 The text-only Qwen3.6-35B-A3B target has 64.56 GiB of BF16 weights. The full download, including the checkpoint's other tensors, is about 67 GiB. Our Linux x86-64 workstation had an RTX 4090 with 24 GiB of VRAM, a Ryzen 9 5950X, 121.5 GiB of OS-visible RAM, and PCIe 4.0 ×16. The packed runner uses a 15 GiB GPU expert cache, 34 extra packed host banks, and an 880 MiB GPU replica arena. Store the checkpoint on disk so the expert banks have room in system RAM. Benchmark one request at a time on an idle GPU at stock settings. [Results and timing definitions](performance.md#qwen36-35b)
 
-## Download and verify the two models
+## Download and verify the models
 
-From the repository root, choose a writable **disk-backed** directory with room for the checkpoint, build tools, and logs. The downloader verifies every file against the pinned Hub revision `345d467b117d1fd5eda9b879a5988de9ae5f47a7` and writes the manifest used by the harness. [Qwen target](https://huggingface.co/Qwen/Qwen3.6-35B-A3B)
+From the repository root, choose a writable **disk-backed** directory with room for the checkpoint, build tools, and logs. The example uses `bench-35b/`, which Git ignores. The downloader verifies every file against the pinned Hub revision `345d467b117d1fd5eda9b879a5988de9ae5f47a7` and writes the manifest used by the harness. [Qwen target](https://huggingface.co/Qwen/Qwen3.6-35B-A3B)
 
 ```bash
 export WORK="$PWD/bench-35b"
 export MODEL="$WORK/qwen35b" DRAFT="$WORK/dflash2" OUT_ROOT="$WORK/results"
 mkdir -p "$WORK"
 python3 -m edge35b.download --model-dir "$MODEL" --shard-dir "$MODEL" --workers 6
+```
 
+Scheduled runs with this checkpoint alone. For the packed runner, install the Hugging Face Hub CLI in your tools environment and download the pinned DFlash2 draft too. [Inco AI draft card](https://huggingface.co/incoai/Qwen3.6-35B-A3B-DFlash2) · [Hub CLI](https://huggingface.co/docs/huggingface_hub/guides/cli)
+
+```bash
 hf download incoai/Qwen3.6-35B-A3B-DFlash2 config.json model.safetensors \
   --revision 51ef7b6923ad6c14cb1bb41c37a9041446496ab6 --local-dir "$DRAFT"
 (
@@ -22,8 +26,6 @@ d1f16c0ff85afbe6166fabfae998af3ec16fa11da87da4391b5e0e0a7c796a4d  model.safetens
 SHA256
 )
 ```
-
-The native Scheduled runner only needs `MODEL`. DFlash2 is a separate auxiliary model and is required by the later FreeToken comparison. [Inco AI draft card](https://huggingface.co/incoai/Qwen3.6-35B-A3B-DFlash2)
 
 ## Run the original Scheduled baseline
 
@@ -38,6 +40,8 @@ mkdir -p "$OUT_ROOT"
 "$BASE_PYTHON" -m edge35b.benchmark --model-dir "$MODEL" --modes cached,scheduled \
   --prompt 'What is 17 times 19?' --tokens 1024 --repeats 2 --out "$OUT_ROOT/scheduled.json"
 ```
+
+The separate Python coding comparison uses the original 768-token cap and the same rendered input as the packed runner. [Coding prompts and reproduction](coding-benchmarks.md#35b-html-and-python)
 
 ## Prepare the pinned FreeToken runtime
 

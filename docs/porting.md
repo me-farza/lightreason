@@ -1,6 +1,6 @@
 # Port Lightreason to another GPU
 
-The published Studio build is validated on Linux with an RTX 4090. Start a 3B port with the target-only runner. Start a 35B port with Scheduled and a stock FreeToken BF16 run if supported, then measure which part of the hybrid path costs the most. The 3B draft-assisted path adds an auxiliary and a matching adapter. The 35B path uses the public DFlash2 draft. [3B Studio quickstart](../README.md#run-on-a-gpu-machine) · [35B reproduction](qwen35b.md)
+The published Studio build is validated on Linux with an RTX 4090. Start a 3B port with the target-only runner. Start a 35B port with Scheduled and a stock FreeToken BF16 run if supported, then measure which part of the hybrid path costs the most. The 3B draft-assisted path adds an auxiliary and a matching adapter. The 35B path uses the public DFlash2 draft. [3B Studio quickstart](../README.md#run-on-a-gpu-machine) · [35B reproduction](qwen35b.md) · [Measured experiments and rejected changes](experiments.md)
 
 | Hardware | First milestone |
 | --- | --- |

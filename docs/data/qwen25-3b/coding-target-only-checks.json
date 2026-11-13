@@ -1,0 +1,213 @@
+{
+  "scope": "Offline checks on one unique generated answer per prompt. All six archived answers for each prompt have the same text.",
+  "python": {
+    "semantic_pass": true,
+    "strict_format_pass": true,
+    "details": {
+      "function": "stable_dedupe",
+      "checks": [
+        {
+          "behavior_pass": true,
+          "input_unchanged": true
+        },
+        {
+          "behavior_pass": true,
+          "input_unchanged": true
+        },
+        {
+          "behavior_pass": true,
+          "input_unchanged": true
+        },
+        {
+          "behavior_pass": true,
+          "input_unchanged": true
+        },
+        {
+          "behavior_pass": true,
+          "input_unchanged": true
+        },
+        {
+          "behavior_pass": true,
+          "input_unchanged": true
+        },
+        {
+          "behavior_pass": true,
+          "input_unchanged": true
+        }
+      ],
+      "tests": 7,
+      "generated_module_examples_executed": false
+    }
+  },
+  "javascript": {
+    "review": "Static inspection",
+    "cancel_pass": false,
+    "reason": "The outer function returns the wrapper before it reaches the cancel assignment. The returned wrapper has no cancel method."
+  },
+  "sql": {
+    "version": "3.53.4",
+    "schema": "CREATE TABLE orders (customer_id INTEGER, order_date TEXT, amount INTEGER)",
+    "fixture": [
+      [
+        1,
+        "2025-01-01",
+        30
+      ],
+      [
+        1,
+        "2025-02-01",
+        30
+      ],
+      [
+        1,
+        "2025-12-31",
+        30
+      ],
+      [
+        2,
+        "2025-01-01",
+        30
+      ],
+      [
+        2,
+        "2025-02-01",
+        30
+      ],
+      [
+        2,
+        "2025-12-31",
+        30
+      ],
+      [
+        3,
+        "2025-01-01",
+        40
+      ],
+      [
+        3,
+        "2025-02-01",
+        40
+      ],
+      [
+        3,
+        "2025-12-31",
+        40
+      ],
+      [
+        4,
+        "2025-01-01",
+        26
+      ],
+      [
+        4,
+        "2025-02-01",
+        26
+      ],
+      [
+        4,
+        "2025-12-31",
+        26
+      ],
+      [
+        5,
+        "2025-01-01",
+        23
+      ],
+      [
+        5,
+        "2025-02-01",
+        23
+      ],
+      [
+        5,
+        "2025-12-31",
+        23
+      ],
+      [
+        6,
+        "2025-01-01",
+        21
+      ],
+      [
+        6,
+        "2025-02-01",
+        21
+      ],
+      [
+        6,
+        "2025-12-31",
+        21
+      ],
+      [
+        6,
+        "2024-12-31",
+        500
+      ],
+      [
+        6,
+        "2026-01-01",
+        500
+      ],
+      [
+        7,
+        "2025-01-01",
+        500
+      ],
+      [
+        7,
+        "2025-12-31",
+        500
+      ],
+      [
+        8,
+        "2026-01-01",
+        500
+      ]
+    ],
+    "expected": [
+      [
+        3,
+        120
+      ],
+      [
+        1,
+        90
+      ],
+      [
+        2,
+        90
+      ],
+      [
+        4,
+        78
+      ],
+      [
+        5,
+        69
+      ]
+    ],
+    "observed": [
+      [
+        3,
+        120
+      ],
+      [
+        1,
+        90
+      ],
+      [
+        2,
+        90
+      ],
+      [
+        4,
+        78
+      ],
+      [
+        5,
+        69
+      ]
+    ],
+    "passed": true
+  }
+}
