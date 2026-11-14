@@ -23,7 +23,10 @@ _PATH = re.compile(r"/[a-z][a-z0-9-]{0,62}")
 _MAX_BODY = 16_384
 _MAX_RESPONSE = 4 * 1024 * 1024
 _SESSION_SECONDS = 6 * 60 * 60
-_INVITE = re.compile(r"[A-Za-z0-9_-]{32,128}")
+SHORT_INVITE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+_SHORT_INVITE_GROUP = rf"[{SHORT_INVITE_ALPHABET}]{{4}}"
+_INVITE = re.compile(rf"{_SHORT_INVITE_GROUP}(?:-{_SHORT_INVITE_GROUP}){{2}}|[A-Za-z0-9_-]{{32,128}}")
+INVITE_FORMAT_ERROR = "Use a random XXXX-XXXX-XXXX code or a URL-safe invite of 32 to 128 characters."
 _HOST = re.compile(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?")
 _TOKEN = re.compile(r"(\d{1,12})\.([a-f0-9]{32})\.([a-f0-9]{64})")
 _JSON = "application/json; charset=utf-8"
@@ -52,8 +55,7 @@ _LANDING = b"""<!doctype html>
 <base href="/">
 <title>Vicena Lightreason demo</title><link rel="stylesheet" href="_demo/style.css">
 <script src="_demo/access.js" defer></script></head>
-<body><main><h1>Vicena Lightreason</h1><p>This demo is a shared fictional research workspace.
-Anyone with demo access can see its saved notes and training results. Use fictional examples.</p>
+<body><main><h1>Vicena Lightreason</h1>
 <form><label for="invite">Invite code</label><input id="invite" type="password" required maxlength="128"
 autocomplete="off"><button type="submit">Open demo</button></form><p id="status" role="status"></p></main></body></html>"""
 _ACCESS = b"""'use strict';
@@ -112,6 +114,10 @@ def public_host(origin):
     return parsed.netloc
 
 
+def invite_is_valid(value):
+    return isinstance(value, str) and _INVITE.fullmatch(value) is not None
+
+
 def read_invite(path):
     fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     with os.fdopen(fd, encoding="ascii") as file:
@@ -119,8 +125,8 @@ def read_invite(path):
         if not S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or S_IMODE(info.st_mode) & 0o077:
             raise ValueError("Invite file must be owner-only.")
         invite = file.read(200).strip()
-    if not _INVITE.fullmatch(invite):
-        raise ValueError("Use a random URL-safe invite of at least 32 characters.")
+    if not invite_is_valid(invite):
+        raise ValueError(INVITE_FORMAT_ERROR)
     return sha256(invite.encode("ascii")).digest()
 
 
@@ -251,7 +257,7 @@ class DemoHandler(BaseHTTPRequestHandler):
         except (ValueError, OSError):
             self._error(HTTPStatus.BAD_REQUEST, "Provide an invite code.")
             return
-        if not isinstance(invite, str) or not _INVITE.fullmatch(invite) or not compare_digest(
+        if not invite_is_valid(invite) or not compare_digest(
             sha256(invite.encode("ascii")).digest(), self.server.invite_hash,
         ):
             if self.server.consume("invalid_invite"):

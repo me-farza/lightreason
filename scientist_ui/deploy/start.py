@@ -14,6 +14,8 @@ import re
 import signal
 import sys
 
+from scientist_ui.demo_gateway import INVITE_FORMAT_ERROR, invite_is_valid
+
 
 APP_PORT = 8783
 GATEWAY_PORT = 8080
@@ -38,10 +40,10 @@ def runtime_secret(name, mounted, folder):
             value = file.read(4097).strip()
     if len(value) > 4096 or not value.isascii() or any(character.isspace() for character in value):
         raise ValueError(f"{name} has an invalid format.")
-    if name == "VICENA_DEMO_INVITE" and not re.fullmatch(r"[A-Za-z0-9_-]{32,128}", value):
-        raise ValueError("Use a random URL-safe demo invite with at least 32 characters.")
     if not value:
         raise ValueError(f"Set {name} or mount {mounted}.")
+    if name == "VICENA_DEMO_INVITE" and not invite_is_valid(value):
+        raise ValueError(INVITE_FORMAT_ERROR)
     target = folder / mounted.name
     fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w", encoding="ascii") as file:
