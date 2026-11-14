@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Memory wiki · Vicena Lightreason</title>
+  <link rel="icon" href="/static/logo/favicon-32x32.png">
+  <link rel="stylesheet" href="/static/wiki.css">
+  <script src="/static/wiki.js" defer></script>
+</head>
+<body>
+  <header class="wiki-header">
+    <a class="wiki-brand" href="/">
+      <img src="/static/logo/android-chrome-192x192.png" alt="" width="30" height="30">
+      <span>Vicena <span class="wiki-brand-detail">Lightreason</span></span>
+    </a>
+    <a class="wiki-chat" href="/">Open chat <span aria-hidden="true">↗</span></a>
+  </header>
+  <main class="wiki">
+    <div class="wiki-title">
+      <h1>Memory wiki</h1>
+      <p>Research notes and original source text processed by Dream.</p>
+    </div>
+    <section id="wiki-queue" class="wiki-queue" aria-label="Dream queue" hidden>
+      <div>
+        <strong id="wiki-queue-count" role="status"></strong>
+        <p id="wiki-queue-guidance"></p>
+      </div>
+      <a class="wiki-chat" href="/?view=dream">Open Dream <span aria-hidden="true">↗</span></a>
+    </section>
+    <div class="wiki-shell">
+      <aside class="wiki-sidebar" aria-labelledby="wiki-index-title">
+        <div class="wiki-index-header">
+          <h2 id="wiki-index-title">Notes</h2>
+          <span id="wiki-count" role="status"></span>
+        </div>
+        <label for="wiki-search" class="wiki-sr">Search notes</label>
+        <input id="wiki-search" type="search" placeholder="Search notes and topics" autocomplete="off" disabled>
+        <button class="wiki-tag-filter" id="wiki-tag-filter" type="button" hidden></button>
+        <nav id="wiki-list" class="wiki-list" aria-label="Notes"></nav>
+      </aside>
+      <div class="wiki-main">
+        <section id="wiki-state" class="wiki-state" aria-labelledby="wiki-state-title">
+          <h2 id="wiki-state-title">Loading notes…</h2>
+          <p id="wiki-state-description"></p>
+          <button id="wiki-retry" type="button" hidden>Try again</button>
+        </section>
+        <article id="wiki-note" class="wiki-note" hidden>
+          <div id="wiki-note-meta" class="wiki-note-meta"></div>
+          <h2 id="wiki-note-title" tabindex="-1"></h2>
+          <p id="wiki-summary" class="wiki-summary" hidden></p>
+          <p id="wiki-provenance" class="wiki-provenance" hidden>Organized by Gemini</p>
+          <ul id="wiki-tags" class="wiki-tags" aria-label="Topics"></ul>
+          <section id="wiki-corrections" class="wiki-corrections" aria-labelledby="wiki-corrections-title" hidden>
+            <h3 id="wiki-corrections-title">Note history</h3>
+            <ul id="wiki-correction-list"></ul>
+          </section>
+          <section class="wiki-source" aria-labelledby="wiki-source-title">
+            <div class="wiki-section-title">
+              <h3 id="wiki-source-title">Original text</h3>
+              <span id="wiki-source-name"></span>
+            </div>
+            <pre id="wiki-original"></pre>
+          </section>
+          <nav id="wiki-related" class="wiki-related" aria-label="Related notes" hidden>
+            <h3>Related notes</h3>
+            <ul id="wiki-related-list"></ul>
+          </nav>
+        </article>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

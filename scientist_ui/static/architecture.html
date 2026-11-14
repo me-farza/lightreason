@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>System architecture · Vicena Lightreason</title>
+  <link rel="icon" href="/static/logo/favicon-32x32.png">
+  <link rel="stylesheet" href="/static/architecture.css">
+</head>
+<body>
+  <header class="system-header">
+    <div class="system-wrap system-nav-row">
+      <a class="system-brand" href="/">
+        <img src="/static/logo/android-chrome-192x192.png" alt="" width="30" height="30">
+        <span>Vicena <span class="brand-detail">Lightreason</span></span>
+      </a>
+      <nav aria-label="Workspace"><a href="/">Chat</a><a href="/wiki">Memory wiki</a></nav>
+    </div>
+  </header>
+
+  <main class="system-wrap architecture">
+    <div class="architecture-intro">
+      <h1>System architecture</h1>
+      <p>How a research note becomes something Vicena can recall and apply.</p>
+    </div>
+    <div class="system-map">
+      <section class="system-section" aria-labelledby="system-chat">
+        <div class="section-head">
+          <h2 id="system-chat">Chat and recall</h2>
+          <p>Recent turns provide short-term context. The local 3B can recall lessons from earlier sessions.</p>
+        </div>
+        <ol class="system-flow">
+          <li>
+            <h3>Current chat</h3>
+            <p>Your question and recent turns supply the conversation context.</p>
+          </li>
+          <li class="node-local">
+            <h3>Local 3B memory</h3>
+            <p>Reads the saved policy and returns a compact memory signal when a lesson matches.</p>
+          </li>
+          <li class="node-remote">
+            <span class="node-boundary">Optional · remote</span>
+            <h3>Gemini synthesis</h3>
+            <p>Receives the recent chat and a short text readout if local memory recalled something.</p>
+          </li>
+          <li>
+            <h3>Chat reply</h3>
+            <p>Inspect memory shows the readout when one was used. Wiki lookups and inventory questions stay local.</p>
+          </li>
+        </ol>
+        <details>
+          <summary>Chat tools</summary>
+          <p>Ask “Search the wiki for baseline drift” to open matching source notes, or “Which memories do you have?” for the local inventory. Inspect memory shows which steps ran and links to the evidence.</p>
+        </details>
+        <details>
+          <summary>Local 35B vector route</summary>
+          <p>When the matching 35B runtime is configured, the local 3B memory can pass model-compatible vectors into the 35B directly. The 35B writes the reply.</p>
+        </details>
+      </section>
+
+      <section class="system-section" aria-labelledby="system-dream">
+        <div class="section-head">
+          <h2 id="system-dream">Dream and consolidation</h2>
+          <p>Dream runs when you select <strong>Run Dream</strong>. It reports the training questions, rewards, and validation checks.</p>
+        </div>
+        <ol class="system-flow">
+          <li>
+            <h3>Queue notes</h3>
+            <p>Chat messages are queued by default with a per-message opt-out. Documents and direct notes can also be queued.</p>
+          </li>
+          <li>
+            <h3>Select lessons</h3>
+            <p>Identify specific procedures, corrections, experiment outcomes, and preferences.</p>
+          </li>
+          <li class="node-local">
+            <h3>Train and validate</h3>
+            <p>Train the local recall policy with rewards for correct actions. Check recall, abstention, and retention.</p>
+          </li>
+          <li class="node-local">
+            <h3>Save memory</h3>
+            <p>Save validated updates to disk so a later chat can use them after a restart.</p>
+          </li>
+        </ol>
+        <details>
+          <summary>Optional Gemini question planning</summary>
+          <p>When enabled, Dream sends selected note excerpts to Gemini for question variants and wiki organization. Training, validation, and checkpoint storage happen on the local host.</p>
+        </details>
+      </section>
+
+      <section class="system-section evidence-section" aria-labelledby="system-evidence">
+        <div class="section-head">
+          <h2 id="system-evidence">Exact evidence</h2>
+          <p>Dream also files useful approved notes as evidence, including details that never become part of the recall policy.</p>
+        </div>
+        <div class="evidence-card">
+          <div>
+            <h3>Memory wiki</h3>
+            <p>Search original text, source and date, related topics, and corrections. Open the wiki to verify details from a chat answer.</p>
+          </div>
+          <a href="/wiki">Open Memory wiki <span aria-hidden="true">↗</span></a>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Vicena Lightreason · Scientist Notebook</title>
+  <link rel="icon" href="/static/logo/favicon-32x32.png" type="image/png">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <img class="brand-icon" src="/static/logo/android-chrome-192x192.png" alt="" width="28" height="28">
+        Vicena Lightreason
+      </div>
+      <div class="status-badge" id="connection" role="status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="connection-text">Connecting to notebook</span>
+      </div>
+    </header>
+
+    <section class="page-intro" aria-labelledby="page-title">
+      <h1 id="page-title">Scientist notebook</h1>
+      <p class="page-subtitle">Explore synthetic lab records, replay a protocol correction, and trace answers to their sources.</p>
+    </section>
+
+    <div class="workflow-bar" aria-label="Notebook controls">
+      <label for="workflow">Workflow</label>
+      <select id="workflow" disabled><option>Loading workflows…</option></select>
+      <div class="time-toggle" role="group" aria-label="Protocol revision">
+        <button id="view-current" type="button" aria-pressed="true" class="active" disabled>Current</button>
+        <button id="view-initial" type="button" aria-pressed="false" disabled>Original</button>
+      </div>
+    </div>
+    <p class="workspace-message" id="workspace-message" role="status"></p>
+    <p class="workspace-error" id="workspace-error" role="alert" hidden></p>
+    <noscript><p class="workspace-error">Enable JavaScript to use the notebook.</p></noscript>
+
+    <div class="notebook" id="notebook" aria-busy="true">
+      <section class="panel-card" aria-labelledby="protocol-title">
+        <div class="panel-header">
+          <h2 class="panel-title" id="protocol-title">Ordered protocol</h2>
+          <span class="panel-badge" id="protocol-badge" hidden></span>
+        </div>
+        <div class="panel-body">
+          <ol class="steps" id="protocol-steps" role="list"></ol>
+          <div id="protocol-source"></div>
+        </div>
+      </section>
+      <section class="panel-card" aria-labelledby="correction-title">
+        <div class="panel-header">
+          <h2 class="panel-title" id="correction-title">Revision history</h2>
+        </div>
+        <div class="panel-body correction-body">
+          <div id="correction-history" class="correction-timeline"></div>
+          <button class="query-run-btn" id="apply-correction" type="button" disabled>Apply recorded correction</button>
+        </div>
+      </section>
+      <section class="panel-card span2" aria-labelledby="records-title">
+        <div class="panel-header">
+          <h2 class="panel-title" id="records-title">Experiment records</h2>
+        </div>
+        <div class="panel-body"><div id="records" class="design-grid"></div></div>
+      </section>
+      <section class="panel-card span2" aria-labelledby="lookup-title">
+        <div class="panel-header">
+          <h2 class="panel-title" id="lookup-title">Evidence lookup</h2>
+          <span class="panel-badge">Local SQLite</span>
+        </div>
+        <div class="panel-body">
+          <p class="lookup-help">Search cited lab records in the selected revision. This view uses SQLite; neural memory runs separately.</p>
+          <form id="lookup-form">
+            <div class="query-fields">
+              <div class="query-field">
+                <label for="example">Example question</label>
+                <select class="query-select" id="example" disabled><option value="">Write your own</option></select>
+              </div>
+              <div class="query-field">
+                <label for="question">Question</label>
+                <div class="query-bar">
+                  <input id="question" type="text" placeholder="What controls does this experiment require?" maxlength="500" required disabled>
+                  <button id="run-query" class="query-run-btn" type="submit" disabled>Look up evidence</button>
+                </div>
+              </div>
+            </div>
+          </form>
+          <div id="lookup-result" aria-busy="false">
+            <p class="evidence-status unknown" id="lookup-status" role="status" hidden></p>
+            <div class="evidence-answer" id="lookup-answer" hidden></div>
+            <div class="evidence-list" id="lookup-sources"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

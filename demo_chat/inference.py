@@ -105,9 +105,15 @@ def compare_outputs(baseline, candidate):
             break
         prefix += 1
     lm, rm = baseline["metrics"], candidate["metrics"]
+    left_decode = lm.get("decode_tokens_per_s")
+    right_decode = rm.get("decode_tokens_per_s")
+    decode_speedup = None
+    if left_decode and right_decode and math.isfinite(left_decode) and math.isfinite(right_decode):
+        decode_speedup = right_decode / left_decode
     return {
         "speedup": lm["seconds"] / rm["seconds"],
         "token_rate_speedup": rm["tokens_per_second"] / lm["tokens_per_second"],
+        "decode_rate_speedup": decode_speedup,
         "exact_match": left == right,
         "prefix_match_tokens": prefix,
         "baseline_tokens": len(left),

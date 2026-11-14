@@ -17,15 +17,17 @@ class ModelLoading(RuntimeError):
     pass
 
 
-def completion(url, prompt, prompt_tokens, cap, stream, *, on_text=None):
+def completion(url, prompt, prompt_tokens, cap, stream, *, on_text=None, api_key=None):
     payload = {"model": "qwen36-bf16", "prompt": prompt, "max_tokens": cap,
                "temperature": 0, "top_p": 1, "n": 1, "stream": stream}
     if stream:
         payload["stream_options"] = {"include_usage": True}
         if on_text is not None:
             payload["stream_options"]["continuous_usage_stats"] = True
-    request = Request(url + "/v1/completions", data=json.dumps(payload).encode(),
-                      headers={"Content-Type": "application/json"})
+    headers = {"Content-Type": "application/json"}
+    if api_key is not None:
+        headers["Authorization"] = f"Bearer {api_key}"
+    request = Request(url + "/v1/completions", data=json.dumps(payload).encode(), headers=headers)
     start = perf_counter()
     text = []
     usage = timings = finish = first = token_ids = None

@@ -2,6 +2,14 @@
 
 Lightreason is a local inference lab and interactive Studio for running Qwen faster on one RTX 4090. The experiments use the original BF16 weights for **Qwen2.5-3B-Instruct** (3.09B parameters) and the text model of **Qwen3.6-35B-A3B** (34.66B parameters).
 
+## Vicena Lightreason
+
+Vicena is a research chat that learns compact procedures and corrections from your notes. Dream trains and validates a local recall policy over frozen Qwen 3B features. Gemini can answer using the decoded local memory, and the Memory wiki preserves the original notes and correction history.
+
+[Two-day demo](scientist_ui/DEMO.md) · [Run Vicena](scientist_ui/README.md) · [Memory experiments](lightreason_memory/README.md)
+
+## Inference benchmarks
+
 ![Decode tokens per second and speedup over the same workload on the initial runner. Qwen2.5-3B reaches 2.22× on the target-only suite, 9.00× on a complete matching weather response, and 11.40× on a matching 128-token Fibonacci slice. Qwen3.6-35B reaches 6.01× on weather and 6.44× on a capped Python prompt across sessions, with different output from Scheduled.](assets/speedup-history.png)
 
 - **3B · 63.0 → 139.6 tok/s across six prompts.** LR CUDA graphs and compact KV matched all 30 Hugging Face timing runs. It also matched complete Python, JavaScript, and SQL responses in 9/9 new pairs. The separate PARD2 runner reached **58.3 → 525.2 tok/s** on a complete matching weather response and **63.6 → 724.4 tok/s** on the best matching 128-token Fibonacci slice. [Performance](docs/performance.md#qwen25-3b) · [Coding benchmarks](docs/coding-benchmarks.md)
@@ -13,7 +21,7 @@ The smaller model fits on the GPU, where reusing prepared GPU work and checking 
 
 Live Studio is a simple, interactive way to test speed. Build and preview a web page, then run the same prompt through Standard and Lightreason Exact to watch each response stream and compare its timings.
 
-[Run 3B Studio](#run-on-a-gpu-machine) · [Coding benchmarks](docs/coding-benchmarks.md) · [Experiment history](docs/experiments.md) · [Reproduce 35B](docs/qwen35b.md) · [Port to other hardware](docs/porting.md)
+[Run 3B Studio](#run-on-a-gpu-machine) · [Lightreason Memory](lightreason_memory/README.md) · [Coding benchmarks](docs/coding-benchmarks.md) · [Experiment history](docs/experiments.md) · [Reproduce 35B](docs/qwen35b.md) · [Port to other hardware](docs/porting.md)
 
 ## Source and model downloads
 

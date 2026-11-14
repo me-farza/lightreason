@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Vicena Lightreason</title>
+  <link rel="icon" href="/static/logo/favicon-32x32.png">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/chat.js" defer></script>
+</head>
+<body class="vicena-chat">
+  <main class="app chat-app">
+    <header class="topbar">
+      <a class="brand" href="/"><img class="brand-icon" src="/static/logo/android-chrome-192x192.png" alt="" width="30" height="30">Vicena <span class="brand-sub">Lightreason</span></a>
+      <nav class="chat-nav" aria-label="Workspace">
+        <button id="new-chat" type="button">New chat</button><a href="/wiki">Memory wiki</a><a href="/notebook">Notebook</a>
+        <a href="/architecture">Architecture</a>
+        <button id="dream-toggle" type="button" aria-pressed="false"><span id="dream-symbol" aria-hidden="true">☾</span> <span id="dream-label">Dream</span></button>
+      </nav>
+    </header>
+
+    <section class="memory-flow" aria-labelledby="flow-title">
+      <div class="flow-header"><h2 id="flow-title">How Vicena works</h2><span id="flow-status" role="status">Ready for a message</span></div>
+      <ol class="flow-track" id="flow-track" aria-label="Current workflow"></ol>
+    </section>
+
+    <section class="chat-messages" id="messages" role="log" aria-label="Conversation">
+      <div class="chat-welcome" id="welcome">
+        <img src="/static/logo/android-chrome-192x192.png" alt="" width="52" height="52">
+        <h1>What are you working on?</h1>
+        <p>Talk through your research. Save observations and documents for Dream.</p>
+        <section id="morning-preview" class="morning-preview" aria-labelledby="morning-preview-title" hidden>
+          <h2 id="morning-preview-title">Try a question from Dream</h2>
+          <div id="morning-questions" class="dream-actions"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="dream-view" id="dream-view" aria-labelledby="dream-title" hidden>
+      <div class="dream-intro">
+        <div><h1 id="dream-title" tabindex="-1">Dream</h1><p>Queue notes, then run a training session for the local 3B memory.</p></div>
+        <button id="run-dream" class="query-run-btn" type="button" aria-describedby="dream-queue" disabled>Run Dream</button>
+      </div>
+      <p id="dream-queue" role="status"></p>
+      <p id="dream-status" role="status"></p>
+      <section id="dream-training" class="dream-card dream-training" aria-labelledby="training-title" hidden>
+        <h2 id="training-title">Local 3B training and validation</h2>
+        <p id="dream-training-status" role="status"></p>
+        <div id="dream-checks"></div>
+      </section>
+      <ul id="dream-counts" class="dream-counts" aria-label="Dream counts"></ul>
+      <p id="dream-selection" class="chat-route-note" hidden></p>
+      <section class="dream-card dream-question-card" aria-labelledby="questions-title">
+        <h2 id="questions-title">Questions from your notes</h2>
+        <div id="dream-questions"></div>
+        <section id="dream-followups" class="dream-followups" aria-labelledby="followups-title" hidden>
+          <h3 id="followups-title">What would make the lesson clearer?</h3>
+          <ul id="dream-clarifications"></ul>
+        </section>
+        <details id="dream-note-panel" class="dream-note" open>
+          <summary>Queue a note for Dream</summary>
+          <form id="dream-note-form">
+            <p id="dream-note-help">Add one concrete action, outcome, or preference. Dream uses it to build questions for local training.</p>
+            <p class="dream-planner-disclosure" hidden>Gemini receives an excerpt of approved notes to draft questions and organize the wiki. Vicena stores your notes and trains the 3B locally.</p>
+            <label class="chat-label" for="dream-note-input">Note for Dream</label>
+            <textarea id="dream-note-input" aria-describedby="dream-note-help" rows="2" maxlength="6000" placeholder="When [condition], [one action]." required></textarea>
+            <div class="dream-actions">
+              <button id="save-dream-note" type="submit">Queue note</button>
+              <button id="try-dream-sample" type="button" aria-describedby="sample-dream-help">Queue a sample lesson</button>
+            </div>
+            <p id="sample-dream-help">The sample adds a synthetic optics note to the queue.</p>
+            <p id="dream-note-status" role="status"></p>
+          </form>
+        </details>
+      </section>
+      <section id="dream-history" class="dream-history" aria-labelledby="dream-history-title" hidden>
+        <h2 id="dream-history-title">Earlier dreams</h2>
+        <ul id="dream-history-list" class="dream-counts"></ul>
+      </section>
+      <div class="dream-grid">
+        <section class="dream-card" aria-labelledby="activity-title">
+          <h2 id="activity-title">What happened</h2>
+          <ol class="dream-list" id="dream-events"></ol>
+        </section>
+        <section class="dream-card" aria-labelledby="captures-title">
+          <h2 id="captures-title">Notes used in this Dream</h2>
+          <div id="dream-entries"></div>
+        </section>
+      </div>
+    </section>
+
+    <form id="composer" class="chat-composer">
+      <label class="chat-label" for="message">Your message</label>
+      <textarea id="message" aria-describedby="gemini-disclosure remote-disclosure local-route-note dream-capture-note" rows="2" maxlength="6000" placeholder="Ask a question or tell Vicena something…" required></textarea>
+      <div class="chat-controls">
+        <label class="file-label">Add TXT or Markdown <input id="attachment" type="file" accept=".txt,.md,text/plain,text/markdown"></label>
+        <label><input id="remember" type="checkbox" aria-describedby="dream-capture-note" checked> Save for Dream</label>
+        <details class="mode-control" id="chat-options" hidden>
+          <summary>Model options</summary>
+          <label for="memory-mode">Chat mode</label>
+          <select id="memory-mode" disabled><option>Checking models…</option></select>
+        </details>
+        <button type="submit" id="send" class="query-run-btn">Send</button>
+      </div>
+      <p class="chat-route-note" id="gemini-disclosure" hidden>This message and recent chat context go to Google Gemini, along with a short summary of any relevant memory. Stored notes and neural vectors stay in Vicena.</p>
+      <p class="chat-route-note" id="remote-disclosure" hidden>Messages in this chat are sent to OpenRouter. Vicena keeps saved notes and local chat history separate.</p>
+      <p class="chat-route-note" id="dream-capture-note">Messages queue for Dream by default. Run Dream to review them for the wiki and local training. Uncheck Save for Dream to skip this message.</p>
+      <p class="chat-route-note dream-planner-disclosure" hidden>Dream shares selected note excerpts with Gemini to draft questions and organize the memory wiki.</p>
+      <p class="chat-route-note" id="local-route-note" hidden></p>
+      <p id="chat-status" role="status"></p>
+    </form>
+  </main>
+</body>
+</html>
