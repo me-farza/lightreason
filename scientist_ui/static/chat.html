@@ -31,6 +31,26 @@
         <img src="static/logo/android-chrome-192x192.png" alt="" width="52" height="52">
         <h1>What are you working on?</h1>
         <p>Talk through your research. Save observations and documents for Dream.</p>
+        <section class="chat-examples" aria-labelledby="examples-title">
+          <h2 id="examples-title">Try an example</h2>
+          <div class="example-grid" id="chat-examples">
+            <button class="example-card" type="button" data-example="recall" disabled>
+              <strong>Recall a procedure</strong>
+              <span class="example-prompt">For the baseline drift, what should I set or do?</span>
+              <small>Open Inspect memory under the reply.</small>
+            </button>
+            <button class="example-card" type="button" data-example="wiki" disabled>
+              <strong>Search the wiki</strong>
+              <span class="example-prompt">Search the wiki for baseline drift</span>
+              <small>Find the source note and its correction.</small>
+            </button>
+            <button class="example-card" type="button" data-example="teach" disabled>
+              <strong>Teach Dream</strong>
+              <span class="example-prompt">For eclipse calibration, use a dark frame first.</span>
+              <small>Send the note, open Dream, then select Run Dream.</small>
+            </button>
+          </div>
+        </section>
         <section id="morning-preview" class="morning-preview" aria-labelledby="morning-preview-title" hidden>
           <h2 id="morning-preview-title">Try a question from Dream</h2>
           <div id="morning-questions" class="dream-actions"></div>

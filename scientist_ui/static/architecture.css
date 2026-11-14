@@ -4,52 +4,97 @@
   font-synthesis: none;
   --bg: #111619;
   --panel: #181f21;
-  --line: #323f42;
+  --line: #344144;
   --ink: #f2f1e9;
   --muted: #b9c5bf;
   --accent: #f1d07e;
   --local: #a3ddd0;
-  --remote: #d0c0f0;
+  --remote: #dbcafa;
+  --connector: #74878a;
 }
+
 * { box-sizing: border-box; }
 body { margin: 0; color: var(--ink); background: var(--bg); }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
 .system-wrap { width: min(calc(100% - 2rem), 1150px); margin-inline: auto; }
 .system-header { border-bottom: 1px solid var(--line); background: var(--panel); }
-.system-nav-row { display: flex; min-height: 67px; align-items: center; justify-content: space-between; gap: .6rem; }
+.system-nav-row {
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
 .system-brand { display: inline-flex; gap: .55rem; align-items: center; font-weight: 640; text-decoration: none; }
 .system-brand img { border-radius: 8px; }
 .brand-detail { color: var(--muted); }
-.system-header nav { display: flex; gap: .38rem; }
-.system-header nav a { color: var(--muted); padding: .45rem .6rem; font-size: .81rem; text-decoration: none; white-space: nowrap; }
-.system-header nav a:hover { color: var(--accent); }
-.architecture { padding: clamp(2rem, 5vw, 4.2rem) 0 3rem; }
-.architecture-intro { margin-bottom: clamp(1.3rem, 3vw, 2rem); }
+.system-nav-row nav { display: flex; gap: .35rem; }
+.system-nav-row nav a { color: var(--muted); padding: .5rem .55rem; font-size: .84rem; text-decoration: none; white-space: nowrap; }
+.system-nav-row nav a:hover, .section-links a:hover, .wiki-link:hover { color: var(--accent); }
+
+.architecture { padding: clamp(2rem, 5vw, 4rem) 0 3.5rem; }
+.architecture-intro {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 1.5rem;
+  padding: 0 0 1.75rem;
+}
 .architecture-intro h1 {
   font-family: "Instrument Serif", Georgia, serif;
-  font-size: clamp(2.3rem, 5vw, 4rem);
+  font-size: clamp(2.55rem, 6vw, 4.65rem);
   font-weight: 400;
-  letter-spacing: -.035em;
-  line-height: 1.05;
+  letter-spacing: -.043em;
+  line-height: 1;
   margin: 0;
 }
-.architecture-intro p, .section-head p, .system-section details p {
-  color: var(--muted);
-  font-size: .91rem;
-  line-height: 1.6;
-  margin: .55rem 0 0;
+.architecture-intro p {
+  max-width: 43ch;
+  margin: .75rem 0 0;
+  font-size: 1rem;
 }
-.system-map { display: grid; gap: 1rem; }
+.section-links { display: flex; flex-wrap: wrap; gap: .45rem 1.1rem; }
+.section-links a, .wiki-link {
+  color: var(--muted);
+  font-size: .86rem;
+  text-decoration-color: #728586;
+  text-underline-offset: .25em;
+}
+
 .system-section {
+  scroll-margin-top: 1rem;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: clamp(1rem, 2.7vw, 1.7rem);
+  border-radius: 15px;
+  padding: clamp(1rem, 2.7vw, 1.75rem);
 }
-.section-head { margin: 0 0 1rem; }
-.section-head h2 { margin: 0; font-size: 1.19rem; letter-spacing: -.012em; }
-.section-head p { margin-top: .33rem; }
+.system-section + .system-section { margin-top: clamp(.9rem, 2vw, 1.3rem); }
+.section-head {
+  display: grid;
+  grid-template-columns: minmax(15rem, .78fr) 1fr;
+  align-items: end;
+  gap: 1rem 1.8rem;
+  margin-bottom: 1.2rem;
+}
+.section-head h2 {
+  font-size: clamp(1.32rem, 2.6vw, 1.85rem);
+  margin: .25rem 0 0;
+  letter-spacing: -.025em;
+}
+.stage-label, .node-label {
+  display: block;
+  color: var(--local);
+  font-size: .7rem;
+  font-weight: 680;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.architecture p { color: var(--muted); line-height: 1.57; }
+.section-head p { margin: 0; max-width: 58ch; font-size: .93rem; }
+.architecture strong { color: var(--ink); }
+
 .system-flow {
   --gap: 1.55rem;
   display: grid;
@@ -59,12 +104,12 @@ a { color: inherit; }
   margin: 0;
   padding: 0;
 }
-.system-flow li {
+.system-flow li, .memory-card {
   position: relative;
   min-width: 0;
-  padding: .9rem .85rem;
+  padding: .95rem;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 10px;
   background: var(--bg);
 }
 .system-flow li + li::before {
@@ -73,7 +118,7 @@ a { color: inherit; }
   inset-inline-end: 100%;
   top: calc(50% - 1px);
   width: var(--gap);
-  border-top: 1px solid #697b7d;
+  border-top: 1px solid var(--connector);
 }
 .system-flow li + li::after {
   content: "";
@@ -82,47 +127,46 @@ a { color: inherit; }
   inset-inline-start: -5px;
   width: 6px;
   height: 6px;
-  border-top: 1px solid #697b7d;
-  border-right: 1px solid #697b7d;
+  border-top: 1px solid var(--connector);
+  border-right: 1px solid var(--connector);
   transform: rotate(45deg);
 }
-.system-flow li.node-local { background: #192a29; border-color: #3b6260; }
-.system-flow li.node-remote { background: #242331; border-color: #5d5173; border-style: dashed; }
-.system-flow h3, .evidence-card h3 { margin: 0; font-size: .91rem; line-height: 1.35; }
-.system-flow p, .evidence-card p {
-  margin: .43rem 0 0;
-  color: var(--muted);
-  font-size: .81rem;
-  line-height: 1.53;
-  overflow-wrap: anywhere;
-}
+.system-flow li.node-local { background: #192a29; border-color: #406462; }
+.system-flow li.node-remote { background: #242331; border-color: #675a80; border-style: dashed; }
+.system-flow h3, .memory-card h3 { margin: 0; font-size: .98rem; line-height: 1.35; }
+.system-flow p, .memory-card p, .route-note p, details p { margin: .43rem 0 0; font-size: .86rem; }
 .node-local h3 { color: var(--local); }
-.node-remote h3, .node-boundary { color: var(--remote); }
-.node-boundary { display: block; margin-bottom: .28rem; font-size: .69rem; }
-.system-section details { border-top: 1px solid var(--line); margin-top: 1rem; padding-top: .78rem; }
-.system-section summary { color: var(--accent); cursor: pointer; font-size: .83rem; }
-.evidence-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .8rem;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  padding: .9rem 1rem;
-  background: var(--bg);
+.node-remote h3, .node-remote .node-label { color: var(--remote); }
+.node-label { margin-bottom: .35rem; font-size: .63rem; }
+
+.route-note {
+  margin: .9rem 0 0;
+  padding: .72rem .9rem;
+  border-inline-start: 2px solid var(--line);
+  border-radius: 0 7px 7px 0;
+  background: #141b1d;
+  font-size: .88rem;
 }
-.evidence-card a {
-  color: var(--accent);
-  text-decoration: none;
-  font-size: .78rem;
-  padding: .52rem .68rem;
-  border: 1px solid #635533;
-  border-radius: 7px;
-  white-space: nowrap;
+.route-note p { margin-top: .23rem; }
+.memory-grid, .planned-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
+.memory-card h3 { color: var(--local); }
+.wiki-link { display: inline-block; margin-top: .7rem; color: var(--ink); }
+
+.planned-section { border-color: #67573b; }
+.planned-section .stage-label { color: var(--accent); }
+.planned-flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.planned-flow li { border-style: dashed; border-color: #67573b; }
+.planned-checks .route-note { border-color: #836e46; }
+.system-section details { border-top: 1px solid var(--line); margin-top: 1rem; padding-top: .85rem; }
+.system-section summary { color: var(--accent); cursor: pointer; font-size: .86rem; }
+.system-section details p { max-width: 78ch; }
+
+@media (max-width: 850px) {
+  .architecture-intro { grid-template-columns: 1fr; gap: 1.1rem; }
 }
-.evidence-card a:hover { background: #3a3020; }
-@media (max-width: 720px) {
-  .system-flow { --gap: .9rem; grid-template-columns: 1fr; }
+@media (max-width: 760px) {
+  .section-head { grid-template-columns: 1fr; gap: .45rem; }
+  .system-flow, .planned-flow { --gap: .85rem; grid-template-columns: 1fr; }
   .system-flow li + li::before {
     inset-inline-end: 50%;
     top: auto;
@@ -130,13 +174,14 @@ a { color: inherit; }
     width: 0;
     height: var(--gap);
     border-top: 0;
-    border-inline-start: 1px solid #697b7d;
+    border-inline-start: 1px solid var(--connector);
   }
   .system-flow li + li::after { top: -5px; inset-inline-start: calc(50% - 4px); transform: rotate(135deg); }
 }
-@media (max-width: 475px) {
-  .evidence-card { flex-direction: column; align-items: flex-start; }
-  .system-header nav a { padding-inline: .35rem; }
+@media (max-width: 530px) {
+  .memory-grid, .planned-checks { grid-template-columns: 1fr; gap: .55rem; }
+  .planned-checks .route-note + .route-note { margin-top: 0; }
+  .system-nav-row nav a { padding-inline: .25rem; }
 }
 @media (max-width: 350px) {
   .brand-detail { display: none; }

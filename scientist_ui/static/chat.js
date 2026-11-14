@@ -15,12 +15,34 @@ const dreamSample = {
   source: "Synthetic Dream sample",
   requestId: "95f61653-b040-43fd-89de-aee7123ccb42",
 };
-const day = [["input", "Today’s context"], ["memory", "Learned memory"], ["answer", "Answer"]];
-const geminiFlow = [["input", "Today’s context"], ["memory", "Local 3B"],
-  ["decode", "Decode memory"], ["answer", "Gemini"]];
-const inventoryFlow = [["input", "Today’s context"], ["memory", "Saved evidence"], ["answer", "Local reply"]];
-const night = [["capture", "Read your notes"], ["questions", "Write questions"],
-  ["train", "Test local 3B"], ["promote", "Save results"]];
+const chatInput = ["input", "Chat context", "The current message and recent turns."];
+const geminiFlow = [
+  chatInput,
+  ["memory", "Local 3B recall", "Checks for a learned rule that fits."],
+  ["decode", "Decode memory", "Turns recalled vectors into a short text cue."],
+  ["answer", "Gemini", "Writes the reply using chat and any cue."],
+];
+const chatFlows = {
+  gemini: geminiFlow,
+  vector: [chatInput, ["memory", "Local 3B recall", "Passes relevant vectors directly to the reasoner."],
+    ["answer", "Local Qwen 35B", "Writes the reply."]],
+  text: [chatInput, ["memory", "Saved evidence", "Finds relevant excerpts in saved notes."],
+    ["answer", "Local model", "Writes the reply using chat and any excerpts."]],
+  off: [chatInput, ["answer", "Local model", "Writes the reply from chat context."]],
+  remote: [chatInput, ["answer", "OpenRouter", "Writes the reply from chat context."]],
+};
+const inventoryFlow = [
+  ["input", "Your request", "Ask to search the wiki or list saved memory."],
+  ["memory", "Memory wiki", "Look up saved evidence on this server."],
+  ["answer", "Local reply", "Show matching notes or the memory inventory."],
+];
+const night = [
+  ["capture", "Review notes", "Select useful lessons from queued messages and files."],
+  ["questions", "Draft questions", "Gemini can draft questions grounded in the notes."],
+  ["train", "Train and test", "Train the local recall policy and check what it remembers."],
+  ["promote", "Save results", "Keep passing updates and archive evidence in the wiki."],
+];
+const exampleButtons = [...byId("chat-examples").querySelectorAll("button")];
 const conversations = {local: [], remote: []};
 const availableModes = new Set();
 const mountPath = new URL(document.baseURI).pathname;
@@ -166,10 +188,7 @@ function renderFlow() {
   const mode = modePicker.value;
   const chatFlow = flows[mode] || {};
   const active = dreaming ? (dream.status === "idle" || starting ? "capture" : nightStage) : chatFlow.stage;
-  const chatSteps = chatFlow.localOnly ? inventoryFlow : mode === "gemini" ? geminiFlow : day
-    .filter(([name]) => name !== "memory" || (mode !== "remote" && mode !== "off"))
-    .map(([name, label]) => [name, name === "memory" && mode === "text" ? "Saved evidence" : label]);
-  const steps = dreaming ? night : chatSteps;
+  const steps = dreaming ? night : chatFlow.localOnly ? inventoryFlow : (chatFlows[mode] || geminiFlow);
   byId("flow-title").textContent = dreaming ? "Dream workflow" : "Chat workflow";
   const activeIndex = steps.findIndex(([name]) => name === active);
   const counts = dream.counts || {};
@@ -184,20 +203,23 @@ function renderFlow() {
       dream.training?.optimizer_steps != null ? quantity(dream.training.optimizer_steps, "optimizer step") : "",
     promote: updates != null && dream.status === "complete" ? quantity(updates, "memory update") : "",
   };
-  byId("flow-track").replaceChildren(...steps.map(([name, label], index) => {
+  byId("flow-track").replaceChildren(...steps.map(([name, label, description], index) => {
     const item = node("li", undefined, "flow-step");
     if (index < activeIndex) item.dataset.state = "done";
     if (!dreaming && name === "decode" && chatFlow.decoded === false && active === "answer") {
       item.dataset.state = "skipped";
-      label = "No memory to decode";
+      description = "Skipped because local memory found no match.";
     }
     if (name === active) {
       item.dataset.state = "current";
       item.setAttribute("aria-current", "step");
     }
-    const text = node("span", label);
-    if (dreaming && !starting && stageNotes[name]) text.append(node("small", stageNotes[name]));
-    item.append(node("span", undefined, "flow-dot"), text);
+    const informative = node("span");
+    informative.append(node("strong", label), node("small", description));
+    if (dreaming && !starting && stageNotes[name]) informative.append(node("small", stageNotes[name], "flow-detail"));
+    const dot = node("span", undefined, "flow-dot");
+    dot.setAttribute("aria-hidden", "true");
+    item.append(dot, informative);
     return item;
   }));
   const message = dreaming ? (starting ? "Starting Dream…" : dream.status === "running" ?
@@ -232,6 +254,12 @@ function controls() {
   byId("morning-questions").querySelectorAll("button").forEach((button) => {
     button.disabled = busy || running || Boolean(pendingCapture) || !learnedMode();
   });
+  for (const button of exampleButtons) {
+    const needsMemory = button.dataset.example !== "teach";
+    const evidenceMode = button.dataset.example === "wiki" && availableModes.has("text");
+    button.disabled = byId("send").disabled || Boolean(pendingCapture || remoteCapture) ||
+      (needsMemory && !learnedMode() && !evidenceMode);
+  }
 }
 
 function showConversation() {
@@ -1020,6 +1048,22 @@ composer.addEventListener("submit", async (event) => {
     if (!dreaming) input.focus();
   }
 });
+
+for (const button of exampleButtons) {
+  button.addEventListener("click", () => {
+    const example = button.dataset.example;
+    const teaching = example === "teach";
+    const mode = teaching ? modePicker.value : (learnedMode() || "text");
+    if (modePicker.value !== mode) {
+      modePicker.value = mode;
+      showConversation();
+    }
+    input.value = button.querySelector(".example-prompt").textContent;
+    byId("remember").checked = teaching;
+    dreamQuestion = example === "recall" ? input.value : "";
+    input.focus();
+  });
+}
 
 input.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {

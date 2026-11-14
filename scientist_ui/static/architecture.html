@@ -22,87 +22,126 @@
 
   <main class="system-wrap architecture">
     <div class="architecture-intro">
-      <h1>System architecture</h1>
-      <p>How a research note becomes something Vicena can recall and apply.</p>
+      <div>
+        <h1>System architecture</h1>
+        <p>Teach Vicena in chat, consolidate lessons in Dream, and see what local memory contributes to the next answer.</p>
+      </div>
+      <nav class="section-links" aria-label="On this page">
+        <a href="architecture#chat">Chat &amp; recall</a>
+        <a href="architecture#dream">Dream</a>
+        <a href="architecture#memory">Saved memory</a>
+        <a href="architecture#planned">Planned vector handoff</a>
+      </nav>
     </div>
-    <div class="system-map">
-      <section class="system-section" aria-labelledby="system-chat">
-        <div class="section-head">
-          <h2 id="system-chat">Chat and recall</h2>
-          <p>Recent turns provide short-term context. The local 3B can recall lessons from earlier sessions.</p>
-        </div>
-        <ol class="system-flow">
-          <li>
-            <h3>Current chat</h3>
-            <p>Your question and recent turns supply the conversation context.</p>
-          </li>
-          <li class="node-local">
-            <h3>Local 3B memory</h3>
-            <p>Reads the saved policy and returns a compact memory signal when a lesson matches.</p>
-          </li>
-          <li class="node-remote">
-            <span class="node-boundary">Optional · remote</span>
-            <h3>Gemini synthesis</h3>
-            <p>Receives the recent chat and a short text readout if local memory recalled something.</p>
-          </li>
-          <li>
-            <h3>Chat reply</h3>
-            <p>Inspect memory shows the readout when one was used. Wiki lookups and inventory questions stay local.</p>
-          </li>
-        </ol>
-        <details>
-          <summary>Chat tools</summary>
-          <p>Ask “Search the wiki for baseline drift” to open matching source notes, or “Which memories do you have?” for the local inventory. Inspect memory shows which steps ran and links to the evidence.</p>
-        </details>
-        <details>
-          <summary>Local 35B vector route</summary>
-          <p>When the matching 35B runtime is configured, the local 3B memory can pass model-compatible vectors into the 35B directly. The 35B writes the reply.</p>
-        </details>
-      </section>
 
-      <section class="system-section" aria-labelledby="system-dream">
-        <div class="section-head">
-          <h2 id="system-dream">Dream and consolidation</h2>
-          <p>Dream runs when you select <strong>Run Dream</strong>. It reports the training questions, rewards, and validation checks.</p>
-        </div>
-        <ol class="system-flow">
-          <li>
-            <h3>Queue notes</h3>
-            <p>Chat messages are queued by default with a per-message opt-out. Documents and direct notes can also be queued.</p>
-          </li>
-          <li>
-            <h3>Select lessons</h3>
-            <p>Identify specific procedures, corrections, experiment outcomes, and preferences.</p>
-          </li>
-          <li class="node-local">
-            <h3>Train and validate</h3>
-            <p>Train the local recall policy with rewards for correct actions. Check recall, abstention, and retention.</p>
-          </li>
-          <li class="node-local">
-            <h3>Save memory</h3>
-            <p>Save validated updates to disk so a later chat can use them after a restart.</p>
-          </li>
-        </ol>
-        <details>
-          <summary>Optional Gemini question planning</summary>
-          <p>When enabled, Dream sends selected note excerpts to Gemini for question variants and wiki organization. Training, validation, and checkpoint storage happen on the local host.</p>
-        </details>
-      </section>
+    <section class="system-section" id="chat" aria-labelledby="system-chat">
+      <div class="section-head">
+        <div><span class="stage-label">In the live demo</span><h2 id="system-chat">Chat and recall</h2></div>
+        <p>The latest question queries local memory. Gemini gets the recent conversation and a short readout when a lesson matches.</p>
+      </div>
+      <ol class="system-flow recall-flow" aria-label="Deployed recall and answer path">
+        <li class="node-local">
+          <h3>Qwen2.5-3B</h3>
+          <p>The frozen model encodes the latest question into features.</p>
+        </li>
+        <li class="node-local">
+          <h3>Trained recall policy</h3>
+          <p>Scores the saved lessons and selects compact embedding rows above its recall threshold.</p>
+        </li>
+        <li class="node-local">
+          <h3>Local vector-to-text readout</h3>
+          <p>Matches the rows against the pinned Qwen3.6-35B input embedding table and decodes their token IDs.</p>
+        </li>
+        <li class="node-remote">
+          <span class="node-label">Remote</span>
+          <h3>Gemini writes the reply</h3>
+          <p>Recent chat and the decoded readout arrive as separate inputs. <strong>Inspect memory</strong> shows what was recalled.</p>
+        </li>
+      </ol>
+      <div class="route-note">
+        <strong>When memory abstains</strong>
+        <p>The readout step is skipped. Gemini receives the ordinary chat context with no added memory.</p>
+      </div>
+    </section>
 
-      <section class="system-section evidence-section" aria-labelledby="system-evidence">
-        <div class="section-head">
-          <h2 id="system-evidence">Exact evidence</h2>
-          <p>Dream also files useful approved notes as evidence, including details that never become part of the recall policy.</p>
+    <section class="system-section" id="dream" aria-labelledby="system-dream">
+      <div class="section-head">
+        <div><span class="stage-label">In the live demo</span><h2 id="system-dream">Dream and consolidation</h2></div>
+        <p>Use <strong>Run Dream</strong> to review queued notes and train the local policy. Chat messages queue by default with a per-message opt-out.</p>
+      </div>
+      <ol class="system-flow" aria-label="Dream training and validation path">
+        <li>
+          <h3>Queue research notes</h3>
+          <p>Bring chat lessons, corrections, preferences, experiment updates, and TXT or Markdown notes.</p>
+        </li>
+        <li class="node-remote">
+          <span class="node-label">Remote planning</span>
+          <h3>Prepare the questions</h3>
+          <p>Vicena selects grounded lessons and checks Gemini’s practice and held-out questions against those lessons. Dream can fall back to local questions.</p>
+        </li>
+        <li class="node-local">
+          <h3>Train the recall policy</h3>
+          <p>Using frozen 3B features, REINFORCE rewards correct recall or abstention. Dream reports measured reward and policy entropy.</p>
+        </li>
+        <li class="node-local">
+          <h3>Validate and save</h3>
+          <p>Check recall on held-out questions, abstention on unrelated prompts, and retention of earlier lessons. Save the candidate if it passes.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="system-section" id="memory" aria-labelledby="system-memory">
+      <div class="section-head">
+        <div><span class="stage-label">On the local host</span><h2 id="system-memory">What survives a restart</h2></div>
+        <p>Open a new chat after Dream to ask from saved memory and verify the exact details in the wiki.</p>
+      </div>
+      <div class="memory-grid">
+        <article class="memory-card">
+          <h3>Learned memory checkpoint</h3>
+          <p>A local checkpoint stores the trained recall policy and compact embedding rows. Vicena reloads it after a restart.</p>
+        </article>
+        <article class="memory-card">
+          <h3>Memory wiki</h3>
+          <p>SQLite keeps the original notes, sources, and correction history, including details outside the compact learned memory. Search and memory inventory run locally.</p>
+          <a class="wiki-link" href="wiki">Open Memory wiki <span aria-hidden="true">↗</span></a>
+        </article>
+      </div>
+    </section>
+
+    <section class="system-section planned-section" id="planned" aria-labelledby="system-planned">
+      <div class="section-head">
+        <div><span class="stage-label">Planned research</span><h2 id="system-planned">Direct latent handoff</h2></div>
+        <p>Jointly train the memory reader and a learned connector so the next model can use the vectors directly, without a text readout.</p>
+      </div>
+      <ol class="system-flow planned-flow" aria-label="Planned direct vector path">
+        <li>
+          <h3>Local memory reader</h3>
+          <p>Read the question and saved state. Return useful memory vectors or abstain.</p>
+        </li>
+        <li>
+          <h3>Learned connector</h3>
+          <p>Map vectors into the next model’s input space. Train the reader and connector together using downstream answer quality.</p>
+        </li>
+        <li>
+          <h3>Larger model input</h3>
+          <p>A compatible runtime inserts the aligned rows alongside the normal prompt embeddings at prefill. The larger model can stay frozen while the reader and connector train.</p>
+        </li>
+      </ol>
+      <div class="planned-checks">
+        <div class="route-note">
+          <strong>Alignment</strong>
+          <p>Match the receiver’s embedding width, numeric format, scale, and placement. Test whether the vectors improve its answers on questions held out from training.</p>
         </div>
-        <div class="evidence-card">
-          <div>
-            <h3>Memory wiki</h3>
-            <p>Search original text, source and date, related topics, and corrections. Open the wiki to verify details from a chat answer.</p>
-          </div>
-          <a href="wiki">Open Memory wiki <span aria-hidden="true">↗</span></a>
+        <div class="route-note">
+          <strong>Empty or unrelated memory</strong>
+          <p>Pass zero memory rows. The larger model receives its ordinary prompt unchanged, with no added placeholder or embedding.</p>
         </div>
-      </section>
-    </div>
+      </div>
+      <details>
+        <summary>Existing local 35B experiment</summary>
+        <p>A separately configured Qwen3.6-35B runtime can already ingest its own native embedding rows directly. The web demo loads the pinned input table for the local readout and uses Gemini to answer. Joint training of the reader and connector is still planned.</p>
+      </details>
+    </section>
   </main>
 </body>
 </html>

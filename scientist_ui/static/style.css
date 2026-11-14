@@ -488,10 +488,12 @@ html { color-scheme: dark; }
 }
 .flow-step {
   position: relative; padding: .66rem .7rem; border: 1px solid var(--chat-line);
-  border-radius: 8px; display: flex; align-items: center; min-width: 0; gap: .55rem;
+  border-radius: 8px; display: flex; align-items: flex-start; min-width: 0; gap: .55rem;
   color: var(--chat-dim); font-size: .83rem; overflow-wrap: anywhere;
 }
-.flow-step small { display: block; margin-top: .24rem; font-size: .68rem; line-height: 1.2; color: var(--chat-dim); }
+.flow-step strong { color: var(--chat-ink); font-weight: 650; }
+.flow-step small { display: block; margin-top: .24rem; font-size: .73rem; line-height: 1.35; color: var(--chat-dim); }
+.flow-step .flow-detail { color: var(--chat-accent); }
 .flow-step:not(:first-child)::before {
   content: ""; position: absolute; top: 50%; height: 1px;
   right: 100%; width: calc(clamp(9px, 2.5vw, 30px) + 1px); background: var(--chat-line);
@@ -502,16 +504,29 @@ html { color-scheme: dark; }
 }
 .flow-step[data-state="done"]::before, .flow-step[data-state="current"]::before { background: var(--chat-accent); }
 .flow-step[data-state="done"]::after, .flow-step[data-state="current"]::after { border-left-color: var(--chat-accent); }
-.flow-dot { width: 7px; height: 7px; flex: 0 0 7px; border: 1px solid var(--chat-dim); border-radius: 50%; }
+.flow-dot { width: 7px; height: 7px; margin-top: .4rem; flex: 0 0 7px; border: 1px solid var(--chat-dim); border-radius: 50%; }
 .flow-step[data-state="done"] .flow-dot { border-color: var(--chat-accent); background: var(--chat-accent); }
 .flow-step[data-state="current"] { border-color: var(--chat-accent); color: var(--chat-ink); }
 .flow-step[data-state="current"] .flow-dot { background: var(--chat-accent); border-color: var(--chat-accent); box-shadow: 0 0 9px var(--chat-accent); }
 
 .chat-messages { width: min(100%, 760px); margin: 0 auto; flex: 1; padding: 1.5rem 0 1rem; }
-.chat-welcome { text-align: center; margin: clamp(3rem, 13vh, 10rem) 0 3rem; }
+.chat-welcome { text-align: center; margin: clamp(1rem, 4vh, 3rem) 0 1.5rem; }
 .chat-welcome img { border-radius: 14px; margin-bottom: 1rem; }
 .chat-welcome h1 { font-size: clamp(28px, 4vw, 46px); font-weight: 540; }
 .chat-welcome p { margin: .72rem 0 0; color: var(--chat-dim); font-size: .93rem; }
+.chat-examples { margin: 1.55rem 0 0; text-align: left; }
+.chat-examples h2 { margin: 0 0 .6rem; font-size: .86rem; color: var(--chat-dim); }
+.example-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; }
+.example-card {
+  display: grid; align-content: start; gap: .5rem; border-radius: 11px; padding: .8rem .85rem;
+  border: 1px solid var(--chat-line); background: var(--chat-panel);
+  color: var(--chat-ink); font: inherit; text-align: left; cursor: pointer;
+}
+.example-card strong { font-size: .81rem; color: var(--chat-accent); }
+.example-prompt { font-size: .89rem; line-height: 1.35; }
+.example-card small { font-size: .73rem; color: var(--chat-dim); line-height: 1.35; }
+.example-card:not(:disabled):hover, .example-card:focus-visible { border-color: var(--chat-accent); }
+.example-card:disabled { opacity: .65; cursor: default; }
 .chat-turn { padding: .85rem 1rem; margin: 0 auto .8rem; border-radius: 12px; overflow-wrap: anywhere; }
 .chat-turn.user { background: var(--chat-panel); border: 1px solid var(--chat-line); margin-left: min(12%, 5rem); }
 .chat-turn > strong { font-size: .82rem; color: var(--chat-accent); }
@@ -622,13 +637,12 @@ html { color-scheme: dark; }
   .flow-step { font-size: .73rem; padding: .5rem .4rem; gap: .35rem; }
   .flow-dot { width: 5px; height: 5px; flex-basis: 5px; }
   .dream-grid { grid-template-columns: minmax(0, 1fr); }
-}
-@media (max-width: 360px) {
-  .flow-track { grid-auto-flow: row; grid-template-columns: 1fr 1fr; }
+  .flow-track { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .flow-step::before, .flow-step::after { display: none; }
 }
 @media (max-width: 520px) {
   .dream-intro { flex-direction: column; align-items: start; }
+  .example-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 .chat-route-note {
