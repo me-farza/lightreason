@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import sqlite3
 from threading import Lock
 from uuid import uuid4
 
@@ -50,6 +51,23 @@ _WIKI_INTENT = re.compile(
     r"what did we (?:record|save) about)\s+(?P<query>[^\n?!]{1,180})",
     re.I,
 )
+_WIKI_REFERENCE = re.compile(
+    r"\b(?:look (?:at|in|through)|search|check|consult|review|use|read|open)\s+"
+    r"(?:(?:your|our|the|my|saved|memory)\s+)*(?:wiki|(?:saved|research) notes)\b|"
+    r"\b(?:based on|from|according to)\s+(?:our|my|the saved|the)\s+"
+    r"(?:(?:past|prior|previous)\s+)?(?:research(?:ers)?|experiment(?:s)?|saved notes|results)\b",
+    re.I,
+)
+_WIKI_NAMED = re.compile(r"\b(?:wiki|saved notes)\s+(?:for|on|about)\s+([^.!?\n]{1,180})", re.I)
+_WIKI_OVERVIEW = re.compile(r"\b(?:summarize|summarise|overview|themes|patterns|what should we learn)\b", re.I)
+_WIKI_GENERIC = frozenset(
+    "a an and about at can did do does for from give have how i in is it me my of on or our"
+    " please saved show so take tell the these this to together use was we were what which will"
+    " with work works would you your wiki notes research researchers experiments experiment findings"
+    " areas lessons everything learn results summary summarize summarise overview recent all same"
+    " are based check consult could different done es evidence look many memory more open patterns"
+    " ok past previous prior read review search should that themes through togheer".split()
+)
 
 
 def _wiki_lookup_query(text):
@@ -60,6 +78,15 @@ def _wiki_lookup_query(text):
 def _asks_for_inventory(text):
     question = " ".join(text.casefold().split()).rstrip("?!., ").replace(", please", " please")
     return _INVENTORY_INTENT.fullmatch(question) is not None
+
+
+def _wiki_terms(text):
+    return {word for word in re.findall(r"[^\W_]+", text.casefold()) if word not in _WIKI_GENERIC}
+
+
+def _wiki_source(note):
+    return {"memory_id": note["id"], "title": note["title"], "source": note["source"],
+            "content": note["content"][:650]}
 
 
 def _json_data(value):
@@ -213,8 +240,7 @@ class LocalChat:
 
     def _answer_wiki(self, query):
         notes = self.dream.find_wiki_notes(query)
-        sources = [{"memory_id": note["id"], "title": note["title"], "source": note["source"],
-                    "content": note["content"][:650]} for note in notes]
+        sources = [_wiki_source(note) for note in notes]
         if notes:
             answer = "I found these notes in your Memory wiki.\n\n" + "\n".join(
                 f"• {note['title']} — {note['summary'][:200]}" if note["summary"] != note["title"]
@@ -231,21 +257,84 @@ class LocalChat:
         }
 
     def _answer_gemini(self, messages):
+        question = messages[-1]["content"]
         try:
-            readout = self._memory_readout(messages[-1]["content"])
+            readout = self._memory_readout(question)
         except (OSError, RuntimeError, ValueError) as error:
             raise RuntimeError("Local neural memory could not be decoded.") from error
-        answer = self._gemini.answer(messages, context=readout)
+        actions = [{"step": "Read local 3B memory", "outcome": "Recalled a lesson" if readout else "Abstained"}]
+        sources = []
+        wiki_status = None
+        if self.dream is not None and _WIKI_REFERENCE.search(question):
+            searched = False
+
+            def search(query):
+                nonlocal searched, wiki_status
+                if searched:
+                    return {"status": "unavailable"}
+                searched = True
+                wiki_status, notes = self._search_wiki_tool(query, messages)
+                sources.extend(_wiki_source(note) for note in notes)
+                outcome = {
+                    "matched": f"{len(sources)} {'match' if len(sources) == 1 else 'matches'}",
+                    "empty": "No active notes",
+                    "no_matches": "No matching notes",
+                    "unavailable": "Search unavailable",
+                }[wiki_status]
+                actions.append({"step": "Search local wiki", "outcome": outcome})
+                evidence = [{"citation": index, "title": source["title"][:100],
+                             "excerpt": source["content"][:400]} for index, source in enumerate(sources, 1)]
+                return {"status": wiki_status, "notes": evidence}
+
+            answer = self._gemini.answer(messages, context=readout, wiki_search=search)
+            if not searched:
+                actions.append({"step": "Search local wiki", "outcome": "No valid search requested"})
+        else:
+            answer = self._gemini.answer(messages, context=readout)
+        if sources:
+            mode = "Saved wiki evidence and decoded local memory" if readout else "Saved wiki evidence"
+            outcome = "Received matching wiki excerpts and the decoded readout" if readout else "Received matching wiki excerpts"
+        else:
+            mode = "Decoded local memory" if readout else "No local memory recalled"
+            outcome = "Received the decoded readout" if readout else "Received chat context"
+        if wiki_status in {"no_matches", "empty", "unavailable"} or (wiki_status is None and actions[-1]["step"] == "Search local wiki"):
+            actions.append({"step": "Vicena reply", "outcome": "Reported the wiki search status"})
+        else:
+            actions.append({"step": "Gemini answer", "outcome": outcome})
         return {
             "answer": answer, "model": self.gemini_model, "provider": "gemini",
-            "memory_mode": "Decoded local memory" if readout else "No local memory recalled",
-            "memory_readout": readout, "sources": [], "memory_used": bool(readout),
-            "actions": [
-                {"step": "Read local 3B memory", "outcome": "Recalled a lesson" if readout else "Abstained"},
-                {"step": "Gemini answer", "outcome": "Received the decoded readout" if readout else "Received chat context"},
-            ],
+            "memory_mode": mode, "memory_readout": readout, "sources": sources,
+            "memory_used": bool(readout or sources), "actions": actions,
             "injected_rows": 0, "vector_receipt": None,
         }
+
+    def _search_wiki_tool(self, query, messages):
+        if len(query) > 160 or not re.fullmatch(r"[\w .'-]*", query):
+            return "unavailable", []
+        all_terms = _wiki_terms(query)
+        explicit_topic = _WIKI_NAMED.search(messages[-1]["content"])
+        named_terms = _wiki_terms(explicit_topic[1]) if explicit_topic else set()
+        if named_terms and not (all_terms & named_terms):
+            return "unavailable", []
+        latest = messages[-1]["content"]
+        previous_user = messages[-3]["content"] if len(messages) > 1 else ""
+        overview = not _wiki_terms(latest) and (_WIKI_OVERVIEW.search(latest) or not _wiki_terms(previous_user))
+        try:
+            if not all_terms and overview:
+                notes = self.dream.memory_inventory()["notes"]
+                status = "empty"
+            elif all_terms:
+                user_text = " ".join(message["content"] for message in messages[-7:] if message["role"] == "user")
+                if not all_terms <= _wiki_terms(user_text):
+                    return "unavailable", []
+                notes = self.dream.find_wiki_notes(query.strip())
+                status = "no_matches"
+            else:
+                return "unavailable", []
+        except (OSError, sqlite3.Error, ValueError):
+            return "unavailable", []
+        active = [note for note in notes if note["status"] == "active"][:3]
+        return ("matched", active) if active else (status, [])
 
     def _answer_remote(self, messages):
         # The remote route deliberately uses only the active remote conversation.

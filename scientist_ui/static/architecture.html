@@ -60,7 +60,11 @@
       </ol>
       <div class="route-note">
         <strong>When memory abstains</strong>
-        <p>The readout step is skipped. Gemini receives the ordinary chat context with no added memory.</p>
+        <p>Gemini receives the chat context without a learned memory readout. For questions about earlier research, it can still request a wiki search.</p>
+      </div>
+      <div class="route-note">
+        <strong>When a question needs exact evidence</strong>
+        <p>Gemini can request one read-only search of the local Memory wiki. Vicena sends short matching excerpts for the answer and links to their sources under <strong>Inspect memory</strong>. Explicit wiki searches and inventory questions are answered locally.</p>
       </div>
     </section>
 
@@ -102,7 +106,7 @@
         </article>
         <article class="memory-card">
           <h3>Memory wiki</h3>
-          <p>SQLite keeps the original notes, sources, and correction history, including details outside the compact learned memory. Search and memory inventory run locally.</p>
+          <p>SQLite keeps the original notes, sources, and correction history on the local host, including details outside the compact learned memory.</p>
           <a class="wiki-link" href="wiki">Open Memory wiki <span aria-hidden="true">↗</span></a>
         </article>
       </div>

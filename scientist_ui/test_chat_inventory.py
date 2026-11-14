@@ -98,6 +98,82 @@ class ChatInventoryTests(unittest.TestCase):
         self.chat._answer_remote.assert_called_once_with(question)
         self.dream.memory_inventory.assert_not_called()
 
+    def test_natural_wiki_overview_limits_context_to_current_note_excerpts(self):
+        notes = [
+            {"id": f"local-id-{index}", "title": "Research note", "content": "Fictional context " * 100,
+             "status": "active", "source": "/private/source.txt"}
+            for index in range(5)
+        ]
+        self.dream.memory_inventory.return_value["notes"] = [
+            {"status": "superseded", "content": "Old material"}, *notes,
+        ]
+        responses = []
+        self.gemini.answer.side_effect = lambda _messages, *, context, wiki_search: (
+            responses.append(wiki_search("")) or "Here are the research themes."
+        )
+        result = self.chat.reply([
+            {"role": "user", "content": "OK based on the researchers that we have done togheer what should we learn?"},
+            {"role": "assistant", "content": "Which works are you referring to?"},
+            {"role": "user", "content": "es the works that we have done in many different areas are the research that we have done look at your wiki"},
+        ], "gemini")
+        self.assertEqual(result["provider"], "gemini")
+        self.assertEqual(result["memory_mode"], "Saved wiki evidence")
+        self.assertTrue(result["memory_used"])
+        self.assertEqual(len(result["sources"]), 3)
+        self.assertEqual(result["sources"][0]["memory_id"], "local-id-0")
+        self.assertIn({"step": "Search local wiki", "outcome": "3 matches"}, result["actions"])
+        self.assertEqual(responses[0]["notes"][0], {
+            "citation": 1, "title": notes[0]["title"], "excerpt": notes[0]["content"][:400],
+        })
+        self.assertNotIn("/private/", str(responses))
+        self.assertNotIn("local-id", str(responses))
+        self.assertNotIn("Old material", str(responses))
+        self.dream.find_wiki_notes.assert_not_called()
+
+    def test_natural_wiki_lookup_allows_a_topic_from_recent_user_turn(self):
+        self.dream.find_wiki_notes.return_value = []
+        captured = []
+        self.gemini.answer.side_effect = lambda _messages, *, context, wiki_search: (
+            captured.append(wiki_search("baseline drift")) or "No matching notes."
+        )
+        result = self.chat.reply([
+            {"role": "user", "content": "We should check the baseline drift."},
+            {"role": "assistant", "content": "What about it?"},
+            {"role": "user", "content": "Can you look at your wiki for evidence?"},
+        ], "gemini")
+        self.dream.find_wiki_notes.assert_called_once_with("baseline drift")
+        self.dream.memory_inventory.assert_not_called()
+        self.assertEqual(captured, [{"status": "no_matches", "notes": []}])
+        self.assertIn({"step": "Search local wiki", "outcome": "No matching notes"}, result["actions"])
+
+    def test_ungrounded_topic_or_blank_named_query_cannot_open_general_inventory(self):
+        for topic, question in (
+            ("something invented", "Look at your wiki and tell me about ZnO"),
+            ("", "Look at your wiki and tell me about ZnO"),
+            ("", "Look at your wiki and tell me more"),
+        ):
+            with self.subTest(topic=topic, question=question):
+                captured = []
+                self.gemini.answer.side_effect = lambda _messages, *, context, wiki_search: (
+                    captured.append(wiki_search(topic)) or "Search unavailable."
+                )
+                self.chat.reply([
+                    {"role": "user", "content": "We should check ZnO calibration."},
+                    {"role": "assistant", "content": "What about it?"},
+                    {"role": "user", "content": question},
+                ], "gemini")
+                self.assertEqual(captured, [{"status": "unavailable", "notes": []}])
+        self.dream.find_wiki_notes.assert_not_called()
+        self.dream.memory_inventory.assert_not_called()
+
+    def test_unrelated_question_never_exposes_the_wiki_tool(self):
+        self.gemini.answer.return_value = "The sky scatters blue light."
+        question = message("Why is the sky blue?")
+        self.assertEqual(self.chat.reply(question, "gemini")["answer"], self.gemini.answer.return_value)
+        self.gemini.answer.assert_called_once_with(question, context=None)
+        self.dream.find_wiki_notes.assert_not_called()
+        self.dream.memory_inventory.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

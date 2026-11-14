@@ -2,7 +2,7 @@
 
 import json
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from scientist_ui.gemini_chat import GeminiReasoner
 
@@ -93,6 +93,58 @@ class GeminiReasonerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Recalled context"):
             self.reasoner.answer(self.messages, context=[1.0, 2.0])
         self.connect.assert_not_called()
+
+    def test_wiki_tool_runs_once_and_preserves_function_signature_and_id(self):
+        call = {
+            "functionCall": {"name": "search_wiki", "args": {"query": "ZnO run"}, "id": "test-call"},
+            "thoughtSignature": "signature",
+        }
+        model = {"role": "model", "parts": [call]}
+        final = {"role": "model", "parts": [{"text": "See source [1]."}]}
+        self.response.read.side_effect = [
+            json.dumps({"candidates": [{"finishReason": "STOP", "content": parts}]}).encode()
+            for parts in (model, final)
+        ]
+        evidence = {"status": "matched", "notes": [{"citation": 1, "title": "Run", "excerpt": "Use a reference."}]}
+        search = Mock(return_value=evidence)
+        self.assertEqual(self.reasoner.answer(self.messages, wiki_search=search), "See source [1].")
+        search.assert_called_once_with("ZnO run")
+        first, second = [json.loads(request.kwargs["body"]) for request in self.connection.request.call_args_list]
+        self.assertEqual(first["toolConfig"]["functionCallingConfig"]["mode"], "ANY")
+        self.assertEqual(second["toolConfig"]["functionCallingConfig"]["mode"], "NONE")
+        self.assertEqual(second["contents"][-2:], [
+            model, {"role": "user", "parts": [{"functionResponse": {
+                "name": "search_wiki", "id": "test-call", "response": evidence,
+            }}]},
+        ])
+
+    def test_wiki_rejects_wrong_or_parallel_calls_without_callback(self):
+        cases = [
+            [{"functionCall": {"name": "read_file", "args": {"query": "ZnO"}}}],
+            [{"functionCall": {"name": "search_wiki", "args": {"query": ["ZnO"]}}}],
+            [{"functionCall": {"name": "search_wiki", "args": {"query": "ZnO", "limit": 100}}}],
+            [{"functionCall": {"name": "search_wiki", "args": {"query": "ZnO"}}}] * 2,
+        ]
+        for parts in cases:
+            with self.subTest(parts=parts):
+                self.respond(parts)
+                callback = Mock()
+                self.assertIn("couldn't complete the wiki search", self.reasoner.answer(self.messages, wiki_search=callback))
+                callback.assert_not_called()
+
+    def test_no_match_explains_result_without_a_second_provider_call(self):
+        self.respond([{"functionCall": {"name": "search_wiki", "args": {"query": "ZnO"}}}])
+        callback = Mock(return_value={"status": "no_matches", "notes": []})
+        self.assertIn("checked the Memory wiki and found no matching", self.reasoner.answer(self.messages, wiki_search=callback))
+        self.connection.request.assert_called_once()
+
+    def test_tool_is_unavailable_for_second_generation(self):
+        call = {"functionCall": {"name": "search_wiki", "args": {"query": "ZnO"}}}
+        self.respond([call])
+        callback = Mock(return_value={"status": "matched", "notes": [{"citation": 1}]})
+        with self.assertRaisesRegex(RuntimeError, "complete text answer"):
+            self.reasoner.answer(self.messages, wiki_search=callback)
+        callback.assert_called_once_with("ZnO")
 
 
 if __name__ == "__main__":

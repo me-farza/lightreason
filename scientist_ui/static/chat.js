@@ -20,8 +20,10 @@ const geminiFlow = [
   chatInput,
   ["memory", "Local 3B recall", "Checks for a learned rule that fits."],
   ["decode", "Decode memory", "Turns recalled vectors into a short text cue."],
-  ["answer", "Gemini", "Writes the reply using chat and any cue."],
+  ["answer", "Gemini", "Writes the reply using chat and relevant memory."],
 ];
+const geminiWikiFlow = [...geminiFlow.slice(0, -1),
+  ["wiki", "Memory wiki", "Searches saved research notes for evidence."], geminiFlow.at(-1)];
 const chatFlows = {
   gemini: geminiFlow,
   vector: [chatInput, ["memory", "Local 3B recall", "Passes relevant vectors directly to the reasoner."],
@@ -188,7 +190,8 @@ function renderFlow() {
   const mode = modePicker.value;
   const chatFlow = flows[mode] || {};
   const active = dreaming ? (dream.status === "idle" || starting ? "capture" : nightStage) : chatFlow.stage;
-  const steps = dreaming ? night : chatFlow.localOnly ? inventoryFlow : (chatFlows[mode] || geminiFlow);
+  const steps = dreaming ? night : chatFlow.localOnly ? inventoryFlow :
+    chatFlow.wiki ? geminiWikiFlow : (chatFlows[mode] || geminiFlow);
   byId("flow-title").textContent = dreaming ? "Dream workflow" : "Chat workflow";
   const activeIndex = steps.findIndex(([name]) => name === active);
   const counts = dream.counts || {};
@@ -216,6 +219,7 @@ function renderFlow() {
     }
     const informative = node("span");
     informative.append(node("strong", label), node("small", description));
+    if (name === "wiki") informative.append(node("small", chatFlow.wiki, "flow-detail"));
     if (dreaming && !starting && stageNotes[name]) informative.append(node("small", stageNotes[name], "flow-detail"));
     const dot = node("span", undefined, "flow-dot");
     dot.setAttribute("aria-hidden", "true");
@@ -922,8 +926,11 @@ function line(role, content, channel, metadata, scroll = true) {
     if (receipt?.state_sha256) {
       details.append(node("p", "Local memory checkpoint"), node("code", receipt.state_sha256, "memory-hash"));
     }
+    if (metadata.provider === "gemini" && sources.length) {
+      details.append(node("p", "Wiki notes used by Gemini"));
+    }
     for (const source of sources) {
-      if (metadata.local_only && source.memory_id) {
+      if ((metadata.local_only || metadata.provider === "gemini") && source.memory_id) {
         const link = node("a", source.title || source.source);
         link.href = "wiki#" + encodeURIComponent(source.memory_id);
         details.append(link, node("p", source.content));
@@ -1017,7 +1024,8 @@ composer.addEventListener("submit", async (event) => {
     }
     line("assistant", result.answer, channel, metadata);
     const rows = result.injected_rows ?? result.vector_rows;
-    flows[mode] = {stage: "answer", localOnly, decoded: Boolean(result.memory_readout), message: [
+    const wiki = !localOnly && result.actions?.find((action) => action.step === "Search local wiki");
+    flows[mode] = {stage: "answer", localOnly, decoded: Boolean(result.memory_readout), wiki: wiki?.outcome, message: [
       result.model, mode === "vector" && Number.isInteger(rows) ?
         rows + (rows === 1 ? " memory vector" : " memory vectors") : result.memory_mode,
     ].filter(Boolean).join(" · ")};
