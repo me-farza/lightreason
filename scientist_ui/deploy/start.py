@@ -176,6 +176,7 @@ def run():
             sys.executable, "-m", "scientist_ui.demo_gateway", "--bind", "0.0.0.0",
             "--port", str(GATEWAY_PORT), "--upstream-port", str(APP_PORT),
             "--public-origin", origin, "--invite-file", str(invite),
+            "--session-key-file", str(state / "gateway-session-key"),
             *(["--public-path", public_path] if public_path else []),
         ], env=environment)
         children.append(gateway)

@@ -10,9 +10,11 @@ from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
+from pathlib import Path
 import re
 from secrets import token_hex
-from stat import S_IMODE, S_ISREG
+from stat import S_IMODE, S_ISDIR, S_ISREG
+from tempfile import NamedTemporaryFile
 from threading import BoundedSemaphore, Lock
 from time import monotonic, time
 from urllib.parse import parse_qs, urlsplit
@@ -23,6 +25,7 @@ _PATH = re.compile(r"/[a-z][a-z0-9-]{0,62}")
 _MAX_BODY = 16_384
 _MAX_RESPONSE = 4 * 1024 * 1024
 _SESSION_SECONDS = 6 * 60 * 60
+_SESSION_KEY_BYTES = 32
 SHORT_INVITE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 _SHORT_INVITE_GROUP = rf"[{SHORT_INVITE_ALPHABET}]{{4}}"
 _INVITE = re.compile(rf"{_SHORT_INVITE_GROUP}(?:-{_SHORT_INVITE_GROUP}){{2}}|[A-Za-z0-9_-]{{32,128}}")
@@ -130,8 +133,41 @@ def read_invite(path):
     return sha256(invite.encode("ascii")).digest()
 
 
+def load_session_key(path):
+    """Read or atomically create the private key shared by gateway restarts."""
+    parent = path.parent.lstat()
+    if not S_ISDIR(parent.st_mode) or parent.st_uid != os.geteuid() or parent.st_mode & 0o077:
+        raise ValueError("The session key directory must be owner-only.")
+    flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+    try:
+        fd = os.open(path, flags)
+    except FileNotFoundError:
+        with NamedTemporaryFile(dir=path.parent, prefix=f".{path.name}.", delete=False) as file:
+            temporary = Path(file.name)
+            try:
+                file.write(os.urandom(_SESSION_KEY_BYTES))
+                file.flush()
+                os.fsync(file.fileno())
+                try:
+                    os.link(temporary, path)
+                except FileExistsError:
+                    pass  # Another gateway published its key first.
+            finally:
+                temporary.unlink()
+        fd = os.open(path, flags)
+    with os.fdopen(fd, "rb") as file:
+        info = os.fstat(file.fileno())
+        if not S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or info.st_mode & 0o077:
+            raise ValueError("The session key must be an owner-only regular file.")
+        key = file.read(_SESSION_KEY_BYTES + 1)
+    if len(key) != _SESSION_KEY_BYTES:
+        raise ValueError("The session key must be exactly 32 bytes.")
+    return key
+
+
 class DemoGateway(ThreadingHTTPServer):
-    def __init__(self, port, upstream_port, public_origin, invite_hash, *, bind="127.0.0.1", public_path=""):
+    def __init__(self, port, upstream_port, public_origin, invite_hash, *,
+                 bind="127.0.0.1", public_path="", session_key=None):
         if bind not in ("127.0.0.1", "0.0.0.0"):
             raise ValueError("Use a loopback or container bind address.")
         if public_path and not _PATH.fullmatch(public_path):
@@ -143,7 +179,11 @@ class DemoGateway(ThreadingHTTPServer):
         self.public_origin = public_origin
         self.upstream_port = upstream_port
         self.invite_hash = invite_hash
-        self.secret = os.urandom(32)
+        root_key = session_key if session_key is not None else os.urandom(_SESSION_KEY_BYTES)
+        if not isinstance(root_key, bytes) or len(root_key) != _SESSION_KEY_BYTES:
+            raise ValueError("The session key must be exactly 32 bytes.")
+        scope = f"vicena-demo-session/v1\0{public_origin}\0{self.base}\0".encode("ascii")
+        self.secret = digest(root_key, scope + invite_hash, "sha256")
         self.budget_lock = Lock()
         self.usage = {key: deque() for key in _LIMITS}
         self.connections = BoundedSemaphore(16)
@@ -371,13 +411,15 @@ def main():
     parser.add_argument("--upstream-port", type=int, default=8783)
     parser.add_argument("--public-origin", required=True)
     parser.add_argument("--invite-file", required=True)
+    parser.add_argument("--session-key-file", type=Path, help="Private signing key persisted across restarts.")
     options = parser.parse_args()
     if not (1 <= options.port <= 65535 and 1 <= options.upstream_port <= 65535 and options.port != options.upstream_port):
         parser.error("Use different valid ports.")
     try:
         invite_hash = read_invite(options.invite_file)
+        session_key = load_session_key(options.session_key_file) if options.session_key_file else None
         with DemoGateway(options.port, options.upstream_port, options.public_origin, invite_hash,
-                         bind=options.bind, public_path=options.public_path) as server:
+                         bind=options.bind, public_path=options.public_path, session_key=session_key) as server:
             print(f"Vicena demo gateway listening on {options.bind}:{server.server_port}", flush=True)
             server.serve_forever()
     except KeyboardInterrupt:

@@ -10,7 +10,7 @@ Use a dedicated app with one replica. Set its **Container HTTP Port** to `8080`.
 
 | Container path | Required content |
 | --- | --- |
-| `/data` | Persistent volume writable by container UID/GID `10001:10001`. Startup creates a private `/data/demo` folder for SQLite and Dream checkpoints. If using a bind mount, make the mount root writable by that UID. |
+| `/data` | Persistent volume writable by container UID/GID `10001:10001`. Startup creates a private `/data/demo` folder for SQLite, Dream checkpoints, and the gateway key that keeps sign-ins valid across restarts. If using a bind mount, make the mount root writable by that UID. |
 | `/models/qwen3b` | Original pinned Qwen2.5-3B-Instruct checkpoint with all model shards, index, tokenizer and config files. |
 | `/models/qwen35b-input` | Original pinned Qwen3.6-35B-A3B config, tokenizer, download manifest, weight index and the complete original shard that contains the input embedding tensor. |
 | `/models/codec.safetensors`, `/models/policy.safetensors` | Matching Lightreason Dream codec and policy artifacts. |
