@@ -19,6 +19,7 @@ from urllib.parse import parse_qs, urlsplit
 
 
 _COOKIE = "__Host-vicena-demo"
+_PATH = re.compile(r"/[a-z][a-z0-9-]{0,62}")
 _MAX_BODY = 16_384
 _MAX_RESPONSE = 4 * 1024 * 1024
 _SESSION_SECONDS = 6 * 60 * 60
@@ -27,7 +28,7 @@ _HOST = re.compile(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0
 _TOKEN = re.compile(r"(\d{1,12})\.([a-f0-9]{32})\.([a-f0-9]{64})")
 _JSON = "application/json; charset=utf-8"
 _CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
-        "object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
+        "object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
 _GET = frozenset({
     "/", "/architecture", "/notebook", "/wiki",
     "/static/architecture.css", "/static/style.css", "/static/chat.js", "/static/app.js",
@@ -48,8 +49,9 @@ _LIMITS = {
 }
 _LANDING = b"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vicena Lightreason demo</title><link rel="stylesheet" href="/_demo/style.css">
-<script src="/_demo/access.js" defer></script></head>
+<base href="/">
+<title>Vicena Lightreason demo</title><link rel="stylesheet" href="_demo/style.css">
+<script src="_demo/access.js" defer></script></head>
 <body><main><h1>Vicena Lightreason</h1><p>This demo is a shared fictional research workspace.
 Anyone with demo access can see its saved notes and training results. Use fictional examples.</p>
 <form><label for="invite">Invite code</label><input id="invite" type="password" required maxlength="128"
@@ -59,7 +61,12 @@ const form = document.querySelector('form');
 const input = document.getElementById('invite');
 const status = document.getElementById('status');
 const invite = new URLSearchParams(location.hash.slice(1)).get('invite');
-if (location.hash) history.replaceState(null, '', '/');
+const home = new URL(document.baseURI);
+const current = new URL(location.href);
+if (current.hash) {
+  current.hash = '';
+  history.replaceState(null, '', current);
+}
 if (invite) input.value = invite;
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -67,7 +74,7 @@ form.addEventListener('submit', async (event) => {
   button.disabled = true;
   status.textContent = 'Checking invite...';
   try {
-    const response = await fetch('/_demo/session', {
+    const response = await fetch(new URL('_demo/session', home), {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({invite: input.value.trim()})
     });
@@ -76,7 +83,7 @@ form.addEventListener('submit', async (event) => {
       return;
     }
     input.value = '';
-    location.replace('/');
+    location.replace(current);
   } catch {
     status.textContent = 'Demo access is unavailable. Try again.';
   } finally {
@@ -118,7 +125,14 @@ def read_invite(path):
 
 
 class DemoGateway(ThreadingHTTPServer):
-    def __init__(self, port, upstream_port, public_origin, invite_hash):
+    def __init__(self, port, upstream_port, public_origin, invite_hash, *, bind="127.0.0.1", public_path=""):
+        if bind not in ("127.0.0.1", "0.0.0.0"):
+            raise ValueError("Use a loopback or container bind address.")
+        if public_path and not _PATH.fullmatch(public_path):
+            raise ValueError("Use a single path segment such as /lightreason.")
+        self.public_path = public_path
+        self.cookie_name = "__Secure-vicena-demo" if public_path else _COOKIE
+        self.base = public_path + "/"
         self.public_host = public_host(public_origin)
         self.public_origin = public_origin
         self.upstream_port = upstream_port
@@ -128,7 +142,7 @@ class DemoGateway(ThreadingHTTPServer):
         self.usage = {key: deque() for key in _LIMITS}
         self.connections = BoundedSemaphore(16)
         self.upstream_calls = BoundedSemaphore(5)
-        super().__init__(("127.0.0.1", port), DemoHandler)
+        super().__init__((bind, port), DemoHandler)
 
     def process_request(self, request, client_address):
         if not self.connections.acquire(blocking=False):
@@ -183,6 +197,9 @@ class DemoHandler(BaseHTTPRequestHandler):
         pass
 
     def _send(self, status, body=b"", content_type=_JSON, *, cookie=None):
+        if content_type.startswith("text/html") and self.server.public_path:
+            base = f'<base href="{self.server.base}">'.encode("ascii")
+            body = body.replace(b'<base href="/">', base, 1)
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
@@ -210,7 +227,8 @@ class DemoHandler(BaseHTTPRequestHandler):
             cookies.load(self.headers.get("Cookie", ""))
         except CookieError:
             return False
-        return _COOKIE in cookies and self.server.valid_token(cookies[_COOKIE].value)
+        name = self.server.cookie_name
+        return name in cookies and self.server.valid_token(cookies[name].value)
 
     def _body(self, limit):
         lengths = self.headers.get_all("Content-Length", [])
@@ -241,7 +259,8 @@ class DemoHandler(BaseHTTPRequestHandler):
             else:
                 self._error(HTTPStatus.TOO_MANY_REQUESTS, "Try again in a minute.")
             return
-        cookie = (f"{_COOKIE}={self.server.issue_token()}; Path=/; Max-Age={_SESSION_SECONDS}; "
+        cookie = (f"{self.server.cookie_name}={self.server.issue_token()}; Path={self.server.base}; "
+                  f"Max-Age={_SESSION_SECONDS}; "
                   "Secure; HttpOnly; SameSite=Strict")
         self._send(HTTPStatus.OK, b'{"ok":true}', cookie=cookie)
 
@@ -277,10 +296,13 @@ class DemoHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         if parsed.scheme or parsed.netloc or parsed.fragment:
             return "", ""
+        if not parsed.path.startswith(self.server.base):
+            return "", ""
+        path = parsed.path.removeprefix(self.server.public_path)
         if parsed.query:
-            if parsed.path == "/" and self.command == "GET" and parsed.query == "view=dream":
+            if path == "/" and self.command == "GET" and parsed.query == "view=dream":
                 return "/", "/"
-            if parsed.path != "/api/notebook" or self.command != "GET":
+            if path != "/api/notebook" or self.command != "GET":
                 return "", ""
             try:
                 params = parse_qs(parsed.query, strict_parsing=True, max_num_fields=2)
@@ -291,7 +313,7 @@ class DemoHandler(BaseHTTPRequestHandler):
                 for values in params.values()
             ):
                 return "", ""
-        return parsed.path, self.path
+        return path, path + ("?" + parsed.query if parsed.query else "")
 
     def do_GET(self):
         if not self._valid_origin():
@@ -338,16 +360,19 @@ class DemoHandler(BaseHTTPRequestHandler):
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8784)
+    parser.add_argument("--bind", choices=("127.0.0.1", "0.0.0.0"), default="127.0.0.1")
+    parser.add_argument("--public-path", default="")
     parser.add_argument("--upstream-port", type=int, default=8783)
     parser.add_argument("--public-origin", required=True)
     parser.add_argument("--invite-file", required=True)
     options = parser.parse_args()
     if not (1 <= options.port <= 65535 and 1 <= options.upstream_port <= 65535 and options.port != options.upstream_port):
-        parser.error("Use different valid loopback ports.")
+        parser.error("Use different valid ports.")
     try:
         invite_hash = read_invite(options.invite_file)
-        with DemoGateway(options.port, options.upstream_port, options.public_origin, invite_hash) as server:
-            print(f"Vicena demo gateway listening on 127.0.0.1:{server.server_port}", flush=True)
+        with DemoGateway(options.port, options.upstream_port, options.public_origin, invite_hash,
+                         bind=options.bind, public_path=options.public_path) as server:
+            print(f"Vicena demo gateway listening on {options.bind}:{server.server_port}", flush=True)
             server.serve_forever()
     except KeyboardInterrupt:
         pass

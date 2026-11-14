@@ -29,7 +29,8 @@ function date(timestamp) {
 
 function noteLink(note, description) {
   const link = element("a");
-  link.href = "#" + encodeURIComponent(note.id);
+  link.href = noteUrl(note.id);
+  link.dataset.noteId = note.id;
   link.append(element("span", note.title || "Untitled note", "wiki-link-title"));
   const subtitle = element("span", undefined, "wiki-link-subtitle");
   if (description) subtitle.append(document.createTextNode(description));
@@ -99,6 +100,12 @@ function hashId() {
   try { return decodeURIComponent(window.location.hash.slice(1)); } catch { return ""; }
 }
 
+function noteUrl(id) {
+  const url = new URL(window.location.href);
+  url.hash = encodeURIComponent(id);
+  return url.href;
+}
+
 function render(requested = hashId()) {
   const terms = search.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
   const matches = notes.filter((note) =>
@@ -130,7 +137,7 @@ async function load() {
   byId("wiki-queue").hidden = true;
   showState("Loading notes…");
   try {
-    const response = await fetch("/api/wiki", {cache: "no-store"});
+    const response = await fetch("api/wiki", {cache: "no-store"});
     if (!response.ok) throw new Error("Wiki unavailable");
     const payload = await response.json();
     if (!Array.isArray(payload.notes)) throw new Error("Invalid wiki");
@@ -153,7 +160,7 @@ async function load() {
     search.disabled = notes.length === 0;
     render();
     if (!window.location.hash && currentNote) {
-      history.replaceState(null, "", "#" + encodeURIComponent(currentNote.id));
+      history.replaceState(null, "", noteUrl(currentNote.id));
     }
   } catch {
     showState("Could not load notes", "The local wiki is unavailable.", true);
@@ -176,12 +183,12 @@ window.addEventListener("hashchange", () => {
   render(id);
 });
 document.addEventListener("click", (event) => {
-  const link = event.target.closest("a[href^='#']");
+  const link = event.target.closest("a[data-note-id]");
   if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-  const id = decodeURIComponent(link.hash.slice(1));
+  const id = link.dataset.noteId;
   if (!index.has(id)) return;
   event.preventDefault();
-  if (link.hash !== window.location.hash) history.pushState(null, "", link.hash);
+  if (link.hash !== window.location.hash) history.pushState(null, "", link.href);
   if (link.closest(".wiki-note")) {
     activeTag = "";
     search.value = "";

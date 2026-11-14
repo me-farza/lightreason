@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>Vicena Lightreason</title>
-  <link rel="icon" href="/static/logo/favicon-32x32.png">
-  <link rel="stylesheet" href="/static/style.css">
-  <script src="/static/chat.js" defer></script>
+  <base href="/">
+  <link rel="icon" href="static/logo/favicon-32x32.png">
+  <link rel="stylesheet" href="static/style.css">
+  <script src="static/chat.js" defer></script>
 </head>
 <body class="vicena-chat">
   <main class="app chat-app">
     <header class="topbar">
-      <a class="brand" href="/"><img class="brand-icon" src="/static/logo/android-chrome-192x192.png" alt="" width="30" height="30">Vicena <span class="brand-sub">Lightreason</span></a>
+      <a class="brand" href="./"><img class="brand-icon" src="static/logo/android-chrome-192x192.png" alt="" width="30" height="30">Vicena <span class="brand-sub">Lightreason</span></a>
       <nav class="chat-nav" aria-label="Workspace">
-        <button id="new-chat" type="button">New chat</button><a href="/wiki">Memory wiki</a><a href="/notebook">Notebook</a>
-        <a href="/architecture">Architecture</a>
+        <button id="new-chat" type="button">New chat</button><a href="wiki">Memory wiki</a><a href="notebook">Notebook</a>
+        <a href="architecture">Architecture</a>
         <button id="dream-toggle" type="button" aria-pressed="false"><span id="dream-symbol" aria-hidden="true">☾</span> <span id="dream-label">Dream</span></button>
       </nav>
     </header>
@@ -27,7 +28,7 @@
 
     <section class="chat-messages" id="messages" role="log" aria-label="Conversation">
       <div class="chat-welcome" id="welcome">
-        <img src="/static/logo/android-chrome-192x192.png" alt="" width="52" height="52">
+        <img src="static/logo/android-chrome-192x192.png" alt="" width="52" height="52">
         <h1>What are you working on?</h1>
         <p>Talk through your research. Save observations and documents for Dream.</p>
         <section id="morning-preview" class="morning-preview" aria-labelledby="morning-preview-title" hidden>

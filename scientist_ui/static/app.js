@@ -205,8 +205,8 @@ async function loadNotebook(workflow, view, apply = false) {
   try {
     const params = new URLSearchParams({ workflow, view });
     const data = apply
-      ? await request("/api/correction", { workflow })
-      : await request("/api/notebook?" + params);
+      ? await request("api/correction", { workflow })
+      : await request("api/notebook?" + params);
     renderNotebook(data);
     if (apply) message.append(document.createTextNode(" · Correction saved"));
   } catch (error) {
@@ -240,7 +240,7 @@ async function runQuery(event) {
     const body = { workflow: notebook.workflow.id, view: notebook.view };
     if (querySelect.value) body.query = querySelect.value;
     else body.question = question;
-    const result = await request("/api/recall", body, controller.signal);
+    const result = await request("api/recall", body, controller.signal);
     if (queryRequest !== controller) return;
     const labels = {
       supported: ["supported", "Supported by local sources"],
@@ -277,7 +277,7 @@ queryForm.addEventListener("submit", runQuery);
 
 async function start() {
   try {
-    const { workflows } = await request("/api/workflows");
+    const { workflows } = await request("api/workflows");
     workflowSelect.replaceChildren(...workflows.map((flow) => new Option(flow.title, flow.id)));
     if (!workflows.length) throw new Error("No experiment workflows are available.");
     await loadNotebook(workflows[0].id, "current");

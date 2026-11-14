@@ -23,7 +23,9 @@ const night = [["capture", "Read your notes"], ["questions", "Write questions"],
   ["train", "Test local 3B"], ["promote", "Save results"]];
 const conversations = {local: [], remote: []};
 const availableModes = new Set();
-const localChatKey = "vicena.localChat.v1";
+const mountPath = new URL(document.baseURI).pathname;
+const storageKey = (name) => mountPath === "/" ? "vicena." + name : "vicena." + mountPath + "." + name;
+const localChatKey = storageKey("localChat.v1");
 const maxStoredMessages = 40;
 const reportNames = {
   running: "Dream is running.",
@@ -150,7 +152,7 @@ function watchLocalStatus() {
   if (!waitingForLocal && (!usesLocalAnswer(modePicker.value) || localModelStatus !== "starting")) return;
   readinessTimer = setTimeout(async () => {
     try {
-      const result = await api("/api/chat/status");
+      const result = await api("api/chat/status");
       setLocalStatus(result.local_status);
     } catch {}
     watchLocalStatus();
@@ -260,7 +262,7 @@ function view(nightMode) {
   controls();
   renderFlow();
   if (!dreaming) flushSampling();
-  try { sessionStorage.setItem("vicena.dreamView", String(dreaming)); } catch {}
+  try { sessionStorage.setItem(storageKey("dreamView"), String(dreaming)); } catch {}
   if (dreaming) byId("dream-title").focus();
   else input.focus();
 }
@@ -721,7 +723,7 @@ async function refreshDream() {
   clearTimeout(pollTimer);
   const revision = ++dreamRevision;
   try {
-    const value = await api("/api/dream");
+    const value = await api("api/dream");
     if (revision === dreamRevision) {
       dreamLoaded = true;
       renderDream(value);
@@ -756,7 +758,7 @@ async function startDream(retry = false) {
   controls();
   renderFlow();
   try {
-    const result = await api("/api/dream", retry ? {retry: true} : {});
+    const result = await api("api/dream", retry ? {retry: true} : {});
     starting = false;
     renderDream(result, result.status === "running" || result.night > previous ||
       (Boolean(result.attempt_id) && result.attempt_id !== previousAttempt));
@@ -764,7 +766,7 @@ async function startDream(retry = false) {
         (retry && result.status === "complete" && !heldMemory(result) && !result.skill?.retryable)) {
       ranDuringVisit = true;
       if (result.status === "complete") completedDuringVisit = true;
-      try { sessionStorage.setItem("vicena.dreamRanDuringVisit", "true"); } catch {}
+      try { sessionStorage.setItem(storageKey("dreamRanDuringVisit"), "true"); } catch {}
     }
     scheduleDreamRefresh();
   } catch (error) {
@@ -782,8 +784,8 @@ function enterDream() {
   ranDuringVisit = false;
   completedDuringVisit = false;
   try {
-    sessionStorage.setItem("vicena.dreamEntryNight", String(entryNight));
-    sessionStorage.removeItem("vicena.dreamRanDuringVisit");
+    sessionStorage.setItem(storageKey("dreamEntryNight"), String(entryNight));
+    sessionStorage.removeItem(storageKey("dreamRanDuringVisit"));
   } catch {}
   view(true);
   if (dream.counts?.pending && dream.questions?.length && !dream.clarifications?.length && !dreamNoteInput.value &&
@@ -812,7 +814,7 @@ byId("run-dream").addEventListener("click", (event) => {
 function markSampleSaved() {
   if (sampleSaved) return;
   sampleSaved = true;
-  try { sessionStorage.setItem("vicena.dreamSampleSaved", "true"); } catch {}
+  try { sessionStorage.setItem(storageKey("dreamSampleSaved"), "true"); } catch {}
   byId("sample-dream-help").textContent = "The synthetic sample has been saved.";
 }
 
@@ -821,7 +823,7 @@ async function saveDreamNote({text, source, requestId}, isSample = false) {
   controls();
   dreamNoteStatus.textContent = "Queueing note locally…";
   try {
-    await api("/api/chat/save", {text, source, kind: "message", capture_request_id: requestId});
+    await api("api/chat/save", {text, source, kind: "message", capture_request_id: requestId});
     if (isSample) markSampleSaved();
     else {
       dreamNoteInput.value = "";
@@ -860,7 +862,7 @@ function line(role, content, channel, metadata, scroll = true) {
   if (metadata) {
     if (metadata.local_only === true) {
       const link = node("a", "Open Memory wiki");
-      link.href = "/wiki";
+      link.href = "wiki";
       const action = node("p");
       action.append(link);
       item.append(action);
@@ -895,7 +897,7 @@ function line(role, content, channel, metadata, scroll = true) {
     for (const source of sources) {
       if (metadata.local_only && source.memory_id) {
         const link = node("a", source.title || source.source);
-        link.href = "/wiki#" + encodeURIComponent(source.memory_id);
+        link.href = "wiki#" + encodeURIComponent(source.memory_id);
         details.append(link, node("p", source.content));
       } else {
         details.append(node("p", source.source + " · " + source.content));
@@ -969,7 +971,7 @@ composer.addEventListener("submit", async (event) => {
     const context = check ? [userMessage] : recent(messages, mode === "gemini" || mode === "remote");
     const request = {messages: context, mode, save};
     if (approved) request.capture_request_id = approved.requestId;
-    const result = await api("/api/chat", request);
+    const result = await api("api/chat", request);
     byId("remember").checked = true;
     if (channel === "remote") remoteCapture = null;
     const metadata = {...result, mode};
@@ -1007,7 +1009,7 @@ composer.addEventListener("submit", async (event) => {
     flows[mode] = {stage: null, message: approved?.captureId ?
       "Message saved for Dream. Reply incomplete." : "Message incomplete"};
     if (usesLocalAnswer(mode)) {
-      api("/api/chat/status").then((result) => setLocalStatus(result.local_status)).catch(() => {});
+      api("api/chat/status").then((result) => setLocalStatus(result.local_status)).catch(() => {});
     }
   } finally {
     waitingForLocal = false;
@@ -1060,7 +1062,7 @@ attachment.addEventListener("change", async (event) => {
   try {
     if (!/\.(txt|md)$/i.test(file.name)) throw new Error("Choose a TXT or Markdown file.");
     if (file.size > 12000) throw new Error("Choose a text or Markdown file under 12 KB.");
-    await api("/api/chat/save", {text: await file.text(), source: file.name, kind: "document"});
+    await api("api/chat/save", {text: await file.text(), source: file.name, kind: "document"});
     status.textContent = "Saved " + file.name + " for Dream.";
     refreshDream();
   } catch (error) {
@@ -1087,17 +1089,19 @@ modePicker.addEventListener("change", () => {
 restoreLocalChat();
 renderDream(dream);
 try {
-  if (sessionStorage.getItem("vicena.dreamSampleSaved") === "true") markSampleSaved();
-  entryNight = Number(sessionStorage.getItem("vicena.dreamEntryNight")) || 0;
-  ranDuringVisit = sessionStorage.getItem("vicena.dreamRanDuringVisit") === "true";
-  if (sessionStorage.getItem("vicena.dreamView") === "true") view(true);
+  if (sessionStorage.getItem(storageKey("dreamSampleSaved")) === "true") markSampleSaved();
+  entryNight = Number(sessionStorage.getItem(storageKey("dreamEntryNight"))) || 0;
+  ranDuringVisit = sessionStorage.getItem(storageKey("dreamRanDuringVisit")) === "true";
+  if (sessionStorage.getItem(storageKey("dreamView")) === "true") view(true);
 } catch {}
-if (new URLSearchParams(location.search).get("view") === "dream") {
-  history.replaceState(null, "", location.pathname);
+const chatUrl = new URL(location.href);
+if (chatUrl.searchParams.get("view") === "dream") {
+  chatUrl.searchParams.delete("view");
+  history.replaceState(null, "", chatUrl.href);
   view(true);
 }
 refreshDream();
-api("/api/chat/status").then((data) => {
+api("api/chat/status").then((data) => {
   document.querySelectorAll(".dream-planner-disclosure").forEach((note) => { note.hidden = !data.gemini_available; });
   const options = [];
   function addMode(value, label) {
