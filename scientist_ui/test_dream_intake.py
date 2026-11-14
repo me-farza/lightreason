@@ -109,6 +109,29 @@ class DreamIntakeTests(unittest.TestCase):
         self.assertEqual(current["content"], texts[-1])
         self.assertEqual(reopened.find_wiki_notes("unknown microscope"), [])
 
+    def test_planner_proposals_require_a_verbatim_decision_from_a_queued_note(self):
+        planner = Mock(spec=["plan"])
+        trainer = Mock(spec=[], return_value={"eligible": 1, "promotions": 1})
+        dream = Dream(self.db, planner=planner, trainer=trainer)
+        note = "Our standard microscope warmup practice is to wait ten minutes."
+        capture = dream.capture(note, "Training notes", "document")
+        tentative = "For camera calibration we might always use a gray card."
+        unconfirmed = dream.capture(tentative, "Open questions", "document")
+        planner.plan.return_value = {"questions": {}, "wiki": [], "lessons": [
+            {"capture_id": capture, "category": "process", "key": "microscope warmup",
+             "answer": "wait ten minutes", "evidence": note},
+            {"capture_id": unconfirmed, "category": "process", "key": "camera calibration",
+             "answer": "use a gray card", "evidence": tentative},
+        ]}
+        report = self.finish(dream)
+        question, = report["questions"]
+        self.assertEqual(question["answer"], "wait ten minutes")
+        self.assertEqual(question["observation"], note)
+        self.assertEqual(question["origin"], "gemini_extraction")
+        self.assertEqual([row["source"] for row in report["clarifications"]], ["Open questions"])
+        self.assertEqual({note["content"] for note in dream.wiki()}, {note, tentative})
+        self.assertTrue(all(entry["may_extract"] for entry in planner.plan.call_args.args[0]))
+
     def test_chat_only_batch_never_calls_planner_or_trainer(self):
         trainer, planner = Mock(spec=[]), Mock(spec=["plan"])
         dream = Dream(self.db, trainer=trainer, planner=planner)

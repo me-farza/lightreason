@@ -338,7 +338,7 @@ class ProcedureMemoryTests(unittest.TestCase):
                 self.assertGreater(trace["sampling"]["first"]["sample_count"], 0)
                 self.assertEqual(trace["sampling"]["last"]["step"], steps)
                 self.assertGreater(trace["sampling"]["last"]["mean_reward"], trace["sampling"]["first"]["mean_reward"])
-                self.assertEqual([check["reward"] for check in checks if check["split"] == "held out"], [1, 1])
+                self.assertEqual([check["reward"] for check in checks if check["split"] == "held out"], [1, 1, 1])
                 self.assertLess(checks[0]["score_before"], .8)
                 self.assertGreaterEqual(checks[0]["score_after"], .8)
                 restart = ProcedureMemory(path, "pinned-test-model")
@@ -425,7 +425,7 @@ class ProcedureMemoryTests(unittest.TestCase):
                     self.assertEqual(published[-1]["status"], "training")
                     self.assertEqual(published[-1]["optimizer_steps"], 0)
                     self.assertEqual(published[-1]["checks"], [])
-                    self.assertEqual(len(published[-1]["plan"]), 6)
+                    self.assertEqual(len(published[-1]["plan"]), 8 if word == "40" else 6)
                 return answer_rows(word)
 
             with (patch.object(trainer, "_memory", return_value=memory),
@@ -456,7 +456,8 @@ class ProcedureMemoryTests(unittest.TestCase):
                     initial_entropy = -(p * log(p) + (1 - p) * log(1 - p))
                     self.assertAlmostEqual(points[0]["mean_entropy_nats"], initial_entropy, places=6)
                     for point in points:
-                        self.assertEqual(point["sample_count"], 96)
+                        training_cases = sum(row["split"] == "training" for row in run["plan"])
+                        self.assertEqual(point["sample_count"], 24 * (training_cases + run["retention_replay_cases"]))
                         self.assertGreaterEqual(point["mean_entropy_nats"], 0)
                         self.assertLessEqual(point["mean_entropy_nats"], log(2) + 1e-7)
                         self.assertGreaterEqual(point["success_rate"], 0)
@@ -467,6 +468,7 @@ class ProcedureMemoryTests(unittest.TestCase):
                 self.assertEqual([run["algorithm"] for run in final_runs], ["REINFORCE", "REINFORCE"])
                 self.assertEqual(final_runs[1]["before_passed"], 2)
                 self.assertEqual(final_runs[1]["after_passed"], 3)
+                self.assertEqual([run["retention_replay_cases"] for run in final_runs], [0, 1])
                 self.assertEqual(final_runs[0]["checks"][0]["question"],
                                  "For the gas inlet procedure, what should I set or do?")
                 self.assertEqual(final_runs[1]["checks"][0]["question"],
@@ -478,6 +480,7 @@ class ProcedureMemoryTests(unittest.TestCase):
                 report = trainer([candidate("ambiguous procedure", "130")], lambda _: None)
                 run, = report["policy_runs"]
                 self.assertEqual(run["status"], "held")
+                self.assertIn("recall on new wording", run["reason"])
                 self.assertGreater(run["optimizer_steps"], 0)
                 self.assertLess(run["after_passed"], len([x for x in run["checks"] if x["split"] != "training"]))
                 self.assertEqual(saved, trainer.procedure.path.read_bytes())
@@ -512,6 +515,59 @@ class ProcedureMemoryTests(unittest.TestCase):
                 positive = [(check["split"], check["question"]) for check in checks if check["expected"] == "recall"]
                 self.assertEqual(positive, [("held out", held_out), ("training", prompt), ("training", training)])
 
+    def test_training_only_retention_replay_prevents_busy_topic_from_stealing_prior_recall(self):
+        import torch
+        from safetensors.torch import save_file
+
+        def features(_, question):
+            topic = torch.zeros(384)
+            if "detector baseline" in question:
+                topic[:2] = torch.tensor([0.985, 0.174])
+                if question.startswith("For the"):
+                    topic[:2] = torch.tensor([0.982, 0.190])
+            elif "detector scan" in question:
+                topic[:2] = torch.tensor([0.342, 0.940])
+            else:
+                topic[2] = 1
+            return torch.cat((topic, topic))
+
+        def example(key, answer):
+            return {"key": key, "answer": answer, "question": f"What does the {key} specify?",
+                    "training_kind": "process"}
+
+        def rows(answer):
+            return torch.full((12, 2048), float(answer), dtype=torch.bfloat16), 1
+
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / "procedure.safetensors"
+            memory = ProcedureMemory(path, None)
+            previous = example("detector baseline", "40")
+            later = example("detector scan", "50")
+            with (patch.object(memory, "_encode", side_effect=features),
+                  patch.object(memory, "_answer_rows", side_effect=rows)):
+                self.assertTrue(memory.train(None, previous, lambda _: None)[0])
+                state = memory._load()
+                self.assertFalse(state["practice_probes"][0].equal(state["probes"][0]))
+                # Match the weaker but valid confidence an older saved gate can have.
+                held_out_logit = (state["weights"][0] @ state["probes"][0] + state["biases"][0]).item()
+                state["biases"][0] -= held_out_logit - 1.6
+                save_file({k: v for k, v in state.items() if k != "practice_probes"}, path)
+                trace = {}
+                self.assertIsNone(memory.train(None, later, lambda _: None, trace=trace)[0])
+                self.assertEqual(trace["status"], "held")
+                self.assertIn("retention", trace["reason"])
+                self.assertEqual(trace["retention_replay_cases"], 0)
+
+                save_file(state, path)
+                trace = {}
+                _, _, checks = memory.train(None, later, lambda _: None, trace=trace)
+                self.assertEqual(trace["status"], "promoted", checks)
+                self.assertEqual(trace["retention_replay_cases"], 1)
+                holdout = "For the detector baseline, what should I set or do?"
+                torch.testing.assert_close(memory.recall(None, holdout), rows("40")[0][:1])
+                transfer = "A new run involves detector scan. How should I handle it?"
+                torch.testing.assert_close(memory.recall(None, transfer), rows("50")[0][:1])
+
     def test_optional_gemini_questions_are_checked_before_promotion(self):
         import torch
 
@@ -545,7 +601,7 @@ class ProcedureMemoryTests(unittest.TestCase):
                 self.assertTrue(digest)
                 self.assertEqual(trace["status"], "promoted")
                 # Held-out cases never contribute to the optimizer batch, including on fallback.
-                sampled_per_step = 120 if scenario == "validated" else 96
+                sampled_per_step = 144 if scenario == "validated" else 120
                 self.assertTrue(all(point["sample_count"] == sampled_per_step for point in trace["sampling"]["points"]))
                 self.assertCountEqual(calls, [case["question"] for case in memory.question_plan(example)])
                 gemini = [(row["split"], row["question"], row["reward_after"])
@@ -564,7 +620,7 @@ class ProcedureMemoryTests(unittest.TestCase):
                     self.assertEqual(progress[-1]["planner_fallback"], trace["planner_fallback"])
 
         plan = ProcedureMemory.question_plan({**example, "question_variants": [example["question"].upper(), transfer]})
-        self.assertEqual(len(plan), 6)
+        self.assertEqual(len(plan), 8)
         self.assertTrue(all(case["origin"] == "local" for case in plan))
 
 

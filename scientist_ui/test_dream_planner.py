@@ -104,6 +104,70 @@ class DreamPlannerTests(unittest.TestCase):
             with self.subTest(questions=questions):
                 self.assertEqual(self.response(questions, [self.card])["questions"], {})
 
+    def test_accepts_natural_reordering_plural_and_action_forms(self):
+        cases = (
+            ("cryogenic detector sensor alignment procedure", "Check the reference plate first", [
+                "How should we align the sensor on the cryogenic detector?",
+                "Suppose the cryogenic detector's new sensor needs aligning. Which step comes first?",
+            ]),
+            ("ZnO calibration batch 19", "awaiting review", [
+                "What is the current state of batch 19 for ZnO calibration?",
+                "Suppose a teammate asks about the next report. What stage is ZnO calibration batch 19 in?",
+            ]),
+            ("baseline drift", "Use a sealed blank first", [
+                "What is the first check when the baseline drifts?",
+                "If a new run has a drifting baseline, which control should I use?",
+            ]),
+            ("microscopy images", "A grayscale preview", [
+                "What format does the researcher prefer for images from microscopy?",
+                "Suppose I prepare new microscopy images for the lab. Which display format should I choose?",
+            ]),
+        )
+        for key, answer, pair in cases:
+            with self.subTest(key=key):
+                self.episodes = [{**self.episode, "key": key, "answer": answer}]
+                self.assertEqual(self.response({"0": pair}, [])["questions"], {0: pair})
+
+    def test_preserves_identifiers_and_rejects_answer_hints(self):
+        self.episodes = [{**self.episode, "key": "Alpha experiment A", "answer": "paused"}]
+        first = "What is the status of the Alpha experiment A?"
+        for second in (
+            "For a new report, what state has the Alpha project entered?",
+            "For a new report, is Alpha experiment A paused?",
+            "What is the Alpha experiment A status?",
+        ):
+            with self.subTest(question=second):
+                self.assertEqual(self.response({"0": [first, second]}, [])["questions"], {})
+        self.episodes = [self.episode]
+        for second in (
+            "For baseline drift in another run, should we check a blank?",
+            "When I notice a drifting baseline, should the control be sealed?",
+        ):
+            with self.subTest(question=second):
+                self.assertEqual(self.response({"0": [self.questions[0], second]}, [])["questions"], {})
+
+    def test_proposes_lessons_only_for_explicitly_allowed_capture_indices(self):
+        entries = [{**self.entries[0], "may_extract": True},
+                   {**self.entries[0], "id": "unchecked"}, {**self.entries[0], "id": "truthy", "may_extract": 1}]
+        lesson = {"capture_index": 0, "category": "process", "key": "baseline drift",
+                  "answer": "Use a sealed blank first", "evidence": "Use a sealed blank first."}
+        self.gemini.answer.return_value = json.dumps({
+            "questions": {}, "wiki": [], "lessons": [lesson, {**lesson, "capture_index": 1},
+                                                     {**lesson, "capture_index": 2}],
+        })
+        plan = self.planner.plan(entries, [])
+        self.assertEqual(plan["lessons"], [{
+            **{key: value for key, value in lesson.items() if key != "capture_index"},
+            "capture_id": entries[0]["id"],
+        }])
+        context = json.loads(self.gemini.answer.call_args.kwargs["context"])
+        self.assertEqual([note["capture_index"] for note in context["approved_notes"] if note.get("may_extract")], [0])
+        for invalid in ([lesson, lesson], [{**lesson, "category": "profile"}], [{**lesson, "evidence": ""}],
+                        [{**lesson, "capture_index": True}], [{**lesson, "questions": self.questions}], {}):
+            with self.subTest(lessons=invalid):
+                self.gemini.answer.return_value = json.dumps({"questions": {}, "wiki": [], "lessons": invalid})
+                self.assertEqual(self.planner.plan(entries, []), {"questions": {}, "wiki": []})
+
     def test_rejects_unbound_duplicate_or_unsupported_wiki(self):
         for wiki in (
             [{**self.card, "capture_index": True}],

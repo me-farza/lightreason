@@ -17,17 +17,18 @@ from uuid import UUID, uuid4
 
 from lightreason_memory.store import Store, _record, _required_text, _timestamp
 
+from .dream_lessons import grounded_lesson
 from .dream_selection import is_conversation_only
 from .skill_rehearsal import DAYS, lesson_key, training_batch
 
 _FACTS = (
     ("profile", re.compile(r"my (?P<key>[\w -]+?) is (?P<value>[^?!\n]+)", re.I),
      "What is my {key}?"),
-    ("preference", re.compile(r"I prefer (?P<value>[^?!\n]+?) for (?P<key>[^?!\n]+)", re.I),
+    ("preference", re.compile(r"I (?:(?:now|usually|always) )?prefer (?P<value>[^?!\n]+?) for (?P<key>[^?!\n]+)", re.I),
      "What do I prefer for {key}?"),
-    ("preference", re.compile(r"for (?P<key>[^?!\n]+?), I prefer (?P<value>[^?!\n]+)", re.I),
+    ("preference", re.compile(r"for (?P<key>[^?!\n]+?), I (?:(?:now|usually|always) )?prefer (?P<value>[^?!\n]+)", re.I),
      "What do I prefer for {key}?"),
-    ("preference", re.compile(r"I prefer (?P<value>[^?!\n]+)", re.I),
+    ("preference", re.compile(r"I (?:(?:now|usually|always) )?prefer (?P<value>[^?!\n]+)", re.I),
      "What is my general preference?"),
     ("experiment", re.compile(r"(?:our |the )?experiment (?P<key>[\w -]+?) (?:status is|is) (?P<value>[^?!\n]+)", re.I),
      "What is the status of experiment {key}?"),
@@ -42,9 +43,28 @@ _HEADING = re.compile(r"#{1,6}(?:\s+(.*)|$)")
 _FENCE = re.compile(r"(`{3,}|~{3,})(.*)")
 _LESSON = re.compile(r"(?:for|when|if) (?P<key>[^?!,:]+),\s*(?P<value>.+)", re.I)
 _FIRST_ACTION = re.compile(r"(?P<value>.+?\bfirst) for (?P<key>[^?!,:]+)", re.I)
-_BASELINE_DRIFT = re.compile(r"(?:the )?baseline drifts?", re.I)
+_BASELINE_DRIFT = re.compile(r"(?:the )?baseline drifts?(?: checks?)?", re.I)
+_START_ACTION = re.compile(
+    r"(?:i|we) (?:now |always |usually )?start (?P<key>[\w -]+?) by (?P<value>[^?!]+)", re.I,
+)
+_START_METHOD = re.compile(
+    r"(?:applying|blinding|calibrating|checking|cleaning|collecting|comparing|confirming|cooling|"
+    r"heating|holding|inspecting|keeping|labeling|labelling|loading|logging|measuring|mixing|"
+    r"preparing|recording|replacing|rinsing|running|setting|testing|using|verifying|waiting|weighing)\s+\S",
+    re.I,
+)
+_FINISHED_EXPERIMENT = re.compile(
+    r"(?:i|we) (?P<value>finished|completed) (?:the |our )?"
+    r"(?:(?P<before>[\w -]+?) experiment|experiment (?P<after>[\w -]+?))(?: today)?",
+    re.I,
+)
+_UNNAMED_TOPIC = re.compile(
+    r"(?:it|this|that|this one|(?:the )?(?:experiment|procedure)|something)", re.I,
+)
+_SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z])")
 _ACTION = re.compile(
-    r"(?:we\s+)?(?:always\s+)?(?:apply|blind|calibrate|check|choose|clean|collect|compare|confirm|cool|discard|heat|hold|inspect|"
+    r"(?:(?:i|we)\s+)?(?:(?:always|usually|now)\s+)?"
+    r"(?:apply|blind|calibrate|check|choose|clean|collect|compare|confirm|cool|discard|heat|hold|inspect|"
     r"keep|label|load|log|measure|mix|prepare|record|repeat|replace|report|rinse|run|select|set|shut down|"
     r"stop|test|use|verify|wait|weigh)\s+\S",
     re.I,
@@ -63,8 +83,11 @@ _RATIONALE = re.compile(
 )
 _RATIONALE_CONSTRAINT = re.compile(r"\b(?:before|after|except|must|never|only|should|unless|without)\b", re.I)
 _ILLUSTRATIVE = re.compile(r"for (?:example|instance)\s*,|if we wanted to\b", re.I)
-_UNCERTAIN = re.compile(r"\b(?:maybe|perhaps|possibly|probably|tentatively)\b", re.I)
-_CORRECTION = re.compile(r"(?im)^\s*(?:(?:[-*+]|\d+[.)])\s+)?correction\s*:")
+_UNCERTAIN = re.compile(
+    r"\b(?:maybe|perhaps|possibly|probably|tentatively|might|could|would|used to|previously)\b", re.I,
+)
+_REVISION_PREFIX = re.compile(r"^(?:correction\s*:|actually,)\s*", re.I)
+_CORRECTION = re.compile(r"(?im)^\s*(?:(?:[-*+]|\d+[.)])\s+)?(?:correction\s*:|actually,)")
 _EXTRA_STEP = re.compile(r"[,;!?]|\.\s|\b(?:and then|then|alternatively)\b", re.I)
 _PROCESS_QUESTION = "What does the {key} specify?"
 _EXPERIMENT_QUESTION = "What is the status of experiment {key}?"
@@ -92,7 +115,7 @@ def _note_sections(text):
             lines = []
             continue
         line = re.sub(r"^(?:[-*+] |\d+[.)]\s+)", "", line)
-        line = re.sub(r"^Correction:\s*", "", line, flags=re.I).strip().rstrip(".")
+        line = _REVISION_PREFIX.sub("", line).strip().rstrip(".")
         if line:
             lines.append(line)
     yield heading, lines
@@ -109,21 +132,51 @@ def _stated_fact(line):
     if experiment and _EXPERIMENT_STATUS.fullmatch(experiment["value"]):
         return "experiment", _EXPERIMENT_QUESTION, experiment["key"], experiment["value"]
 
+    finished = _FINISHED_EXPERIMENT.fullmatch(line)
+    if finished:
+        key = finished["before"] or finished["after"]
+        if key.casefold() not in {"a", "an", "the", "our", "today"} and not _UNNAMED_TOPIC.fullmatch(key):
+            return "experiment", _EXPERIMENT_QUESTION, key, finished["value"]
+
     fact = _COLOR.fullmatch(line)
     if fact:
         return "profile", "What color is my {key}?", fact["key"], fact["value"]
 
+    if _ILLUSTRATIVE.match(line):
+        return None
     lesson = _LESSON.fullmatch(line) or _FIRST_ACTION.fullmatch(line)
-    if lesson and not _ILLUSTRATIVE.match(line) and _compact_action(lesson["value"]):
-        key = re.sub(r"\s+occurs$", "", lesson["key"].strip(), flags=re.I)
-        if _BASELINE_DRIFT.fullmatch(key):
-            key = "baseline drift"
-        return "process", _PROCESS_QUESTION, key, lesson["value"]
+    if lesson and _compact_action(lesson["value"]):
+        key = re.sub(r"\s+(?:occurs|happens)$", "", lesson["key"].strip(), flags=re.I)
+        return _scoped_action(key, lesson["value"])
+    start = _START_ACTION.fullmatch(line)
+    if start and _START_METHOD.match(start["value"]) and _single_action_text(start["value"]):
+        key = re.sub(r"^the\s+", "", start["key"].strip(), flags=re.I)
+        return _scoped_action(key, start["value"])
     return None
 
 
+def _scoped_action(key, value):
+    if _UNNAMED_TOPIC.fullmatch(key) or _UNCERTAIN.search(key):
+        return None
+    key = "baseline drift" if _BASELINE_DRIFT.fullmatch(key) else key
+    return "process", _PROCESS_QUESTION, key, value
+
+
+def _single_action_text(value):
+    return not (_UNCERTAIN.search(value) or _EXTRA_STEP.search(value))
+
+
 def _compact_action(value):
-    return _ACTION.match(value) and not (_UNCERTAIN.search(value) or _EXTRA_STEP.search(value))
+    return _ACTION.match(value) and _single_action_text(value)
+
+
+def _independent_statements(line):
+    parts = _SENTENCE_BREAK.split(line, maxsplit=4)
+    if len(parts) > 1:
+        sentences = [_REVISION_PREFIX.sub("", part.rstrip(".")) for part in parts]
+        if all(_stated_fact(part) for part in sentences):
+            return sentences
+    return [line]
 
 
 def _single_directive(lines):
@@ -146,7 +199,10 @@ def _episodes(entry):
             match[1].strip() for line in lines if (match := _STATUS.fullmatch(line))
         ]
         directive = _single_directive(lines) if heading and heading[0] == "procedure" else None
-        for line in lines:
+        statements = lines if heading else (
+            sentence for line in lines for sentence in _independent_statements(line)
+        )
+        for line in statements:
             fact = _stated_fact(line)
             if not fact and heading:
                 category, key = heading
@@ -165,7 +221,7 @@ def _episodes(entry):
             # The destination tokenizer makes the final 12-row decision.
             compact = (len(value) <= 100 and len(value.split()) <= 12
                        and not (_EXTRA_STEP.search(value) or _UNCERTAIN.search(value)))
-            if category == "preference" and line.casefold().startswith("i prefer "):
+            if category == "preference" and line.casefold().startswith("i "):
                 compact = compact and " for " not in key.casefold()
             yield {
                 "capture_id": entry["id"], "source": entry["source"], "category": category,
@@ -184,6 +240,7 @@ class ProcedureMemory:
     _capacity = 24
     _width = 768
     _cutoff = 0.8
+    _retention_replay_limit = 2
 
     def __init__(self, path, destination_model):
         self.path = path
@@ -211,11 +268,13 @@ class ProcedureMemory:
             raise ValueError("Procedure memory is too large.")
         state = load(raw)
         fields = {"keys", "weights", "biases", "vectors", "lengths"}
-        if set(state) not in (fields, fields | {"probes"}) or state["keys"].ndim != 2:
+        if not fields <= set(state) <= fields | {"probes", "practice_probes"} or state["keys"].ndim != 2:
             raise ValueError("Procedure memory has an unexpected layout.")
         count = len(state["keys"])
-        if 1 <= count <= self._capacity and "probes" not in state:
-            state["probes"] = torch.zeros((count, self._width))
+        if 1 <= count <= self._capacity:
+            for field in ("probes", "practice_probes"):
+                if field not in state:
+                    state[field] = torch.zeros((count, self._width))
         specs = {
             "keys": ((count, 32), torch.uint8),
             "weights": ((count, self._width), torch.float32),
@@ -223,6 +282,7 @@ class ProcedureMemory:
             "vectors": ((count, MAX_ROWS, HIDDEN_SIZE), torch.bfloat16),
             "lengths": ((count,), torch.long),
             "probes": ((count, self._width), torch.float32),
+            "practice_probes": ((count, self._width), torch.float32),
         }
         if (not 1 <= count <= self._capacity
                 or any((state[k].shape, state[k].dtype) != spec or not torch.isfinite(state[k]).all()
@@ -383,6 +443,7 @@ class ProcedureMemory:
         key = example["key"]
         question = example["question"]
         kind = example.get("training_kind")
+        process = kind in ("process", None)
         if kind == "experiment":
             train_positive = f"How is the {key} experiment progressing?"
             check_positive = f"Where does the {key} experiment stand?"
@@ -414,6 +475,13 @@ class ProcedureMemory:
         ]
         for case in plan:
             case["origin"] = "local"
+        if process:
+            plan.extend((
+                {"question": f"What should I do first when dealing with {key}?",
+                 "split": "training", "origin": "local", **positive},
+                {"question": f"A new run involves {key}. How should I handle it?",
+                 "split": "held out", "origin": "local", **positive},
+            ))
         variants = example.get("question_variants")
         if isinstance(variants, (list, tuple)) and len(variants) == 2:
             def normalized(text):
@@ -433,7 +501,8 @@ class ProcedureMemory:
         trace.update(status="skipped", sampling={})
         answer = self._answer_rows(example["answer"])
         if answer is None:
-            progress("A note needs more than 12 native embedding rows. Use saved evidence for its full text.")
+            trace["reason"] = "This answer does not fit the 12-row neural memory format. Its full text remains in saved evidence."
+            progress(trace["reason"])
             return None, 0, []
         key = example["key"]
         state = self._load()
@@ -442,7 +511,8 @@ class ProcedureMemory:
         matching = (state["keys"] == address).all(dim=1).nonzero().flatten() if state else []
         slot = int(matching[0]) if len(matching) else count
         if slot >= self._capacity:
-            progress("Procedure memory is full. Existing procedures were preserved.")
+            trace["reason"] = "Procedure memory is full. Existing procedures were preserved."
+            progress(trace["reason"])
             return None, 0, []
         if plan is None:
             plan = self.question_plan(example)
@@ -457,14 +527,16 @@ class ProcedureMemory:
         def fallback(reason, discarded_steps=0):
             trace.update(plan=local_plan, planner_fallback=reason, discarded_optimizer_steps=discarded_steps,
                          sampling={})
+            trace.pop("reason", None)
             progress(reason)
             if on_progress is not None:
                 on_progress(status="training", optimizer_steps=discarded_steps, sampling={}, plan=local_plan,
                             planner_fallback=reason, discarded_optimizer_steps=discarded_steps)
 
-                def publish(*, status, optimizer_steps, sampling):
+                def publish(*, status, optimizer_steps, sampling, **extra):
                     on_progress(status=status, optimizer_steps=discarded_steps + optimizer_steps, sampling=sampling,
-                                plan=local_plan, planner_fallback=reason, discarded_optimizer_steps=discarded_steps)
+                                plan=local_plan, planner_fallback=reason, discarded_optimizer_steps=discarded_steps,
+                                **extra)
             else:
                 publish = None
             checkpoint, steps, checks = self._train_plan(
@@ -515,16 +587,31 @@ class ProcedureMemory:
                 return None, 0, baseline
         train = torch.stack([encode(case["question"]) for case in train_cases])
         targets = torch.tensor([int(case["expected"] == "recall") for case in train_cases])
+        # Replay training-only features from nearby old topics as negatives for the
+        # new gate. The independent retained probes below never enter this batch.
+        replay = [(float(probe @ train[0]), index, probe)
+                  for index, probe in enumerate(state.get("practice_probes", ()))
+                  if index != slot and probe.any()]
+        replay.sort(key=lambda item: (-item[0], item[1]))
+        nearby = [probe for _, _, probe in replay[:self._retention_replay_limit]]
+        trace["retention_replay_cases"] = len(nearby)
+        inputs = torch.cat((train, torch.stack(nearby))) if nearby else train
+        publish = on_progress
+        if nearby:
+            targets = torch.cat((targets, targets.new_zeros(len(nearby))))
+            if on_progress is not None:
+                def publish(**update):
+                    on_progress(**update, retention_replay_cases=len(nearby))
         with torch.enable_grad():
             gate = torch.nn.Linear(self._width, 1)
             with torch.no_grad():
                 gate.weight.zero_()
                 gate.bias.fill_(-2.)
-            step, trace["sampling"] = self._optimize(gate, train, targets, on_progress)
-        if on_progress is not None:
-            on_progress(status="validating", optimizer_steps=step, sampling=trace["sampling"])
+            step, trace["sampling"] = self._optimize(gate, inputs, targets, publish)
+        if publish is not None:
+            publish(status="validating", optimizer_steps=step, sampling=trace["sampling"])
         entry = {"keys": address, "weights": gate.weight[0].detach(), "biases": gate.bias[0].detach(),
-                 "vectors": rows, "lengths": torch.tensor(length), "probes": check[0]}
+                 "vectors": rows, "lengths": torch.tensor(length), "probes": check[0], "practice_probes": train[0]}
         if slot < count:
             candidate = {name: tensor.clone() for name, tensor in state.items()}
             for name, value in entry.items():
@@ -540,10 +627,14 @@ class ProcedureMemory:
             ident = bytes(state["keys"][old_slot].tolist()).hex()[:8]
             checks.append(self._check(state, candidate, f"Prior procedure {ident}", probe, "retain", old_slot,
                                       state["vectors"][old_slot], state["lengths"][old_slot], "retention"))
-        if any(outcome["reward"] < 0 for outcome in checks if outcome["split"] != "training"):
+        failed = [outcome for outcome in checks if outcome["reward"] < 0 and outcome["split"] != "training"]
+        if failed:
             trace["status"] = "held"
+            failures = {"recall": "recall on new wording", "abstain": "abstention", "retain": "retention"}
+            labels = dict.fromkeys(failures[outcome["expected"]] for outcome in failed)
+            trace["reason"] = f"Failed validation for {', '.join(labels)}. Earlier memory was kept."
             if not any(case.get("origin") == "gemini" for case in plan):
-                progress(f"Procedure policy for {key} did not pass validation. Earlier memory was kept.")
+                progress(f"{key}: {trace['reason']}")
             return None, step, checks
         self.path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         _require_private_directory(self.path.parent)
@@ -552,6 +643,7 @@ class ProcedureMemory:
             checkpoint = file_digest(file, "sha256").hexdigest()
         progress(f"Learned procedure recall for {key} in {step} optimizer steps.")
         trace["status"] = "promoted"
+        trace.pop("reason", None)
         return checkpoint, step, checks
 
 
@@ -991,9 +1083,8 @@ class Dream:
                 batch = [dict(row) for row in db.execute(
                     "SELECT * FROM dream_capture WHERE seq BETWEEN ? AND ? ORDER BY seq", (first, cut))]
                 approved = self._approved_rehearsal(db, cut)
-            episodes = []
+            facts_by_id = {}
             entries = []
-            clarifications = []
             chat_only = set()
             for row in batch:
                 facts = list(_episodes(row))[:4]
@@ -1005,41 +1096,49 @@ class Dream:
                     correction = _CORRECTION.search(row["text"]) is not None
                     for fact in facts:
                         fact.update(auto_chat=True, correction=correction)
+                facts_by_id[row["id"]] = facts
                 category = facts[0]["category"] if facts else row["kind"]
-                episodes.extend(facts)
-                entries.append({"id": row["id"], "text": row["text"][:1000], "source": row["source"],
-                                "category": category})
-                if any(fact["neural_eligible"] for fact in facts):
+                entry = {"id": row["id"], "text": row["text"][:1000], "source": row["source"], "category": category}
+                entries.append(entry)
+            pending = [row for row in batch if not row["promoted"] and row["id"] not in chat_only]
+            episodes = self._choose_lessons(facts_by_id)
+            self._progress("questions", f"Reviewed {len(batch)} captures. Checking {len(entries)} notes for lessons.",
+                           entries=entries, questions=self._public_questions(episodes))
+            wiki, proposals = self._plan_with_gemini(entries, episodes, {row["id"] for row in pending},
+                                                      facts_by_id)
+            clarifications = []
+            categories = {entry["id"]: entry for entry in entries}
+            for row in batch:
+                if row["id"] in chat_only:
                     continue
-                follow_up = self._follow_up(row["text"], row["source"], category, recognized=bool(facts))
+                facts = facts_by_id[row["id"]]
+                entry = categories[row["id"]]
+                if not facts and (lesson := grounded_lesson(row, proposals.get(row["id"]))) is not None:
+                    facts.append(lesson)
+                    entry["category"] = lesson["category"]
+                if any(fact["neural_eligible"] or fact.get("selection_reason") for fact in facts):
+                    continue
+                follow_up = self._follow_up(row["text"], row["source"], entry["category"], recognized=bool(facts))
                 if follow_up:
                     clarifications.append(follow_up)
-            latest_lessons = set()
-            for fact in reversed(episodes):
-                identity = (fact["category"], fact["key"].casefold())
-                if identity in latest_lessons and fact["neural_eligible"]:
-                    fact.update(neural_eligible=False, selection_reason="A newer note revises this lesson.")
-                latest_lessons.add(identity)
-            pending = [row for row in batch if not row["promoted"] and row["id"] not in chat_only]
-            self._progress("questions", f"Reviewed {len(batch)} captures. Checking {len(entries)} notes for lessons.",
-                           entries=entries)
-            wiki = self._plan_with_gemini(entries, episodes, {row["id"] for row in pending})
+            episodes = self._choose_lessons(facts_by_id)
             eligible = [fact for fact in episodes if fact["neural_eligible"]]
             intake = None
             if episodes or clarifications:
                 status = "ready" if eligible else "evidence_only" if episodes else "needs_detail"
                 intake = {"status": status, "captured_count": len(entries), "recognized_lessons": len(episodes),
                           "trainable_lessons": len(eligible)}
-            public_fields = ("question", "answer", "category", "source", "reward", "neural_eligible", "selection_reason")
-            public = [{key: item[key] for key in public_fields if key in item} for item in episodes]
             selection = {"reviewed": len(batch), "conversation_only": len(chat_only),
                          "excluded_lessons": sum("selection_reason" in fact for fact in episodes),
                          "training_lessons": len(eligible)}
             message = f"Selected {len(eligible)} training candidates from {len(entries)} approved notes."
+            grounded_proposals = sum(item.get("origin") == "gemini_extraction" for item in eligible)
+            if grounded_proposals:
+                message += f" Matched {grounded_proposals} Gemini lesson proposals to exact source text."
             if clarifications:
                 message += f" Added {len(clarifications)} follow-up questions for notes that need detail."
-            self._progress("review", message, questions=public, intake=intake,
-                           clarifications=clarifications, selection=selection)
+            self._progress("review", message, questions=self._public_questions(episodes), intake=intake,
+                           entries=entries, clarifications=clarifications, selection=selection)
             if self.trainer and eligible:
                 self._progress("train", f"Running local reward and replay checks on {len(eligible)} verified examples.")
                 def progress(message):
@@ -1082,7 +1181,7 @@ class Dream:
             self._progress("promote", f"Saving {len(pending)} approved captures in local evidence.",
                            training=training, skill=skill)
             for row in pending:
-                self._promote(row, [fact for fact in episodes if fact["capture_id"] == row["id"]], wiki.get(row["id"]))
+                self._promote(row, facts_by_id[row["id"]], wiki.get(row["id"]))
             updates = training.get("promotions", 0)
             held = sum(run["status"] == "held" for run in training.get("policy_runs", ()))
             if held:
@@ -1105,10 +1204,28 @@ class Dream:
         finally:
             os.close(lease)
 
-    def _plan_with_gemini(self, entries, episodes, pending_ids):
+    @staticmethod
+    def _public_questions(episodes):
+        fields = ("question", "answer", "category", "source", "reward", "neural_eligible",
+                  "selection_reason", "origin", "observation")
+        return [{key: item[key] for key in fields if key in item} for item in episodes]
+
+    @staticmethod
+    def _choose_lessons(facts_by_id):
+        episodes = [fact for facts in facts_by_id.values() for fact in facts]
+        latest = set()
+        for fact in reversed(episodes):
+            identity = (fact["category"], fact["key"].casefold())
+            if identity in latest and fact["neural_eligible"]:
+                fact.update(neural_eligible=False, selection_reason="A newer note revises this lesson.")
+            latest.add(identity)
+        return episodes
+
+    def _plan_with_gemini(self, entries, episodes, pending_ids, facts_by_id):
         if not self.planner or not pending_ids:
-            return {}
-        planning_entries = [entry for entry in entries if entry["id"] in pending_ids]
+            return {}, {}
+        planning_entries = [dict(entry, may_extract=not facts_by_id[entry["id"]])
+                            for entry in entries if entry["id"] in pending_ids]
         planning_episodes = [ep for ep in episodes if ep["capture_id"] in pending_ids
                              and ep["neural_eligible"] and ep["training_kind"] in {"process", "experiment", "preference"}]
         self._progress("questions", "Gemini is drafting practice questions and organizing wiki notes.",
@@ -1129,7 +1246,9 @@ class Dream:
             elif index in variants:
                 episode["question_variants"] = variants[index]
         wiki = {item["capture_id"]: item for item in plan["wiki"] if item["capture_id"] in pending_ids}
-        if variants or wiki or excluded:
+        proposals = {item["capture_id"]: item for item in plan.get("lessons", ())
+                     if item["capture_id"] in pending_ids}
+        if variants or wiki or excluded or proposals:
             self._progress("questions",
                            f"Gemini drafted {2 * len(variants)} practice and validation questions and organized {len(wiki)} wiki notes.",
                            planning={"status": "ready", "proposed_questions": 2 * len(variants),
@@ -1137,7 +1256,7 @@ class Dream:
         else:
             self._progress("questions", "Gemini returned no usable proposals. Dream is using its local questions and wiki index.",
                            planning={"status": "fallback", "proposed_questions": 0, "wiki_notes": 0})
-        return wiki
+        return wiki, proposals
 
     def _promote(self, row, facts, wiki=None):
         # One explicit fact can supersede an earlier capture. A document with

@@ -561,6 +561,7 @@ function renderTraining(training) {
         "dream-validation"));
     }
     if (run.source) item.append(node("p", run.source, "dream-caption"));
+    if (run.reason) item.append(node("p", run.reason, "dream-caption"));
     if (run.planner_fallback) item.append(node("p", run.planner_fallback, "dream-caption"));
     if (run.answer) item.append(node("p", "Expected answer · " + run.answer));
     const checks = run.checks || [];
@@ -628,9 +629,11 @@ function renderDreamQuestions(data) {
       card.append(answer);
     }
     if (item.selection_reason) card.append(node("p", item.selection_reason));
-    if (item.source || item.reward != null && !item.selection_reason) {
+    if (item.source || item.observation || item.reward != null && !item.selection_reason) {
       const details = node("details");
       details.append(node("summary", item.source ? "Source · " + item.source : "Scoring"));
+      if (item.observation) details.append(node("p", item.observation));
+      if (item.origin === "gemini_extraction") details.append(node("p", "Gemini proposed this lesson from the quoted note."));
       if (item.reward != null && !item.selection_reason) {
         details.append(node("p", typeof item.reward === "number" ? "Reward " + item.reward : item.reward));
       }

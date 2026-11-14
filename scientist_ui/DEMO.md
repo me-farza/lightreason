@@ -7,14 +7,14 @@ Use a fresh demo workspace and select **Gemini · local learned memory**. The no
 Send these as **two separate chat messages** so the wiki can track each procedure's revisions. **Save for Dream** is on by default for this chat. Uncheck it before sending any message you want to leave out of the Dream queue.
 
 ```text
-For baseline drift, use a fresh reference first.
+When the baseline drifts, I always use a fresh reference first.
 ```
 
 ```text
-For visual scoring, blind the scorer first.
+For visual scoring, I always blind the scorer before rating.
 ```
 
-Open **Architecture** in the top navigation to show where chat, Dream and the wiki connect. Return to **Chat**, open **Dream** and click **Run Dream**. Under **Questions from your notes**, show a question paired with the action from the note. Under **Local 3B training and validation**, expand a procedure to see the optimizer steps, sampled mean reward, and policy entropy. Mean reward averages the sampled recall and abstention decisions scored by the harness. Entropy shows how uncertain those sampled decisions were. Look for **Saved** once a candidate passes validation. A **Held** candidate leaves the active memory as it was before that update.
+Open **Architecture** in the top navigation to show where chat, Dream and the wiki connect. Return to **Chat**, open **Dream** and click **Run Dream**. Under **Questions from your notes**, expand the source to show the original wording and expected action. Under **Local 3B training and validation**, expand a procedure to see the optimizer steps, sampled mean reward, and policy entropy. Mean reward averages the sampled recall and abstention decisions scored by the harness. Entropy shows how uncertain those sampled decisions were. Look for **Saved** once a candidate passes validation. A **Held** candidate leaves the active memory as it was before that update.
 
 When both procedures show **Saved**, click **Morning**. Send the following checks with **Save for Dream** unchecked. Open **Inspect memory** under each reply.
 
@@ -28,7 +28,7 @@ When both procedures show **Saved**, click **Morning**. Send the following check
 Send this correction with **Save for Dream** checked.
 
 ```text
-Correction: for baseline drift, use a sealed blank first.
+Actually, I now start baseline drift checks by using a sealed blank.
 ```
 
 Click **Dream**, then **Run Dream**. Show the held-out check for the corrected rule and the retention check for the other lesson. When the correction shows **Saved**, return to **Morning**. The fresh chat lets you test recall without including the teaching turns. For isolated checks, use **New chat** between questions and uncheck **Save for Dream** before each send.
@@ -39,7 +39,7 @@ Click **Dream**, then **Run Dream**. Show the held-out check for the corrected r
 | For the visual scoring, what should I set or do? | Blind the scorer first. |
 | What settings does the unrelated reference procedure use? | No local memory was recalled. |
 
-Use these known held-out wordings for the main demo. If you want to show a new scenario, try “A new spectrometer shows baseline drift between runs. What check should I do first?” and inspect whether the learned memory was recalled.
+The training report also shows new-run questions and whether the updated policy passed them. If you want to show a new scenario, try “A new spectrometer shows baseline drift between runs. What check should I do first?” and inspect whether the learned memory was recalled.
 
 ## Open the saved evidence
 

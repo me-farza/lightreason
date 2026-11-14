@@ -2,7 +2,7 @@
 
 import unittest
 
-from scientist_ui.dream import _episodes
+from scientist_ui.dream import _CORRECTION, _episodes
 
 
 def episodes(text):
@@ -131,6 +131,45 @@ class DreamEpisodeTests(unittest.TestCase):
         self.assertEqual(anneal["answer"], "425C at 3C/min")
         self.assertTrue(anneal["neural_eligible"])
         self.assertFalse(profile["neural_eligible"])
+
+    def test_habitual_first_person_note_and_natural_correction_share_topic(self):
+        original, = episodes("When the baseline drifts, I always use a fresh reference first.")
+        revision = "Actually, I now start baseline drift checks by using a sealed blank."
+        corrected, = episodes(revision)
+        self.assertEqual(original["key"], "baseline drift")
+        self.assertEqual(original["key"], corrected["key"])
+        self.assertEqual(original["answer"], "I always use a fresh reference first")
+        self.assertEqual(corrected["answer"], "using a sealed blank")
+        self.assertTrue(original["neural_eligible"] and corrected["neural_eligible"])
+        self.assertIsNotNone(_CORRECTION.search(revision))
+
+    def test_natural_preference_and_finished_experiment_can_share_one_note(self):
+        observation = "We finished the ZnO experiment today. I now prefer short checklists for lab notes."
+        status, preference = episodes(observation)
+        self.assertEqual(
+            [(lesson["category"], lesson["key"], lesson["answer"]) for lesson in (status, preference)],
+            [("experiment", "ZnO", "finished"), ("preference", "lab notes", "short checklists")],
+        )
+        self.assertTrue(status["neural_eligible"] and preference["neural_eligible"])
+        for lesson in (status, preference):
+            self.assertIn(lesson["answer"], observation)
+
+        scoped, = episodes("For lab reports, I usually prefer one-page summaries.")
+        self.assertEqual((scoped["key"], scoped["answer"]), ("lab reports", "one-page summaries"))
+
+    def test_natural_expansion_leaves_ambiguous_or_dependent_notes_untrained(self):
+        for note in (
+            "When the baseline drifts, I might use a sealed blank.",
+            "When that happens, I always use a sealed blank.",
+            "I now start baseline drift checks by using a sealed blank. Then discard it.",
+            "I now start baseline drift checks by guessing.",
+            "I now start this by using a sealed blank.",
+            "We may have finished the ZnO experiment today.",
+            "We finished the experiment today.",
+            "Hypothetically. I now start baseline drift checks by using a sealed blank.",
+        ):
+            with self.subTest(note=note):
+                self.assertFalse(any(lesson["neural_eligible"] for lesson in episodes(note)))
 
     def test_long_and_tentative_explicit_values_remain_evidence_only(self):
         tentative, lengthy = episodes(
